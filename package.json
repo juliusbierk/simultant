@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "lint": "vue-cli-service lint",
-    "build": "vue-cli-service electron:build && pyinstaller --noconfirm --onefile pysrc/simulserver.py && cp dist/simulserver.exe dist_electron/win-unpacked/",
+    "build": "vue-cli-service electron:build && pyinstaller --noconfirm --onefile pysrc/simulserver.py && cp dist/simulserver.exe dist_electron/win-unpacked/_simulserver.exe",
     "serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"

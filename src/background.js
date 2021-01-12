@@ -5,7 +5,6 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 import { exec, spawn } from "child_process";
-import { fetch } from "electron-fetch";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -24,12 +23,15 @@ function start_python_server() {
       console.log('server err: ' + data.toString());
     });
   } else {
-    server = spawn("simulserver.exe", ["--start"]);
+    server = spawn("_simulserver.exe");
   }
 }
 
 function stop_python_server() {
   server.kill('SIGINT');
+  if (!isDevelopment) {
+    exec("taskkill.exe /f /im _simulserver.exe")
+  }
 }
 
 start_python_server();
@@ -38,8 +40,11 @@ start_python_server();
 async function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 900,
+    minWidth: 900,
+    minHeight: 700,
+    show: false,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -58,6 +63,10 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL("app://./index.html");
   }
+
+  win.once('ready-to-show', () => {
+    setTimeout(() => { win.show()}, 100);
+})
 }
 
 // Quit when all windows are closed.
@@ -97,9 +106,7 @@ function sleep(ms) {
 }
 
 app.on("before-quit",  (event) => {
-  console.log('heeeeeeeere');
   stop_python_server();
-  console.log('heeeeeeeere2');
 });
 
 // Exit cleanly on request from parent process in development mode.
