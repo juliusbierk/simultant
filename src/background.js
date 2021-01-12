@@ -4,11 +4,36 @@ import { app, protocol, BrowserWindow } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
+import { exec, spawn } from "child_process";
+import { fetch } from "electron-fetch";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } }
 ]);
+
+var server = null;
+
+function start_python_server() {
+  if (isDevelopment) {
+    server = spawn("python", ["pysrc/simulserver.py", "--start"]);
+    server.stdout.on('data', function (data) {
+      console.log(data.toString());
+    });
+    server.stderr.on('data', function (data) {
+      console.log('server err: ' + data.toString());
+    });
+  } else {
+    server = spawn("simulserver.exe", ["--start"]);
+  }
+}
+
+function stop_python_server() {
+  server.kill('SIGINT');
+}
+
+start_python_server();
+
 
 async function createWindow() {
   // Create the browser window.
@@ -54,6 +79,7 @@ app.on("activate", () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", async () => {
+
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     try {
@@ -63,6 +89,17 @@ app.on("ready", async () => {
     }
   }
   createWindow();
+});
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+app.on("before-quit",  (event) => {
+  console.log('heeeeeeeere');
+  stop_python_server();
+  console.log('heeeeeeeere2');
 });
 
 // Exit cleanly on request from parent process in development mode.
