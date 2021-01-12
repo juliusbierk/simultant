@@ -28,3 +28,5 @@ pnpm-debug.log*
 # Python
 /pysrc/build
 /pysrc/dist
+/build
+/dist

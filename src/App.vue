@@ -1,4 +1,15 @@
 <template>
+
+  <nav data-role="ribbonmenu">
+    <ul class="tabs-holder">
+        <li class="static"><a href="#">Static</a></li>
+        <li><a href="#">One</a></li>
+        <li><a href="#">Two</a></li>
+        <li><a href="#">Three</a></li>
+    </ul>
+
+  </nav>
+
   <div id="nav">
     <router-link to="/">Home</router-link> |
     <router-link to="/about">About</router-link>
@@ -36,4 +47,7 @@
     cursor: default;
 }
 
+input, button, textarea, :focus {
+    outline: none;
+}
 </style>
