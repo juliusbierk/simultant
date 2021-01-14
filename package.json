@@ -15,7 +15,7 @@
     "codemirror": "^5.59.1",
     "core-js": "^3.6.5",
     "electron-fetch": "^1.7.3",
-    "fetch": "^1.1.0",
+    "lodash": "^4.17.20",
     "metro4": "^4.4.3",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",

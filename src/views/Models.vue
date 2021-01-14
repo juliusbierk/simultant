@@ -67,6 +67,34 @@
             <p></p>
 
             <div id="code"></div>
+
+            <p></p>
+
+            <div class="grid">
+              <div class="row">
+                <div class="offset-1 cell-2">Model Parameters:</div>
+                <div class="cell">
+                  <button
+                    style="margin-right:5px"
+                    data-role="hint"
+                    data-hint-text="Default value: 1"
+                    data-cls-hint="bg-cyan fg-white"
+                    class="defaultcursor button secondary cycle small outline"
+                  >
+                    a
+                  </button>
+                  <button
+                    style="margin-right:5px"
+                    data-role="hint"
+                    data-hint-text="Default value: 1"
+                    data-cls-hint="bg-cyan fg-white"
+                    class="defaultcursor button secondary cycle small outline"
+                  >
+                    b
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -80,6 +108,7 @@
 
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
+import _ from "lodash";
 
 export default {
   name: "Home",
@@ -87,11 +116,13 @@ export default {
     return {
       name: "New Model",
       expr_mode: true,
-      code: "def New_Model(x, a, b):\n    return a + b * x\n",
-      ode_code: "def New_Model(x, y, a, b):\n    return a * y[1], -b * y[0]\n",
+      code: "def New_Model(x, a=1, b=1):\n    return a + b * x\n",
+      ode_code:
+        "def New_Model(x, y, a=1, b=1):\n    return a * y[1], -b * y[0]\n",
       cmcode: null,
       marker: null,
-      add_model: false
+      add_model: false,
+      py: "http://127.0.0.1:7555"
     };
   },
   computed: {
@@ -137,6 +168,19 @@ export default {
         { line: 0, ch: s.length + (this.expr_mode ? 0 : 3) },
         { readOnly: true }
       );
+    },
+    check_model() {
+      var c = this.expr_mode ? this.code : this.ode_code;
+      fetch(this.py + "/check_code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ code: c, expr_mode: this.expr_mode,
+          name_underscore: this.name_underscore, name: this.name })
+      }).then(async result => {
+        console.log(await result.json());
+      });
     }
   },
   mounted: function() {
@@ -169,12 +213,15 @@ export default {
       { line: 0, ch: 16 },
       { readOnly: true }
     );
+
+    var throttled_check_model = _.debounce(this.check_model, 1000);
     window.cmcode.on("change", cm => {
       if (this.expr_mode) {
         this.code = cm.getValue();
       } else {
         this.ode_code = cm.getValue();
       }
+      throttled_check_model();
     });
 
     window.cmcode.on("paste", (cm, t) => {
@@ -184,4 +231,6 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+
+</style>
