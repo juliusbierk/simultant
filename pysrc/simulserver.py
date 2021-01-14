@@ -52,7 +52,7 @@ def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
             if hasattr(r, '__len__') and len(r) != 1:
                 error = 'Output is not one-dimensional.'
         except Exception as e:
-            error = str(e)
+            error = str(e).replace('<string>, ', '')
 
     else:
         try:
@@ -66,7 +66,7 @@ def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
                 error = 'Invalid selected output dimension'
 
         except Exception as e:
-            error = str(e)
+            error = str(e).replace('<string>, ', '')
 
     return error
 
@@ -91,7 +91,7 @@ async def check_code(request):
         exec(code, torchfcts, d)
         f = d[data['name_underscore']]
     except Exception as e:
-        error = 'Could not parse python function:\n' + str(e)
+        error = str(e).replace('<string>, ', '')
         return web.json_response({'error': error})
 
     try:
