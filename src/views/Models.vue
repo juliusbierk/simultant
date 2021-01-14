@@ -73,12 +73,12 @@
                 <div
                   class="cell-6"
                   data-role="hint"
-                  data-hint-text="The dimension of the ODE."
+                  data-hint-text="The dimension of the ODE"
                   hintHide="0"
                   data-cls-hint="bg-lightCyan fg-white"
                 >
                   <input
-                          @change="delayed_check_model"
+                    @change="delayed_check_model"
                     type="text"
                     data-role="input"
                     data-prepend="Dimension (y):"
@@ -93,15 +93,15 @@
                 <div
                   class="cell-6"
                   data-role="hint"
-                  data-hint-text="The index of y which will be used."
+                  data-hint-text="The index of y containing the fit function"
                   hintHide="0"
                   data-cls-hint="bg-lightCyan fg-white"
                 >
                   <input
-                          @change="delayed_check_model"
+                    @change="delayed_check_model"
                     type="text"
                     data-role="input"
-                    data-prepend="Function index (y)"
+                    data-prepend="Function index (y):"
                     :data-validate="'min=0 max=' + (ode_dim - 1).toString()"
                     v-model="ode_dim_select"
                   />
@@ -120,7 +120,7 @@
 
             <div class="grid">
               <div v-if="code_error" class="row">
-                <div class="offset-1 cell-9">
+                <div class="offset-1 cell-10">
                   <div
                     class="remark alert"
                     style="margin-top:0; margin-bottom:0"
@@ -130,7 +130,7 @@
                 </div>
               </div>
               <div v-else class="row">
-                <div class="offset-1 cell-9">
+                <div class="offset-1 cell-10">
                   <div
                     class="remark success"
                     style="margin-top:0; margin-bottom:0"
@@ -141,7 +141,7 @@
               </div>
 
               <div v-if="parameters" class="row">
-                <div class="offset-1 cell-9">
+                <div class="offset-1 cell-10">
                   <div
                     class="remark primary"
                     style="margin-top:0; margin-bottom:0"
@@ -165,7 +165,7 @@
               </div>
 
               <div v-if="running_code" class="row">
-                <div class="offset-1 cell-9">
+                <div class="offset-1 cell-10">
                   <div
                     data-role="progress"
                     data-type="line"
@@ -173,6 +173,27 @@
                   ></div>
                 </div>
               </div>
+
+              <p></p>
+
+            <div class="row">
+              <div class="cell-5 offset-1" ><button @click="reset" class="defaultcursor button" style="margin-right:10px">
+                Reset
+              </button></div>
+
+              <div class="cell-4 offset-1"><div class="d-flex flex-row-r">
+              <button
+                v-if="!running_code && !code_error"
+                class="defaultcursor button success"
+                style="margin-right:10px"
+              >
+                Add Model
+              </button>
+
+            </div></div>
+            </div>
+
+
             </div>
           </div>
         </div>
@@ -196,8 +217,10 @@ export default {
       py: "http://127.0.0.1:7555",
       name: "New Model",
       expr_mode: true,
-      code: "def New_Model(x, a=1, b=1):\n    return a + b * x\n",
-      ode_code:
+      code: null,
+      ode_code: null,
+      orig_code: "def New_Model(x, a=1, b=1):\n    return a + b * x\n",
+      orig_ode_code:
         "def New_Model(x, y, a=1, b=1):\n    return a * y[1], -b * y[0]\n",
       cmcode: null,
       marker: null,
@@ -218,6 +241,24 @@ export default {
     // HelloWorld
   },
   methods: {
+    reset() {
+      this.code = this.orig_code;
+      this.ode_code = this.orig_ode_code;
+      this.expr_mode = true;
+      this.ode_dim = 2;
+      this.ode_dim_select = 0;
+      this.name = "New Model";
+
+      window.cmcode.setValue(this.code);
+
+      this.marker = window.cmcode.markText(
+        { line: 0, ch: 0 },
+        { line: 0, ch: 16 },
+        { readOnly: true }
+      );
+
+      this.check_model();
+    },
     toggle_add_model() {
       this.add_model = !this.add_model;
       setTimeout(() => {
@@ -266,7 +307,7 @@ export default {
           name_underscore: this.name_underscore,
           name: this.name,
           ode_dim: parseInt(this.ode_dim),
-          ode_dim_select: parseInt(this.ode_dim_select),
+          ode_dim_select: parseInt(this.ode_dim_select)
         })
       }).then(async result => {
         var res = await result.json();
@@ -275,13 +316,13 @@ export default {
         this.code_error = res.error;
       });
     },
-      delayed_check_model() {
-        this.running_code = true;
+    delayed_check_model() {
+      this.running_code = true;
 
-        setTimeout(() => {
-            this.check_model();
-        }, 1000);
-      },
+      setTimeout(() => {
+        this.check_model();
+      }, 1000);
+    }
   },
   mounted: function() {
     function betterTab(cm) {
@@ -298,13 +339,16 @@ export default {
       }
     }
 
+    this.code = this.orig_code;
+    this.ode_code = this.orig_ode_code;
+
     // For some reason assigning CodeMirror to vue data breaks codemirror, so we assign to window:
     window.cmcode = CodeMirror(document.querySelector("#code"), {
       lineNumbers: true,
       mode: "python",
       tabSize: 4,
       indentUnit: 4,
-      value: this.expr_mode ? this.code : this.ode_code,
+      value: this.code,
       extraKeys: { Tab: betterTab }
     });
 

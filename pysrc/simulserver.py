@@ -62,7 +62,9 @@ def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
             if len(r) != ode_dim:
                 error = f'Output of function does not have required dimension ({ode_dim})'
 
-            r = r[ode_dim_select]
+            if not (0 <= ode_dim_select <= len(r) - 1):
+                error = 'Invalid selected output dimension'
+
         except Exception as e:
             error = str(e)
 
