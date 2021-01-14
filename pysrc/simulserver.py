@@ -2,6 +2,8 @@ from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 import inspect
+import torch
+
 
 HOST = '127.0.0.1'
 PORT = 7555
@@ -40,6 +42,18 @@ def adapt_code_default_args(code, expr=True):
     return "\n".join(lines)
 
 
+def check_function_run(f, expr=True):
+    error = None
+    if expr:
+        try:
+            f(x=torch.tensor([1]))
+        except Exception as e:
+            error = 'Function could not run:\n' + str(e)
+    else:
+        print('NOT IMPLEMENTED YET')
+
+    return error
+
 def get_default_args(func):
     signature = inspect.signature(func)
     return {
@@ -55,8 +69,6 @@ async def handle(request):
 async def check_code(request):
     data = await request.json()
     code = adapt_code_default_args(data['code'], expr=data['expr_mode'])
-
-    print(code)
 
     try:
         d = {}
@@ -81,7 +93,8 @@ async def check_code(request):
             return web.json_response({'error': "Error: `y` must be an argument for ODEs."})
         del args['y']
 
-    return web.json_response({'error': None, 'args': args})
+    error_on_run = check_function_run(f, expr=data['expr_mode'])
+    return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in args.items()]})
 
 async def shuwdown(request):
     print('Stopping python server')

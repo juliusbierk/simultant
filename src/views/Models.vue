@@ -71,29 +71,50 @@
             <p></p>
 
             <div class="grid">
-              <div class="row">
-                <div class="offset-1 cell-2">Model Parameters:</div>
-                <div class="cell">
-                  <button
-                    style="margin-right:5px"
-                    data-role="hint"
-                    data-hint-text="Default value: 1"
-                    data-cls-hint="bg-cyan fg-white"
-                    class="defaultcursor button secondary cycle small outline"
-                  >
-                    a
-                  </button>
-                  <button
-                    style="margin-right:5px"
-                    data-role="hint"
-                    data-hint-text="Default value: 1"
-                    data-cls-hint="bg-cyan fg-white"
-                    class="defaultcursor button secondary cycle small outline"
-                  >
-                    b
-                  </button>
+
+              <div v-if="code_error" class="row">
+                <div class="offset-1 cell-9">
+                  <div class="remark alert" style="margin-top:0; margin-bottom:0">
+                    <b>Code error:</b> {{ code_error }}
+                  </div>
                 </div>
               </div>
+              <div v-else class="row">
+                <div class="offset-1 cell-9">
+                  <div class="remark success" style="margin-top:0; margin-bottom:0"><b>Code status:</b> Running.</div>
+                </div>
+              </div>
+
+                <div v-if="parameters" class="row">
+                <div class="offset-1 cell-9">
+                  <div class="remark primary" style="margin-top:0; margin-bottom:0">
+                    <b>Parameters:</b>
+
+                    <button
+                      v-for="p in parameters"
+                      v-bind:key="p.name"
+                      style="margin-left:5px"
+                      data-role="hint"
+                      hintHide="0"
+                      :data-hint-text="'Default value: ' + p.value.toString()"
+                      data-cls-hint="bg-cyan fg-white"
+                      class="defaultcursor button secondary small rounded outline"
+                    >
+                      {{ p.name }}
+                    </button>
+                  </div>
+                </div>
+
+
+              </div>
+
+                <div v-if="running_code" class="row">
+                    <div class="offset-1 cell-9">
+
+                <div data-role="progress" data-type="line" data-small="true"></div>
+                    </div>
+                </div>
+
             </div>
           </div>
         </div>
@@ -114,6 +135,7 @@ export default {
   name: "Home",
   data: function() {
     return {
+      py: "http://127.0.0.1:7555",
       name: "New Model",
       expr_mode: true,
       code: "def New_Model(x, a=1, b=1):\n    return a + b * x\n",
@@ -122,7 +144,9 @@ export default {
       cmcode: null,
       marker: null,
       add_model: false,
-      py: "http://127.0.0.1:7555"
+      parameters: null,
+      code_error: null,
+        running_code: false,
     };
   },
   computed: {
@@ -176,10 +200,17 @@ export default {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ code: c, expr_mode: this.expr_mode,
-          name_underscore: this.name_underscore, name: this.name })
+        body: JSON.stringify({
+          code: c,
+          expr_mode: this.expr_mode,
+          name_underscore: this.name_underscore,
+          name: this.name
+        })
       }).then(async result => {
-        console.log(await result.json());
+        var res = await result.json();
+        this.running_code = false;
+        this.parameters = res.args;
+        this.code_error = res.error;
       });
     }
   },
@@ -214,6 +245,8 @@ export default {
       { readOnly: true }
     );
 
+    this.check_model();
+
     var throttled_check_model = _.debounce(this.check_model, 1000);
     window.cmcode.on("change", cm => {
       if (this.expr_mode) {
@@ -221,6 +254,7 @@ export default {
       } else {
         this.ode_code = cm.getValue();
       }
+      this.running_code = true;
       throttled_check_model();
     });
 
@@ -231,6 +265,4 @@ export default {
 };
 </script>
 
-<style>
-
-</style>
+<style></style>
