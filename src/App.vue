@@ -1,7 +1,10 @@
 <template>
   <nav data-role="ribbonmenu">
     <ul class="tabs-holder h-100">
-      <li v-on:click="rpush('/')" class="active">
+      <li v-on:click="rpush('/')">
+        <a href="#"><p class="topmenuitem">Home</p></a>
+      </li>
+      <li v-on:click="rpush('/models')">
         <a href="#"><p class="topmenuitem">Models</p></a>
       </li>
       <li v-on:click="rpush('/data')">
