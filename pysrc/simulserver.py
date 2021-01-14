@@ -3,16 +3,12 @@ from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 import inspect
 import torch
-from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace, logspace, arange, \
-    eye, zeros_like, ones_like, heaviside, cat, hstack, vstack, gather, nonzero, reshape, squeeze, take, \
-    transpose, unsqueeze, abs, cosh, sinh, tan, tanh, asinh, acosh, atanh, ceil, clamp, erf, erfc, \
-    floor, log, lgamma, log10, logical_and, logical_not, logical_or, logical_xor, pow, round, sigmoid, \
-    argmin, argmax, amin, amax, min, max, mean, mode, median, sum, prod, std, unique, var, isinf, isnan, \
-    isfinite, fft, ifft, rfft, ifft, cross, cumsum, cumprod, diag, flatten, roll, dot, det, solve, trapz
+from torchfcts import torchfcts
 
 
 HOST = '127.0.0.1'
 PORT = 7555
+
 
 sys_print = print
 
@@ -52,9 +48,9 @@ def check_function_run(f, expr=True):
     error = None
     if expr:
         try:
-            f(x=torch.tensor([1]))
+            f(x=torch.tensor([1.0]))
         except Exception as e:
-            error = 'Function could not run:\n' + str(e)
+            error = str(e)
     else:
         print('NOT IMPLEMENTED YET')
 
@@ -78,7 +74,7 @@ async def check_code(request):
 
     try:
         d = {}
-        exec(code, {}, d)
+        exec(code, torchfcts, d)
         f = d[data['name_underscore']]
     except Exception as e:
         error = 'Could not parse python function:\n' + str(e)
