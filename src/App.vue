@@ -1,29 +1,55 @@
 <template>
-
   <nav data-role="ribbonmenu">
-    <ul class="tabs-holder">
-        <li class="static"><a href="#">Static</a></li>
-        <li><a href="#">One</a></li>
-        <li><a href="#">Two</a></li>
-        <li><a href="#">Three</a></li>
+    <ul class="tabs-holder h-100">
+      <li v-on:click="rpush('/')" class="active">
+        <a href="#"><p class="topmenuitem">Models</p></a>
+      </li>
+      <li v-on:click="rpush('/about')">
+        <a href="#"><p class="topmenuitem">Data</p></a>
+      </li>
+      <li v-on:click="rpush('/about')">
+        <a href="#"><p class="topmenuitem">Specify Fit</p></a>
+      </li>
+      <li v-on:click="rpush('/about')">
+        <a href="#"><p class="topmenuitem">Run Fit</p></a>
+      </li>
     </ul>
-
   </nav>
 
-  <div id="nav">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </div>
+  <!--  <div id="nav">-->
+
+  <!--  </div>-->
+
   <router-view />
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      greeting: "Hello"
+    };
+  },
+  methods: {
+    rpush(to) {
+      this.$router.push(to);
+    }
+  }
+};
+</script>
 
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
+}
+
+.topmenuitem {
+  position: relative;
+  top: 1px;
+  font-size: 14px;
 }
 
 #nav {
@@ -41,13 +67,21 @@
 
 :not(input):not(textarea),
 :not(input):not(textarea)::after,
-:not(input):not(textarea)::before {
-    -webkit-user-select: none;
-    user-select: none;
-    cursor: default;
+:not(input):not(textarea)::before,
+:not(#code) {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-input, button, textarea, :focus {
-    outline: none;
+input,
+button,
+textarea,
+:focus {
+  outline: none;
+}
+
+button,
+a {
+  cursor: default;
 }
 </style>

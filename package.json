@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "webserve": "vue-cli-service serve",
     "lint": "vue-cli-service lint",
     "build": "vue-cli-service electron:build && pyinstaller --noconfirm --onefile pysrc/simulserver.py && cp dist/simulserver.exe dist_electron/win-unpacked/_simulserver.exe",
     "serve": "vue-cli-service electron:serve",
@@ -11,6 +12,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "codemirror": "^5.59.1",
     "core-js": "^3.6.5",
     "electron-fetch": "^1.7.3",
     "fetch": "^1.1.0",

@@ -16,11 +16,11 @@ var server = null;
 function start_python_server() {
   if (isDevelopment) {
     server = spawn("python", ["pysrc/simulserver.py", "--start"]);
-    server.stdout.on('data', function (data) {
+    server.stdout.on("data", function(data) {
       console.log(data.toString());
     });
-    server.stderr.on('data', function (data) {
-      console.log('server err: ' + data.toString());
+    server.stderr.on("data", function(data) {
+      console.log("server err: " + data.toString());
     });
   } else {
     server = spawn("_simulserver.exe");
@@ -28,14 +28,13 @@ function start_python_server() {
 }
 
 function stop_python_server() {
-  server.kill('SIGINT');
+  server.kill("SIGINT");
   if (!isDevelopment) {
-    exec("taskkill.exe /f /im _simulserver.exe")
+    exec("taskkill.exe /f /im _simulserver.exe");
   }
 }
 
 start_python_server();
-
 
 async function createWindow() {
   // Create the browser window.
@@ -64,9 +63,11 @@ async function createWindow() {
     win.loadURL("app://./index.html");
   }
 
-  win.once('ready-to-show', () => {
-    setTimeout(() => { win.show()}, 100);
-})
+  win.once("ready-to-show", () => {
+    setTimeout(() => {
+      win.show();
+    }, 100);
+  });
 }
 
 // Quit when all windows are closed.
@@ -88,7 +89,6 @@ app.on("activate", () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", async () => {
-
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     try {
@@ -100,12 +100,11 @@ app.on("ready", async () => {
   createWindow();
 });
 
-
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-app.on("before-quit",  (event) => {
+app.on("before-quit", event => {
   stop_python_server();
 });
 

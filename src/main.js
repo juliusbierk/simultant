@@ -5,10 +5,10 @@ import store from "./store";
 import Metro from "metro4";
 
 createApp(App, {
-    mounted: function () {
-        Metro.init();
-    }
-    })
+  mounted: function() {
+    Metro.init();
+  }
+})
   .use(store)
   .use(router)
   .mount("#app");
