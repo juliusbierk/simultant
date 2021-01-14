@@ -70,8 +70,15 @@
               data-interactive-check="true"
             >
               <div class="row">
-                <div class="cell-6">
+                <div
+                  class="cell-6"
+                  data-role="hint"
+                  data-hint-text="The dimension of the ODE."
+                  hintHide="0"
+                  data-cls-hint="bg-lightCyan fg-white"
+                >
                   <input
+                          @change="delayed_check_model"
                     type="text"
                     data-role="input"
                     data-prepend="Dimension (y):"
@@ -83,8 +90,15 @@
                   </span>
                 </div>
 
-                <div class="cell-6">
+                <div
+                  class="cell-6"
+                  data-role="hint"
+                  data-hint-text="The index of y which will be used."
+                  hintHide="0"
+                  data-cls-hint="bg-lightCyan fg-white"
+                >
                   <input
+                          @change="delayed_check_model"
                     type="text"
                     data-role="input"
                     data-prepend="Function index (y)"
@@ -137,11 +151,11 @@
                     <button
                       v-for="p in parameters"
                       v-bind:key="p.name"
-                      style="margin-left:5px"
+                      style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                       data-role="hint"
                       hintHide="0"
                       :data-hint-text="'Default value: ' + p.value.toString()"
-                      data-cls-hint="bg-cyan fg-white"
+                      data-cls-hint="bg-lightCyan fg-white"
                       class="defaultcursor button secondary small rounded outline"
                     >
                       {{ p.name }}
@@ -250,7 +264,9 @@ export default {
           code: c,
           expr_mode: this.expr_mode,
           name_underscore: this.name_underscore,
-          name: this.name
+          name: this.name,
+          ode_dim: parseInt(this.ode_dim),
+          ode_dim_select: parseInt(this.ode_dim_select),
         })
       }).then(async result => {
         var res = await result.json();
@@ -258,7 +274,14 @@ export default {
         this.parameters = res.args;
         this.code_error = res.error;
       });
-    }
+    },
+      delayed_check_model() {
+        this.running_code = true;
+
+        setTimeout(() => {
+            this.check_model();
+        }, 1000);
+      },
   },
   mounted: function() {
     function betterTab(cm) {

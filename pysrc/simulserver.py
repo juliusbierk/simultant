@@ -44,7 +44,7 @@ def adapt_code_default_args(code, expr=True):
     return "\n".join(lines)
 
 
-def check_function_run(f, expr=True):
+def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
     error = None
     if expr:
         try:
@@ -55,7 +55,16 @@ def check_function_run(f, expr=True):
             error = str(e)
 
     else:
-        print('NOT IMPLEMENTED YET')
+        try:
+            r = f(x=torch.tensor([1.0], dtype=torch.double),
+                  y=torch.ones(ode_dim, dtype=torch.double))
+
+            if len(r) != ode_dim:
+                error = f'Output of function does not have required dimension ({ode_dim})'
+
+            r = r[ode_dim_select]
+        except Exception as e:
+            error = str(e)
 
     return error
 
@@ -98,7 +107,8 @@ async def check_code(request):
             return web.json_response({'error': "Error: `y` must be an argument for ODEs."})
         del args['y']
 
-    error_on_run = check_function_run(f, expr=data['expr_mode'])
+    error_on_run = check_function_run(f, expr=data['expr_mode'], ode_dim=data['ode_dim'],
+                                      ode_dim_select=data['ode_dim_select'])
     return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in args.items()]})
 
 async def shuwdown(request):
