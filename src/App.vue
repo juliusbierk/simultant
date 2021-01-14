@@ -4,13 +4,13 @@
       <li v-on:click="rpush('/')" class="active">
         <a href="#"><p class="topmenuitem">Models</p></a>
       </li>
-      <li v-on:click="rpush('/about')">
+      <li v-on:click="rpush('/data')">
         <a href="#"><p class="topmenuitem">Data</p></a>
       </li>
-      <li v-on:click="rpush('/about')">
+      <li v-on:click="rpush('/data')">
         <a href="#"><p class="topmenuitem">Specify Fit</p></a>
       </li>
-      <li v-on:click="rpush('/about')">
+      <li v-on:click="rpush('/data')">
         <a href="#"><p class="topmenuitem">Run Fit</p></a>
       </li>
     </ul>
