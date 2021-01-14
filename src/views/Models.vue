@@ -102,10 +102,9 @@
                     >
                       {{ p.name }}
                     </button>
+
                   </div>
                 </div>
-
-
               </div>
 
                 <div v-if="running_code" class="row">
