@@ -64,6 +64,40 @@
               </li>
             </ul>
 
+            <form
+              v-show="!expr_mode"
+              data-role="validator"
+              data-interactive-check="true"
+            >
+              <div class="row">
+                <div class="cell-6">
+                  <input
+                    type="text"
+                    data-role="input"
+                    data-prepend="Dimension (y):"
+                    data-validate="pattern=(^[1-9_][0-9_]*$)"
+                    v-model="ode_dim"
+                  />
+                  <span class="invalid_feedback">
+                    Must be an integer > 0.
+                  </span>
+                </div>
+
+                <div class="cell-6">
+                  <input
+                    type="text"
+                    data-role="input"
+                    data-prepend="Function index (y)"
+                    :data-validate="'min=0 max=' + (ode_dim - 1).toString()"
+                    v-model="ode_dim_select"
+                  />
+                  <span class="invalid_feedback">
+                    Select a dimension index (0 - {{ ode_dim - 1 }}).
+                  </span>
+                </div>
+              </div>
+            </form>
+
             <p></p>
 
             <div id="code"></div>
@@ -71,23 +105,33 @@
             <p></p>
 
             <div class="grid">
-
               <div v-if="code_error" class="row">
                 <div class="offset-1 cell-9">
-                  <div class="remark alert" style="margin-top:0; margin-bottom:0">
+                  <div
+                    class="remark alert"
+                    style="margin-top:0; margin-bottom:0"
+                  >
                     <b>Code error:</b> {{ code_error }}
                   </div>
                 </div>
               </div>
               <div v-else class="row">
                 <div class="offset-1 cell-9">
-                  <div class="remark success" style="margin-top:0; margin-bottom:0"><b>Code status:</b> Running.</div>
+                  <div
+                    class="remark success"
+                    style="margin-top:0; margin-bottom:0"
+                  >
+                    <b>Code status:</b> Running.
+                  </div>
                 </div>
               </div>
 
-                <div v-if="parameters" class="row">
+              <div v-if="parameters" class="row">
                 <div class="offset-1 cell-9">
-                  <div class="remark primary" style="margin-top:0; margin-bottom:0">
+                  <div
+                    class="remark primary"
+                    style="margin-top:0; margin-bottom:0"
+                  >
                     <b>Parameters:</b>
 
                     <button
@@ -102,18 +146,19 @@
                     >
                       {{ p.name }}
                     </button>
-
                   </div>
                 </div>
               </div>
 
-                <div v-if="running_code" class="row">
-                    <div class="offset-1 cell-9">
-
-                <div data-role="progress" data-type="line" data-small="true"></div>
-                    </div>
+              <div v-if="running_code" class="row">
+                <div class="offset-1 cell-9">
+                  <div
+                    data-role="progress"
+                    data-type="line"
+                    data-small="true"
+                  ></div>
                 </div>
-
+              </div>
             </div>
           </div>
         </div>
@@ -145,7 +190,9 @@ export default {
       add_model: false,
       parameters: null,
       code_error: null,
-        running_code: false,
+      running_code: false,
+      ode_dim: 2,
+      ode_dim_select: 0
     };
   },
   computed: {

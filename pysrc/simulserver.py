@@ -48,9 +48,12 @@ def check_function_run(f, expr=True):
     error = None
     if expr:
         try:
-            f(x=torch.tensor([1.0]))
+            r = f(x=torch.tensor([1.0]))
+            if hasattr(r, '__len__') and len(r) != 1:
+                error = 'Output is not one-dimensional.'
         except Exception as e:
             error = str(e)
+
     else:
         print('NOT IMPLEMENTED YET')
 
