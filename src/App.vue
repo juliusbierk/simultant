@@ -87,4 +87,8 @@ button,
 a {
   cursor: default;
 }
+
+.defaultcursor {
+  cursor: default !important;
+}
 </style>

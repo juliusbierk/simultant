@@ -6,18 +6,37 @@
           <div class="window-caption">
             <!--            <span class="icon mif-windows"></span>-->
             <span class="title">Existing Models</span>
+
+            <div class="buttons">
+              <span
+                ><button
+                  v-show="!add_model"
+                  style="margin-right:20px"
+                  class="button secondary small defaultcursor"
+                  @click="toggle_add_model"
+                >
+                  + Create New Model
+                </button></span
+              >
+            </div>
           </div>
           <div class="window-content p-2">
-            Window content
+            ...
           </div>
         </div>
       </div>
 
-      <div class="cell">
+      <div class="cell" v-show="add_model">
         <div class="window">
           <div class="window-caption">
             <!--            <span class="icon mif-windows"></span>-->
             <span class="title">Create New Model</span>
+            <div class="buttons">
+              <span
+                class="btn-close defaultcursor"
+                @click="toggle_add_model"
+              ></span>
+            </div>
           </div>
           <div class="window-content p-2">
             <form data-role="validator" data-interactive-check="true">
@@ -71,18 +90,25 @@ export default {
       code: "def New_Model(x, a, b):\n    return a + b * x\n",
       ode_code: "def New_Model(x, y, a, b):\n    return a * y[1], -b * y[0]\n",
       cmcode: null,
-      marker: null
+      marker: null,
+      add_model: false
     };
   },
   computed: {
     name_underscore: function() {
-      return this.name.split(" ").join('_');
+      return this.name.split(" ").join("_");
     }
   },
   components: {
     // HelloWorld
   },
   methods: {
+    toggle_add_model() {
+      this.add_model = !this.add_model;
+      setTimeout(() => {
+        window.cmcode.refresh();
+      }, 5);
+    },
     change_to_expr() {
       if (!this.expr_mode) {
         this.expr_mode = true;
