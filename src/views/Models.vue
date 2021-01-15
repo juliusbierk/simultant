@@ -65,7 +65,8 @@
                       <div class="cell-5">
                         <span class="ml-1">
                           Parameters:
-                          <button v-for="p in content.args"
+                          <button
+                            v-for="p in content.args"
                             v-bind:key="p.name"
                             style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                             data-role="hint"
@@ -89,7 +90,7 @@
                     ></BasicPlot>
                   </div>
                   <div v-if="content.show_code" class="card-footer p-2">
-                    asdasd
+                    <ShowCode :code="content.code"></ShowCode>
                   </div>
                 </div>
               </div>
@@ -305,6 +306,7 @@
 // @ is an alias to /src
 
 import BasicPlot from "@/components/BasicPlot.vue";
+import ShowCode from "@/components/ShowCode.vue";
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
 import _ from "lodash";
@@ -340,7 +342,8 @@ export default {
     }
   },
   components: {
-    BasicPlot
+    BasicPlot,
+    ShowCode
   },
   methods: {
     update_model_list() {
