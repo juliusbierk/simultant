@@ -176,24 +176,29 @@
 
               <p></p>
 
-            <div class="row">
-              <div class="cell-5 offset-1" ><button @click="reset" class="defaultcursor button" style="margin-right:10px">
-                Reset
-              </button></div>
+              <div class="row">
+                <div class="cell-5 offset-1">
+                  <button
+                    @click="reset"
+                    class="defaultcursor button"
+                    style="margin-right:10px"
+                  >
+                    Reset
+                  </button>
+                </div>
 
-              <div class="cell-4 offset-1"><div class="d-flex flex-row-r">
-              <button
-                v-if="!running_code && !code_error"
-                class="defaultcursor button success"
-                style="margin-right:10px"
-              >
-                Add Model
-              </button>
-
-            </div></div>
-            </div>
-
-
+                <div class="cell-4 offset-1">
+                  <div class="d-flex flex-row-r">
+                    <button
+                      v-if="!running_code && !code_error"
+                      class="defaultcursor button success"
+                      style="margin-right:10px"
+                    >
+                      Add Model
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -209,6 +214,7 @@
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
 import _ from "lodash";
+import * as Bokeh from '@bokeh/bokehjs';
 
 export default {
   name: "Home",

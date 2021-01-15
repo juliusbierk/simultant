@@ -12,6 +12,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@bokeh/bokehjs": "^2.2.3",
     "codemirror": "^5.59.1",
     "core-js": "^3.6.5",
     "electron-fetch": "^1.7.3",
@@ -22,6 +23,7 @@
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-export-namespace-from": "^7.12.1",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",

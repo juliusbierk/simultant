@@ -1,10 +1,7 @@
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-import inspect
-import torch
-from torchfcts import torchfcts
-
+from torchfcts import function_from_code, check_function_run, adapt_code_default_args, get_default_args
 
 HOST = '127.0.0.1'
 PORT = 7555
@@ -15,67 +12,6 @@ sys_print = print
 def print(*args):
     sys_print(*args, flush=True)
 
-def adapt_code_default_args(code, expr=True):
-    # Very ugly code that simply add "=1" to parameters that have no default value
-
-    lines = code.split('\n')
-
-    spl = []
-    for x in lines[0].split(','):
-        if ')' in x:
-            xspl = x.split(')')
-            for x2 in xspl:
-                spl.append(x2)
-                spl.append(')')
-            del spl[-1]
-        else:
-            spl.append(x)
-        spl.append(',')
-    del spl[-1]
-
-    i0 = 2 if expr else 3
-    for i in range(i0, len(spl) - 1):
-        if spl[i] == ')':
-            break
-        if spl[i] !=',' and '=' not in spl[i]:
-            spl[i] = spl[i] + '=1'
-    lines[0] = "".join(spl)
-
-    return "\n".join(lines)
-
-
-def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
-    error = None
-    if expr:
-        try:
-            r = f(x=torch.tensor([1.0]))
-            if hasattr(r, '__len__') and len(r) != 1:
-                error = 'Output is not one-dimensional.'
-        except Exception as e:
-            error = str(e).replace('<string>, ', '')
-
-    else:
-        try:
-            r = f(x=torch.tensor([1.0], dtype=torch.double),
-                  y=torch.ones(ode_dim, dtype=torch.double))
-
-            if len(r) != ode_dim:
-                error = f'Output of function does not have required dimension ({ode_dim})'
-
-            if not (0 <= ode_dim_select <= len(r) - 1):
-                error = 'Invalid selected output dimension'
-
-        except Exception as e:
-            error = str(e).replace('<string>, ', '')
-
-    return error
-
-def get_default_args(func):
-    signature = inspect.signature(func)
-    return {
-        k: v.default if v.default is not inspect.Parameter.empty else None
-        for k, v in signature.parameters.items()
-    }
 
 async def handle(request):
     name = request.match_info.get('name', "Anonymous")
@@ -84,12 +20,10 @@ async def handle(request):
 
 async def check_code(request):
     data = await request.json()
-    code = adapt_code_default_args(data['code'], expr=data['expr_mode'])
+    f_name = data['name_underscore']
 
     try:
-        d = {}
-        exec(code, torchfcts, d)
-        f = d[data['name_underscore']]
+        f = function_from_code(data['code'], f_name, data['expr_mode'])
     except Exception as e:
         error = str(e).replace('<string>, ', '')
         return web.json_response({'error': error})
@@ -111,6 +45,7 @@ async def check_code(request):
 
     error_on_run = check_function_run(f, expr=data['expr_mode'], ode_dim=data['ode_dim'],
                                       ode_dim_select=data['ode_dim_select'])
+
     return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in args.items()]})
 
 async def shuwdown(request):
