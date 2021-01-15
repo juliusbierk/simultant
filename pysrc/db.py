@@ -1,7 +1,7 @@
 import sqlite3
 import json
 
-conn = sqlite3.connect('db.sqlite')
+conn = sqlite3.connect('db.sqlite')  # Use absolute paths!
 c = conn.cursor()
 
 ### DATA ###

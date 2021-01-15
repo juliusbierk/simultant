@@ -1,10 +1,8 @@
 import json
-
 import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-
 from db import create_model, get_models_names, get_all_models
 from torchfcts import function_from_code, check_function_run, get_default_args
 import logging
@@ -17,12 +15,6 @@ sys_print = print
 
 def print(*args):
     sys_print(*args, flush=True)
-
-
-async def handle(request):
-    name = request.match_info.get('name', "Anonymous")
-    text = "Hello, " + name
-    return web.Response(text=text)
 
 
 async def check_code(request):
@@ -117,8 +109,7 @@ cors = aiohttp_cors.setup(app, defaults={
     )
 })
 
-routes = [('/', handle),
-          ('/check_code', check_code),
+routes = [('/check_code', check_code),
           ('/plot_code', plot_code),
           ('/add_model', add_model),
           ('/model_exist_check', model_exist_check),

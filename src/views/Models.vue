@@ -65,8 +65,7 @@
                       <div class="cell-5">
                         <span class="ml-1">
                           Parameters:
-                          <button
-                            v-for="p in content.args"
+                          <button v-for="p in content.args"
                             v-bind:key="p.name"
                             style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                             data-role="hint"
