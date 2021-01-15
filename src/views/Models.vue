@@ -201,9 +201,9 @@
                       v-if="!running_code && !code_error"
                       class="defaultcursor button secondary"
                       style="margin-right:10px"
-                      @click="make_main_plot"
+                      @click="show_plot = !show_plot"
                     >
-                      Plot
+                      {{ show_plot ? "Hide Plot" : "Show Plot" }}
                     </button>
                   </div>
                 </div>
@@ -211,11 +211,11 @@
 
               <p></p>
 
-              <div class="row" v-if="add_plot_url">
+              <div class="row" v-if="show_plot && !running_code && !code_error">
                 <div class="cell-11">
                   <BasicPlot
-                    :url="add_plot_url"
-                    :body="add_plot_body"
+                    :url="this.py + '/plot_code'"
+                    :body="plot_body"
                   ></BasicPlot>
                 </div>
               </div>
@@ -255,8 +255,8 @@ export default {
       running_code: false,
       ode_dim: 2,
       ode_dim_select: 0,
-      add_plot_url: null,
-      add_plot_body: null
+      show_plot: false,
+      plot_body: null
     };
   },
   computed: {
@@ -323,6 +323,15 @@ export default {
     },
     check_model() {
       var c = this.expr_mode ? this.code : this.ode_code;
+      var body = {
+        code: c,
+        expr_mode: this.expr_mode,
+        name_underscore: this.name_underscore,
+        name: this.name,
+        ode_dim: parseInt(this.ode_dim),
+        ode_dim_select: parseInt(this.ode_dim_select)
+      };
+
       fetch(this.py + "/check_code", {
         method: "POST",
         headers: {
@@ -342,18 +351,9 @@ export default {
         this.parameters = res.args;
         this.code_error = res.error;
       });
-    },
-    make_main_plot() {
-      var c = this.expr_mode ? this.code : this.ode_code;
-      this.add_plot_body = {
-        code: c,
-        expr_mode: this.expr_mode,
-        name_underscore: this.name_underscore,
-        name: this.name,
-        ode_dim: parseInt(this.ode_dim),
-        ode_dim_select: parseInt(this.ode_dim_select)
-      };
-      this.add_plot_url = this.py + "/plot_code";
+
+      // Plot
+      this.plot_body = body;
     },
     delayed_check_model() {
       this.running_code = true;

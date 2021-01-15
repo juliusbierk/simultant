@@ -27,14 +27,16 @@ export default {
           plotlysettings.settings
         );
       });
-    },
+    }
   },
-    created() {
-      this.debounced_update = _.debounce(() => {this.update()}, 1000);
-    },
+  created() {
+    this.debounced_update = _.debounce(() => {
+      this.update();
+    }, 1000);
+  },
   watch: {
     body: function() {
-      this.debounced_update();
+      this.update();
     }
   },
   mounted: function() {
