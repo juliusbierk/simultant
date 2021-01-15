@@ -12,18 +12,17 @@
   },
   "main": "background.js",
   "dependencies": {
-    "@bokeh/bokehjs": "^2.2.3",
     "codemirror": "^5.59.1",
     "core-js": "^3.6.5",
     "electron-fetch": "^1.7.3",
     "lodash": "^4.17.20",
     "metro4": "^4.4.3",
+    "plotly.js-dist": "^1.58.4",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-export-namespace-from": "^7.12.1",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",

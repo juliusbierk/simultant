@@ -1,13 +1,15 @@
+import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 from torchfcts import function_from_code, check_function_run, adapt_code_default_args, get_default_args
+from plotting import make_simple_plot
 
 HOST = '127.0.0.1'
 PORT = 7555
 
-
 sys_print = print
+
 
 def print(*args):
     sys_print(*args, flush=True)
@@ -17,6 +19,7 @@ async def handle(request):
     name = request.match_info.get('name', "Anonymous")
     text = "Hello, " + name
     return web.Response(text=text)
+
 
 async def check_code(request):
     data = await request.json()
@@ -48,31 +51,47 @@ async def check_code(request):
 
     return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in args.items()]})
 
+
+async def plot_code(request):
+    data = await request.json()
+    f_name = data['name_underscore']
+
+    f = function_from_code(data['code'], f_name, data['expr_mode'])
+    x = torch.linspace(0, 10, 250)
+    if data['expr_mode']:
+        res = f(x)
+    else:
+        raise NotImplementedError
+
+    return web.json_response({'x': x.numpy().tolist(), 'y': res.numpy().tolist()})
+
+
 async def shuwdown(request):
     print('Stopping python server')
     raise GracefulExit
+
 
 app = web.Application()
 
 cors = aiohttp_cors.setup(app, defaults={
     "*": aiohttp_cors.ResourceOptions(
-            allow_credentials=True,
-            expose_headers="*",
-            allow_headers="*",
-        )
+        allow_credentials=True,
+        expose_headers="*",
+        allow_headers="*",
+    )
 })
 
 routes = [('/', handle),
-           ('/check_code', check_code),
-           ('/exit', shuwdown),
-           ]
+          ('/check_code', check_code),
+          ('/plot_code', plot_code),
+          ('/exit', shuwdown),
+          ]
 
 methods = ['GET', 'POST', 'DELETE']
 for uri, f in routes:
     resource = cors.add(app.router.add_resource(uri))
     for m in methods:
         cors.add(resource.add_route(m, f))
-
 
 if __name__ == '__main__':
     print('Python server started')

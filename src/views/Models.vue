@@ -196,9 +196,22 @@
                     >
                       Add Model
                     </button>
+
+                    <button
+                      v-if="!running_code && !code_error"
+                      class="defaultcursor button secondary"
+                      style="margin-right:10px"
+                      @click="make_main_plot"
+                    >
+                      Plot
+                    </button>
                   </div>
                 </div>
               </div>
+
+              <p></p>
+
+              <div id="add_plot"></div>
             </div>
           </div>
         </div>
@@ -214,7 +227,8 @@
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
 import _ from "lodash";
-import * as Bokeh from '@bokeh/bokehjs';
+import Plotly from "plotly.js-dist";
+import plotlysettings from "@/plotsettings.js";
 
 export default {
   name: "Home",
@@ -235,7 +249,8 @@ export default {
       code_error: null,
       running_code: false,
       ode_dim: 2,
-      ode_dim_select: 0
+      ode_dim_select: 0,
+      add_plot_created: false
     };
   },
   computed: {
@@ -320,6 +335,32 @@ export default {
         this.running_code = false;
         this.parameters = res.args;
         this.code_error = res.error;
+      });
+    },
+    make_main_plot() {
+      var c = this.expr_mode ? this.code : this.ode_code;
+      fetch(this.py + "/plot_code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code: c,
+          expr_mode: this.expr_mode,
+          name_underscore: this.name_underscore,
+          name: this.name,
+          ode_dim: parseInt(this.ode_dim),
+          ode_dim_select: parseInt(this.ode_dim_select)
+        })
+      }).then(async result => {
+        var res = await result.json();
+        res.mode = "lines";
+        if (this.add_plot_created) {
+          Plotly.react("add_plot", [res], plotlysettings.layout, plotlysettings.settings);
+        } else {
+          this.add_plot_created = true;
+          Plotly.newPlot("add_plot", [res], plotlysettings.layout, plotlysettings.settings);
+        }
       });
     },
     delayed_check_model() {
