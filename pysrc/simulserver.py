@@ -2,7 +2,7 @@ import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-from torchfcts import function_from_code, check_function_run, adapt_code_default_args, get_default_args
+from torchfcts import function_from_code, check_function_run, get_default_args
 import logging
 
 HOST = '127.0.0.1'

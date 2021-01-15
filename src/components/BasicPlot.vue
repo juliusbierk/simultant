@@ -26,7 +26,11 @@ export default {
     },
     update_ylim(res) {
       if (!this.ylim) {
-        this.ylim = [Math.min.apply(null, res.y), Math.max.apply(null, res.y)];
+        let ylim = [Math.min.apply(null, res.y), Math.max.apply(null, res.y)];
+        var dy = ylim[1] - ylim[0];
+        ylim[0] = ylim[0] - 0.015 * dy;
+        ylim[1] = ylim[1] + 0.015 * dy;
+        this.ylim = ylim;
       }
     },
     update() {

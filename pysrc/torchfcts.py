@@ -60,7 +60,12 @@ def adapt_code_default_args(code, expr=True):
     lines = code.split('\n')
 
     spl = []
-    for x in lines[0].split(','):
+    cspl = lines[0].split(',')
+    if not expr and ']' in lines[0]:
+        i = lines[0].index(']')
+        cspl = [lines[0][:i]] + lines[0][i:].split(',')
+
+    for x in cspl:
         if ')' in x:
             xspl = x.split(')')
             for x2 in xspl:

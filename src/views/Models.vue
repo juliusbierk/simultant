@@ -245,9 +245,9 @@ export default {
       expr_mode: true,
       code: null,
       ode_code: null,
-      orig_code: "def New_Model(x, a=1, b=1):\n    return a + b * x\n",
+      orig_code: "def New_Model(x, a=1, b=1):\n    return a * tanh(b * x)\n",
       orig_ode_code:
-        "def New_Model(x, y, a=1, b=1):\n    return a * y[1], -b * y[0]\n",
+        "def New_Model(x, y, y0=[1, 1], a=1, b=1):\n    return a * y[1], -b * y[0]\n",
       cmcode: null,
       marker: null,
       add_model: false,
@@ -270,6 +270,11 @@ export default {
   },
   methods: {
     reset() {
+        let sure_reset = confirm("Reset model?");
+        console.log(sure_reset);
+        if (!sure_reset){
+            return;
+        }
       if (this.$refs.add_plot) {
         this.$refs.add_plot.reset_scale();
       }
@@ -322,7 +327,7 @@ export default {
       );
       this.marker = window.cmcode.markText(
         { line: 0, ch: 0 },
-        { line: 0, ch: s.length + (this.expr_mode ? 0 : 3) },
+        { line: 0, ch: s.length + (this.expr_mode ? 0 : 7) },
         { readOnly: true }
       );
     },
