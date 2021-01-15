@@ -214,6 +214,7 @@
               <div class="row" v-if="show_plot && !running_code && !code_error">
                 <div class="cell-11">
                   <BasicPlot
+                    ref="add_plot"
                     :url="this.py + '/plot_code'"
                     :body="plot_body"
                   ></BasicPlot>
@@ -269,6 +270,10 @@ export default {
   },
   methods: {
     reset() {
+      if (this.$refs.add_plot) {
+        this.$refs.add_plot.reset_scale();
+      }
+
       this.code = this.orig_code;
       this.ode_code = this.orig_ode_code;
       this.expr_mode = true;

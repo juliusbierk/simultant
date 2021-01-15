@@ -1,6 +1,9 @@
 export default {
   layout: {
-    margin: { t: 10 }
+    margin: { t: 10 },
+    xaxis: {},
+    yaxis: {},
+    dragmode: "pan"
   },
   settings: {
     modeBarButtonsToRemove: [
@@ -11,7 +14,8 @@ export default {
       "lasso2d",
       "select2d",
       "toImage",
-      "toggleSpikelines"
+      "toggleSpikelines",
+      "resetScale2d"
     ],
     displaylogo: false,
     showTips: true

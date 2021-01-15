@@ -5,7 +5,6 @@ import aiohttp_cors
 from torchfcts import function_from_code, check_function_run, adapt_code_default_args, get_default_args
 import logging
 
-
 HOST = '127.0.0.1'
 PORT = 7555
 
@@ -58,13 +57,17 @@ async def plot_code(request):
     f_name = data['name_underscore']
 
     f = function_from_code(data['code'], f_name, data['expr_mode'])
-    x = torch.linspace(0, 10, 250)
+    if 'xlim' in data:
+        x = torch.linspace(data['xlim'][0], data['xlim'][1], 250)
+    else:
+        x = torch.linspace(0, 10, 250)
     if data['expr_mode']:
         res = f(x)
     else:
         raise NotImplementedError
 
-    return web.json_response({'x': x.numpy().tolist(), 'y': res.numpy().tolist()})
+    mask = torch.isfinite(res)
+    return web.json_response({'x': x[mask].numpy().tolist(), 'y': res[mask].numpy().tolist()})
 
 
 async def shuwdown(request):
