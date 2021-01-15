@@ -21,7 +21,46 @@
             </div>
           </div>
           <div class="window-content p-2">
-            ...
+
+            <div class="row">
+
+              <div v-for="(content, name) in models" v-bind:key="name" v-bind:class="{ 'cell-12': add_model, 'cell-6': !add_model }">
+                <div class="card">
+                  <div class="card-header">
+
+                    <div class="row">
+
+                      <div class="cell-5">
+                        <button style="pointer-events: none;" class="defaultcursor button light">
+                          <span style="font-size: 18px;" class="ml-1">{{name}}</span>
+                          <span class="badge">{{ content.expr_mode ? "" : "ODE"}}</span>
+                      </button>
+                      </div>
+
+                      <div class="offset-2">
+                        <input @click="content.show_plot = !content.show_plot" type="checkbox" data-role="switch" data-caption="Plot">
+                          <span style="margin-right:50px"></span>
+                          <input @click="content.show_code = !content.show_code" type="checkbox" data-role="switch" data-caption="Code">
+                      </div>
+
+                    </div>
+
+                  </div>
+                  <div v-if="content.show_plot" class="card-content p-2">
+                    sadsada
+                  </div>
+                  <div v-if="content.show_code" class="card-footer p-2">
+                    asdasd
+                  </div>
+
+              </div>
+
+              </div>
+
+
+            </div>
+
+
           </div>
         </div>
       </div>
@@ -258,7 +297,8 @@ export default {
       ode_dim: 2,
       ode_dim_select: 0,
       show_plot: false,
-      plot_body: null
+      plot_body: null,
+      models: {}
     };
   },
   computed: {
@@ -270,6 +310,21 @@ export default {
     BasicPlot
   },
   methods: {
+    update_model_list() {
+      fetch(this.py + "/model_list", {}).then(async result => {
+        var res = await result.json();
+        for (const name of Object.keys(res)) {
+          if (this.models[name]) {
+            res[name].show_plot = this.models[name].show_plot;
+            res[name].show_code = this.models[name].show_code;
+          } else {
+            res[name].show_plot = false;
+            res[name].show_code = false;
+          }
+        }
+        this.models = res;
+      });
+    },
     submit_model() {
       var c = this.expr_mode ? this.code : this.ode_code;
       var body = {
@@ -289,11 +344,10 @@ export default {
         body: JSON.stringify(body)
       }).then(async result => {
         var res = await result.json();
-        console.log('asdsa', res);
-        if (res['exists']) {
-            if (!confirm('Model exists. Overwrite?')) {
-                return;
-            }
+        if (res["exists"]) {
+          if (!confirm("Model exists. Overwrite?")) {
+            return;
+          }
         }
         fetch(this.py + "/add_model", {
           method: "POST",
@@ -302,8 +356,16 @@ export default {
           },
           body: JSON.stringify(body)
         }).then(async result => {
+          let success = false;
           var res = await result.json();
-          console.log(res);
+          if (res.success) {
+            success = true;
+          }
+          if (!success) {
+            alert("Could not add model");
+            return;
+          }
+          this.update_model_list();
         });
       });
     },
@@ -405,6 +467,8 @@ export default {
     }
   },
   mounted: function() {
+    this.update_model_list();
+
     function betterTab(cm) {
       if (cm.somethingSelected()) {
         cm.indentSelection("add");

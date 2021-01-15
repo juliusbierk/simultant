@@ -5,7 +5,7 @@ from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 
-from db import create_model, get_models_names
+from db import create_model, get_models_names, get_all_models
 from torchfcts import function_from_code, check_function_run, get_default_args
 import logging
 
@@ -62,15 +62,19 @@ async def add_model(request):
         del data['ode_dim']
         del data['ode_dim_select']
 
-    create_model(data['name'], json.dumps(data))
+    create_model(data['name'], data)
 
-    return web.json_response({'error': 'asdas'})
+    return web.json_response({'success': True})
 
 
 async def model_exist_check(request):
     data = await request.json()
     print(data['name'], get_models_names())
     return web.json_response({'exists': data['name'] in get_models_names()})
+
+
+async def model_list(request):
+    return web.json_response(get_all_models())
 
 
 async def plot_code(request):
@@ -111,6 +115,7 @@ routes = [('/', handle),
           ('/plot_code', plot_code),
           ('/add_model', add_model),
           ('/model_exist_check', model_exist_check),
+          ('/model_list', model_list),
           ('/exit', shuwdown),
           ]
 
