@@ -3,7 +3,8 @@ from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 from torchfcts import function_from_code, check_function_run, adapt_code_default_args, get_default_args
-from plotting import make_simple_plot
+import logging
+
 
 HOST = '127.0.0.1'
 PORT = 7555
@@ -95,4 +96,5 @@ for uri, f in routes:
 
 if __name__ == '__main__':
     print('Python server started')
+    logging.basicConfig(level=logging.DEBUG)
     web.run_app(app, host=HOST, port=PORT, shutdown_timeout=0.0)
