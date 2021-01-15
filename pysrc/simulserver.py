@@ -62,6 +62,13 @@ async def add_model(request):
         del data['ode_dim']
         del data['ode_dim_select']
 
+    f = function_from_code(data['code'], data['name_underscore'], data['expr_mode'])
+    args = get_default_args(f)
+    del args['x']
+    if not data['expr_mode']:
+        del args['y']
+    data['args'] = [{'name': k, 'value': v} for k, v in args.items()]
+
     create_model(data['name'], data)
 
     return web.json_response({'success': True})

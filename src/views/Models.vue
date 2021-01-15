@@ -23,7 +23,6 @@
           <div class="window-content p-2">
 
             <div class="row">
-
               <div v-for="(content, name) in models" v-bind:key="name" v-bind:class="{ 'cell-12': add_model, 'cell-6': !add_model }">
                 <div class="card">
                   <div class="card-header">
@@ -31,7 +30,7 @@
                     <div class="row">
 
                       <div class="cell-5">
-                        <button style="pointer-events: none;" class="defaultcursor button light">
+                        <button class="defaultcursor button light" @click="console.log('Edit model.')">
                           <span style="font-size: 18px;" class="ml-1">{{name}}</span>
                           <span class="badge">{{ content.expr_mode ? "" : "ODE"}}</span>
                       </button>
@@ -45,9 +44,35 @@
 
                     </div>
 
+                    <div class="row">
+                      <div class="cell-5">
+                      <span class="ml-1">
+                        Parameters:
+                        <button
+                            v-for="p in content.args"
+                            v-bind:key="p.name"
+                            style="margin-left:5px; margin-top:3px; margin-bottom:3px"
+                            data-role="hint"
+                            hintHide="0"
+                            :data-hint-text="'Default value: ' + p.value.toString()"
+                            data-cls-hint="bg-lightCyan fg-white"
+                            class="defaultcursor button secondary small rounded outline"
+                          >
+                            {{ p.name }}
+                          </button>
+
+                      </span>
+                      </div>
+                    </div>
+
                   </div>
                   <div v-if="content.show_plot" class="card-content p-2">
-                    sadsada
+
+                    <BasicPlot
+                    :url="this.py + '/plot_code'"
+                    :body="content"
+                  ></BasicPlot>
+
                   </div>
                   <div v-if="content.show_code" class="card-footer p-2">
                     asdasd
