@@ -6,7 +6,7 @@ c = conn.cursor()
 ### DATA ###
 
 def create_dataset(name, content):
-    c.execute("INSERT INTO data VALUES (?, ?)", (name, content))
+    c.execute("REPLACE INTO data VALUES (?, ?)", (name, content))
     conn.commit()
 
 def get_data_names():
@@ -21,7 +21,7 @@ def get_data_content(name):
 ### MODELS ###
 
 def create_model(name, content):
-    c.execute("INSERT INTO models VALUES (?, ?)", (name, content))
+    c.execute("REPLACE INTO models VALUES (?, ?)", (name, content))
     conn.commit()
 
 def get_models_names():
@@ -35,8 +35,4 @@ def get_models_content(name):
 
 
 if __name__ == '__main__':
-    print(get_data_names())
-    print(get_data_content('test'))
-
-
-
+    print(get_models_names())

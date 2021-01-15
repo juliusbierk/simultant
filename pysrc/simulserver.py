@@ -1,7 +1,11 @@
+import json
+
 import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
+
+from db import create_model
 from torchfcts import function_from_code, check_function_run, get_default_args
 import logging
 
@@ -52,6 +56,18 @@ async def check_code(request):
     return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in args.items()]})
 
 
+async def add_model(request):
+    data = await request.json()
+    if data['expr_mode'] and 'ode_dim' in data:
+        del data['ode_dim']
+        del data['ode_dim_select']
+
+    create_model(data['name'], json.dumps(data))
+
+
+    return web.json_response({'error': 'asdas'})
+
+
 async def plot_code(request):
     data = await request.json()
     f_name = data['name_underscore']
@@ -88,6 +104,7 @@ cors = aiohttp_cors.setup(app, defaults={
 routes = [('/', handle),
           ('/check_code', check_code),
           ('/plot_code', plot_code),
+          ('/add_model', add_model),
           ('/exit', shuwdown),
           ]
 

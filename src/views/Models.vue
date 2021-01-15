@@ -193,6 +193,7 @@
                       v-if="!running_code && !code_error"
                       class="defaultcursor button success"
                       style="margin-right:10px"
+                      @click="submit_model"
                     >
                       Add Model
                     </button>
@@ -269,12 +270,34 @@ export default {
     BasicPlot
   },
   methods: {
+    submit_model() {
+      var c = this.expr_mode ? this.code : this.ode_code;
+      var body = {
+        code: c,
+        expr_mode: this.expr_mode,
+        name_underscore: this.name_underscore,
+        name: this.name,
+        ode_dim: parseInt(this.ode_dim),
+        ode_dim_select: parseInt(this.ode_dim_select)
+      };
+
+      fetch(this.py + "/add_model", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      }).then(async result => {
+        var res = await result.json();
+        console.log(res);
+      });
+    },
     reset() {
-        let sure_reset = confirm("Reset model?");
-        console.log(sure_reset);
-        if (!sure_reset){
-            return;
-        }
+      let sure_reset = confirm("Reset model?");
+      console.log(sure_reset);
+      if (!sure_reset) {
+        return;
+      }
       if (this.$refs.add_plot) {
         this.$refs.add_plot.reset_scale();
       }
@@ -347,14 +370,7 @@ export default {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          code: c,
-          expr_mode: this.expr_mode,
-          name_underscore: this.name_underscore,
-          name: this.name,
-          ode_dim: parseInt(this.ode_dim),
-          ode_dim_select: parseInt(this.ode_dim_select)
-        })
+        body: JSON.stringify(body)
       }).then(async result => {
         var res = await result.json();
         this.running_code = false;

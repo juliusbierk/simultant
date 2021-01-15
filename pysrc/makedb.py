@@ -13,8 +13,8 @@ except sqlite3.OperationalError:
 
 conn.commit()
 
-c.execute('CREATE TABLE data (name text, content text)')
-c.execute('CREATE TABLE models (name text, content text)')
-c.execute('CREATE TABLE fits (name text, content text)')
+c.execute('CREATE TABLE data (name text, content text, PRIMARY KEY (name))')
+c.execute('CREATE TABLE models (name text, content text, PRIMARY KEY (name))')
+c.execute('CREATE TABLE fits (name text, content text, PRIMARY KEY (name))')
 
 conn.commit()
