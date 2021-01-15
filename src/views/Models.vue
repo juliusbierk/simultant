@@ -211,12 +211,14 @@
 
               <p></p>
 
-              <div class="row">
-                 <div class="cell-11">
-                   <div id="add_plot"></div>
-                 </div>
+              <div class="row" v-if="add_plot_url">
+                <div class="cell-11">
+                  <BasicPlot
+                    :url="add_plot_url"
+                    :body="add_plot_body"
+                  ></BasicPlot>
+                </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -227,13 +229,11 @@
 
 <script>
 // @ is an alias to /src
-// import HelloWorld from "@/components/HelloWorld.vue";
 
+import BasicPlot from "@/components/BasicPlot.vue";
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
 import _ from "lodash";
-import Plotly from "plotly.js-dist";
-import plotlysettings from "@/plotsettings.js";
 
 export default {
   name: "Home",
@@ -255,6 +255,8 @@ export default {
       running_code: false,
       ode_dim: 2,
       ode_dim_select: 0,
+      add_plot_url: null,
+      add_plot_body: null
     };
   },
   computed: {
@@ -263,7 +265,7 @@ export default {
     }
   },
   components: {
-    // HelloWorld
+    BasicPlot
   },
   methods: {
     reset() {
@@ -343,27 +345,15 @@ export default {
     },
     make_main_plot() {
       var c = this.expr_mode ? this.code : this.ode_code;
-      var body = {
-          code: c,
-          expr_mode: this.expr_mode,
-          name_underscore: this.name_underscore,
-          name: this.name,
-          ode_dim: parseInt(this.ode_dim),
-          ode_dim_select: parseInt(this.ode_dim_select)
-        };
-      var url = this.py + '/plot_code';
-
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      }).then(async result => {
-        var res = await result.json();
-        res.mode = "lines";
-        Plotly.newPlot("add_plot", [res], plotlysettings.layout, plotlysettings.settings);
-      });
+      this.add_plot_body = {
+        code: c,
+        expr_mode: this.expr_mode,
+        name_underscore: this.name_underscore,
+        name: this.name,
+        ode_dim: parseInt(this.ode_dim),
+        ode_dim_select: parseInt(this.ode_dim_select)
+      };
+      this.add_plot_url = this.py + "/plot_code";
     },
     delayed_check_model() {
       this.running_code = true;
