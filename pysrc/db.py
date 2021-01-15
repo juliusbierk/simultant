@@ -10,7 +10,7 @@ def create_dataset(name, content):
     conn.commit()
 
 def get_data_names():
-    return c.execute("SELECT name FROM data").fetchall()
+    return [x[0] for x in c.execute("SELECT name FROM data").fetchall()]
 
 def get_data_content(name):
     a = c.execute("SELECT content FROM data WHERE name=?", (name, )).fetchone()
@@ -25,7 +25,7 @@ def create_model(name, content):
     conn.commit()
 
 def get_models_names():
-    return c.execute("SELECT name FROM models").fetchall()
+    return [x[0] for x in c.execute("SELECT name FROM models").fetchall()]
 
 def get_models_content(name):
     a = c.execute("SELECT content FROM models WHERE name=?", (name, )).fetchone()

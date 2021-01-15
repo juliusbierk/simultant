@@ -281,7 +281,7 @@ export default {
         ode_dim_select: parseInt(this.ode_dim_select)
       };
 
-      fetch(this.py + "/add_model", {
+      fetch(this.py + "/model_exist_check", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -289,7 +289,22 @@ export default {
         body: JSON.stringify(body)
       }).then(async result => {
         var res = await result.json();
-        console.log(res);
+        console.log('asdsa', res);
+        if (res['exists']) {
+            if (!confirm('Model exists. Overwrite?')) {
+                return;
+            }
+        }
+        fetch(this.py + "/add_model", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        }).then(async result => {
+          var res = await result.json();
+          console.log(res);
+        });
       });
     },
     reset() {
