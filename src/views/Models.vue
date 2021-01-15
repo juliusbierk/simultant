@@ -21,71 +21,80 @@
             </div>
           </div>
           <div class="window-content p-2">
-
             <div class="row">
-              <div v-for="(content, name) in models" v-bind:key="name" v-bind:class="{ 'cell-12': add_model, 'cell-6': !add_model }">
+              <div
+                v-for="(content, name) in models"
+                v-bind:key="name"
+                v-bind:class="{ 'cell-12': add_model, 'cell-6': !add_model }"
+              >
                 <div class="card">
                   <div class="card-header">
-
                     <div class="row">
-
                       <div class="cell-5">
-                        <button class="defaultcursor button light" @click="console.log('Edit model.')">
-                          <span style="font-size: 18px;" class="ml-1">{{name}}</span>
-                          <span class="badge">{{ content.expr_mode ? "" : "ODE"}}</span>
-                      </button>
+                        <button
+                          class="defaultcursor button light"
+                          @click="console.log('Edit model.')"
+                        >
+                          <span style="font-size: 18px;" class="ml-1">{{
+                            name
+                          }}</span>
+                          <span class="badge">{{
+                            content.expr_mode ? "" : "ODE"
+                          }}</span>
+                        </button>
                       </div>
 
                       <div class="offset-2">
-                        <input @click="content.show_plot = !content.show_plot" type="checkbox" data-role="switch" data-caption="Plot">
-                          <span style="margin-right:50px"></span>
-                          <input @click="content.show_code = !content.show_code" type="checkbox" data-role="switch" data-caption="Code">
+                        <input
+                          @click="content.show_plot = !content.show_plot"
+                          type="checkbox"
+                          data-role="switch"
+                          data-caption="Plot"
+                        />
+                        <span style="margin-right:50px"></span>
+                        <input
+                          @click="content.show_code = !content.show_code"
+                          type="checkbox"
+                          data-role="switch"
+                          data-caption="Code"
+                        />
                       </div>
-
                     </div>
 
                     <div class="row">
                       <div class="cell-5">
-                      <span class="ml-1">
-                        Parameters:
-                        <button
+                        <span class="ml-1">
+                          Parameters:
+                          <button
                             v-for="p in content.args"
                             v-bind:key="p.name"
                             style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                             data-role="hint"
                             hintHide="0"
-                            :data-hint-text="'Default value: ' + p.value.toString()"
+                            :data-hint-text="
+                              'Default value: ' + p.value.toString()
+                            "
                             data-cls-hint="bg-lightCyan fg-white"
                             class="defaultcursor button secondary small rounded outline"
                           >
                             {{ p.name }}
                           </button>
-
-                      </span>
+                        </span>
                       </div>
                     </div>
-
                   </div>
                   <div v-if="content.show_plot" class="card-content p-2">
-
                     <BasicPlot
-                    :url="this.py + '/plot_code'"
-                    :body="content"
-                  ></BasicPlot>
-
+                      :url="this.py + '/plot_code'"
+                      :body="content"
+                    ></BasicPlot>
                   </div>
                   <div v-if="content.show_code" class="card-footer p-2">
                     asdasd
                   </div>
-
+                </div>
               </div>
-
-              </div>
-
-
             </div>
-
-
           </div>
         </div>
       </div>
