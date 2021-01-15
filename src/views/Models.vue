@@ -211,7 +211,12 @@
 
               <p></p>
 
-              <div id="add_plot"></div>
+              <div class="row">
+                 <div class="cell-11">
+                   <div id="add_plot"></div>
+                 </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -250,7 +255,6 @@ export default {
       running_code: false,
       ode_dim: 2,
       ode_dim_select: 0,
-      add_plot_created: false
     };
   },
   computed: {
@@ -339,28 +343,26 @@ export default {
     },
     make_main_plot() {
       var c = this.expr_mode ? this.code : this.ode_code;
-      fetch(this.py + "/plot_code", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+      var body = {
           code: c,
           expr_mode: this.expr_mode,
           name_underscore: this.name_underscore,
           name: this.name,
           ode_dim: parseInt(this.ode_dim),
           ode_dim_select: parseInt(this.ode_dim_select)
-        })
+        };
+      var url = this.py + '/plot_code';
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
       }).then(async result => {
         var res = await result.json();
         res.mode = "lines";
-        if (this.add_plot_created) {
-          Plotly.react("add_plot", [res], plotlysettings.layout, plotlysettings.settings);
-        } else {
-          this.add_plot_created = true;
-          Plotly.newPlot("add_plot", [res], plotlysettings.layout, plotlysettings.settings);
-        }
+        Plotly.newPlot("add_plot", [res], plotlysettings.layout, plotlysettings.settings);
       });
     },
     delayed_check_model() {
