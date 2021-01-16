@@ -6,6 +6,14 @@
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
 
+function uuidv4() {
+  return "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+    var r = (Math.random() * 16) | 0,
+      v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export default {
   name: "ShowCode",
   data: function() {
@@ -14,17 +22,10 @@ export default {
     };
   },
   methods: {
-    uuidv4() {
-      return "Axxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-        var r = (Math.random() * 16) | 0,
-          v = c == "x" ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
-    }
   },
   mounted: function() {
-    this.code_id = this.uuidv4(); // wack method, but it works!
-    setTimeout(() => {
+    this.code_id = "code" + uuidv4(); // wack method, but it works!
+    this.$nextTick(() => {
       CodeMirror(document.querySelector("#" + this.code_id), {
         lineNumbers: true,
         mode: "python",
@@ -33,7 +34,7 @@ export default {
         value: this.code,
         readOnly: true
       });
-    }, 5);
+    });
   },
   props: {
     code: String

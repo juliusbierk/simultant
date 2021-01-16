@@ -27,11 +27,11 @@ torchfcts = {"sin": sin, "cos": cos, "exp": exp, "tensor": tensor, "sqrt": sqrt,
              "trapz": trapz}
 
 
-def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
+def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
     error = None
     if expr:
         try:
-            r = f(x=torch.tensor([1.0]))
+            r = f(x=torch.tensor([1.0]), **kwargs)
             if hasattr(r, '__len__') and len(r) != 1:
                 error = 'Output is not one-dimensional.'
         except Exception as e:
@@ -40,7 +40,8 @@ def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
     else:
         try:
             r = f(x=torch.tensor([1.0], dtype=torch.double),
-                  y=torch.ones(ode_dim, dtype=torch.double))
+                  y=torch.ones(ode_dim, dtype=torch.double),
+                               **kwargs)
 
             if len(r) != ode_dim:
                 error = f'Output of function does not have required dimension ({ode_dim})'
@@ -54,49 +55,19 @@ def check_function_run(f, expr=True, ode_dim=None, ode_dim_select=None):
     return error
 
 
-def adapt_code_default_args(code, expr=True):
-    # Very ugly code that simply add "=1" to parameters that have no default value
 
-    lines = code.split('\n')
-
-    spl = []
-    cspl = lines[0].split(',')
-    if not expr and ']' in lines[0]:
-        i = lines[0].index(']')
-        cspl = [lines[0][:i]] + lines[0][i:].split(',')
-
-    for x in cspl:
-        if ')' in x:
-            xspl = x.split(')')
-            for x2 in xspl:
-                spl.append(x2)
-                spl.append(')')
-            del spl[-1]
-        else:
-            spl.append(x)
-        spl.append(',')
-    del spl[-1]
-
-    i0 = 2 if expr else 3
-    for i in range(i0, len(spl) - 1):
-        if spl[i] == ')':
-            break
-        if spl[i] !=',' and '=' not in spl[i]:
-            spl[i] = spl[i] + '=1'
-    lines[0] = "".join(spl)
-
-    return "\n".join(lines)
-
-
-def get_default_args(func):
+def get_default_args(func, expr, dim=1):
     signature = inspect.signature(func)
-    return {
-        k: v.default if v.default is not inspect.Parameter.empty else None
+    kwargs = {
+        k: v.default if v.default is not inspect.Parameter.empty else (1 if expr else (1 if k != 'y0' else [1] * dim))
         for k, v in signature.parameters.items()
     }
+    del kwargs['x']
+    if not expr:
+        del kwargs['y']
+    return kwargs
 
 def function_from_code(code, f_name, expr):
-    code = adapt_code_default_args(code, expr)
     d = {}
     exec(code, torchfcts, d)
     f = d[f_name]

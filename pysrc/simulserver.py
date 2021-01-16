@@ -28,24 +28,15 @@ async def check_code(request):
         return web.json_response({'error': error})
 
     try:
-        args = get_default_args(f)
+        kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'])
     except Exception as e:
         error = 'Could not extract arguments:\n' + str(e)
         return web.json_response({'error': error})
 
-    if 'x' not in args:
-        return web.json_response({'error': "Error: `x` must be an argument."})
-    del args['x']
-
-    if not data['expr_mode']:
-        if 'y' not in args:
-            return web.json_response({'error': "Error: `y` must be an argument for ODEs."})
-        del args['y']
-
-    error_on_run = check_function_run(f, expr=data['expr_mode'], ode_dim=data['ode_dim'],
+    error_on_run = check_function_run(f, kwargs, expr=data['expr_mode'], ode_dim=data['ode_dim'],
                                       ode_dim_select=data['ode_dim_select'])
 
-    return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in args.items()]})
+    return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in kwargs.items()]})
 
 
 async def add_model(request):
@@ -55,12 +46,10 @@ async def add_model(request):
         del data['ode_dim_select']
 
     f = function_from_code(data['code'], data['name_underscore'], data['expr_mode'])
-    args = get_default_args(f)
-    del args['x']
-    if not data['expr_mode']:
-        del args['y']
-    data['args'] = [{'name': k, 'value': v} for k, v in args.items()]
+    kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'] if not data['expr_mode'] else None)
 
+    data['kwargs'] = kwargs
+    data['args'] = [{'name': k, 'value': v} for k, v in kwargs.items()]
     create_model(data['name'], data)
 
     return web.json_response({'success': True})

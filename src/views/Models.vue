@@ -320,9 +320,9 @@ export default {
       expr_mode: true,
       code: null,
       ode_code: null,
-      orig_code: "def New_Model(x, a=1, b=1):\n    return a * tanh(b * x)\n",
+      orig_code: "def New_Model(x, *, a=1, b=1):\n    return a * tanh(b * x)\n",
       orig_ode_code:
-        "def New_Model(x, y, y0=[1, 1], a=1, b=1):\n    return a * y[1], -b * y[0]\n",
+        "def New_Model(x, y, *, y0=[1, 1], a=1, b=1):\n    return a * y[1], -b * y[0]\n",
       cmcode: null,
       marker: null,
       add_model: false,
@@ -426,7 +426,7 @@ export default {
 
       this.marker = window.cmcode.markText(
         { line: 0, ch: 0 },
-        { line: 0, ch: 16 },
+        { line: 0, ch: 19 },
         { readOnly: true }
       );
 
@@ -463,7 +463,7 @@ export default {
       );
       this.marker = window.cmcode.markText(
         { line: 0, ch: 0 },
-        { line: 0, ch: s.length + (this.expr_mode ? 0 : 7) },
+        { line: 0, ch: s.length + (this.expr_mode ? 3 : 9) },
         { readOnly: true }
       );
     },
@@ -534,7 +534,7 @@ export default {
 
     this.marker = window.cmcode.markText(
       { line: 0, ch: 0 },
-      { line: 0, ch: 16 },
+      { line: 0, ch: 19 },
       { readOnly: true }
     );
 
