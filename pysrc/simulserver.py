@@ -1,11 +1,16 @@
 import json
+import pickle
+
 import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 from db import create_model, get_models_names, get_all_models
-from torchfcts import function_from_code, check_function_run, get_default_args
+from torchfcts import function_from_code, check_function_run, get_default_args, ode_from_code
 import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logging.root.setLevel(logging.DEBUG)
 
 HOST = '127.0.0.1'
 PORT = 7555
@@ -22,16 +27,21 @@ async def check_code(request):
     f_name = data['name_underscore']
 
     try:
-        f = function_from_code(data['code'], f_name, data['expr_mode'])
+        f = function_from_code(data['code'], f_name)
     except Exception as e:
+        logging.debug('Could not form function', exc_info=e)
         error = str(e).replace('<string>, ', '')
         return web.json_response({'error': error})
 
     try:
         kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'])
     except Exception as e:
+        logging.debug('Could not get arguments', exc_info=e)
         error = 'Could not extract arguments:\n' + str(e)
         return web.json_response({'error': error})
+
+    if not data['expr_mode'] and len(kwargs['y0']) != data['ode_dim']:
+        return web.json_response({'error': 'y0 must be a list of length equal to the ODE dimension.'})
 
     error_on_run = check_function_run(f, kwargs, expr=data['expr_mode'], ode_dim=data['ode_dim'],
                                       ode_dim_select=data['ode_dim_select'])
@@ -45,7 +55,7 @@ async def add_model(request):
         del data['ode_dim']
         del data['ode_dim_select']
 
-    f = function_from_code(data['code'], data['name_underscore'], data['expr_mode'])
+    f = function_from_code(data['code'], data['name_underscore'])
     kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'] if not data['expr_mode'] else None)
 
     data['kwargs'] = kwargs
@@ -67,20 +77,23 @@ async def model_list(request):
 
 async def plot_code(request):
     data = await request.json()
-    f_name = data['name_underscore']
+    mask, res, x = plot_code_py(data)
+    return web.json_response({'x': x[mask].numpy().tolist(), 'y': res[mask].numpy().tolist()})
 
-    f = function_from_code(data['code'], f_name, data['expr_mode'])
+
+def plot_code_py(data):
+    f_name = data['name_underscore']
+    f = function_from_code(data['code'], f_name)
+    kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'])
+    if not data['expr_mode']:
+        f = ode_from_code(data['code'], f_name, data['ode_dim_select'])
     if 'xlim' in data:
         x = torch.linspace(data['xlim'][0], data['xlim'][1], 250)
     else:
         x = torch.linspace(0, 10, 250)
-    if data['expr_mode']:
-        res = f(x)
-    else:
-        raise NotImplementedError
-
+    res = f(x, **kwargs)
     mask = torch.isfinite(res)
-    return web.json_response({'x': x[mask].numpy().tolist(), 'y': res[mask].numpy().tolist()})
+    return mask, res, x
 
 
 async def shuwdown(request):
@@ -113,6 +126,12 @@ for uri, f in routes:
         cors.add(resource.add_route(m, f))
 
 if __name__ == '__main__':
+    with open('tester.pickle', 'rb') as f:
+        data = pickle.load(f)
+    for ite in range(10):
+        print(ite)
+        plot_code_py(data)
+    exit()
+
     print('Python server started')
-    logging.basicConfig(level=logging.DEBUG)
     web.run_app(app, host=HOST, port=PORT, shutdown_timeout=0.0)

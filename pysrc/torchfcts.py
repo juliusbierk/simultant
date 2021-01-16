@@ -1,12 +1,17 @@
 import inspect
-
+from functools import partial
 import torch
+from torchdiffeq import odeint
 from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace, logspace, arange, \
     eye, zeros_like, ones_like, heaviside, cat, hstack, vstack, gather, nonzero, reshape, squeeze, take, \
     transpose, unsqueeze, abs, cosh, sinh, tan, tanh, asinh, acosh, atanh, ceil, clamp, erf, erfc, \
     floor, log, lgamma, log10, logical_and, logical_not, logical_or, logical_xor, pow, round, sigmoid, \
     argmin, argmax, amin, amax, min, max, mean, mode, median, sum, prod, std, unique, var, isinf, isnan, \
     isfinite, fft, rfft, ifft, cross, cumsum, cumprod, diag, flatten, roll, dot, det, solve, trapz
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logging.root.setLevel(logging.DEBUG)
 
 torchfcts = {"sin": sin, "cos": cos, "exp": exp, "tensor": tensor, "sqrt": sqrt, "asin": asin,
              "acos": acos, "ones": ones, "zeros": zeros, "linspace": linspace, "logspace": logspace, "arange": arange,
@@ -35,21 +40,25 @@ def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
             if hasattr(r, '__len__') and len(r) != 1:
                 error = 'Output is not one-dimensional.'
         except Exception as e:
+            logging.debug('Could not get arguments', exc_info=e)
             error = str(e).replace('<string>, ', '')
 
     else:
         try:
             r = f(x=torch.tensor([1.0], dtype=torch.double),
-                  y=torch.ones(ode_dim, dtype=torch.double),
+                  y=torch.tensor(kwargs['y0'], dtype=torch.double),
                                **kwargs)
 
-            if len(r) != ode_dim:
+            if ode_dim > 1 and len(r) != ode_dim:
                 error = f'Output of function does not have required dimension ({ode_dim})'
 
-            if not (0 <= ode_dim_select <= len(r) - 1):
-                error = 'Invalid selected output dimension'
+                if not (0 <= ode_dim_select <= len(r) - 1):
+                    error = 'Invalid selected output dimension'
+            elif ode_dim_select != 0:
+                error = 'Selected dimension must be zero for ODE of dimension one. '
 
         except Exception as e:
+            logging.debug('Could not run function', exc_info=e)
             error = str(e).replace('<string>, ', '')
 
     return error
@@ -67,8 +76,37 @@ def get_default_args(func, expr, dim=1):
         del kwargs['y']
     return kwargs
 
-def function_from_code(code, f_name, expr):
+def function_from_code(code, f_name):
     d = {}
     exec(code, torchfcts, d)
     f = d[f_name]
+
     return f
+
+
+def ode_from_code(code, f_name, ode_dim_select):
+    f = function_from_code(code, f_name)
+
+    def ode_f(x, **kwargs):
+        x_orig = x
+        mask = torch.logical_and(x >= 0, torch.isfinite(x))
+        x = x[mask]
+        added_zero = False
+        if x[0] != 0:
+            added_zero = True
+            x = torch.hstack((torch.tensor(0, dtype=x.dtype), x))
+
+        def curied(x, y):
+            return torch.hstack(f(x, y, **kwargs))
+
+        sol = odeint(curied, torch.tensor(kwargs['y0'], dtype=x.dtype), x)[:, ode_dim_select]
+
+        if added_zero:
+            sol = sol[1:]
+
+        res = torch.tensor(float('nan')) * torch.zeros_like(x_orig)
+        res[mask] = sol
+
+        return res
+
+    return ode_f
