@@ -1,7 +1,7 @@
 import inspect
 from functools import partial
 import torch
-from torchdiffeq import odeint
+from silly import sillyode
 from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace, logspace, arange, \
     eye, zeros_like, ones_like, heaviside, cat, hstack, vstack, gather, nonzero, reshape, squeeze, take, \
     transpose, unsqueeze, abs, cosh, sinh, tan, tanh, asinh, acosh, atanh, ceil, clamp, erf, erfc, \
@@ -64,6 +64,29 @@ def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
     return error
 
 
+def check_code_get_args(code, f_name, expr_mode, ode_dim, ode_dim_select):
+    try:
+        f = function_from_code(code, f_name)
+    except Exception as e:
+        logging.debug('Could not form function', exc_info=e)
+        error = str(e).replace('<string>, ', '')
+        return {'error': error}
+
+    try:
+        kwargs = get_default_args(f, expr_mode, ode_dim)
+    except Exception as e:
+        logging.debug('Could not get arguments', exc_info=e)
+        error = 'Could not extract arguments:\n' + str(e)
+        return {'error': error}
+
+    if not expr_mode and len(kwargs['y0']) != ode_dim:
+        return {'error': 'y0 must be a list of length equal to the ODE dimension.'}
+
+    error_on_run = check_function_run(f, kwargs, expr=expr_mode, ode_dim=ode_dim,
+                                      ode_dim_select=ode_dim_select)
+
+    return {'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in kwargs.items()]}
+
 
 def get_default_args(func, expr, dim=1):
     signature = inspect.signature(func)
@@ -75,6 +98,7 @@ def get_default_args(func, expr, dim=1):
     if not expr:
         del kwargs['y']
     return kwargs
+
 
 def function_from_code(code, f_name):
     d = {}
@@ -99,7 +123,7 @@ def ode_from_code(code, f_name, ode_dim_select):
         def curied(x, y):
             return torch.hstack(f(x, y, **kwargs))
 
-        sol = odeint(curied, torch.tensor(kwargs['y0'], dtype=x.dtype), x)[:, ode_dim_select]
+        sol = sillyode(curied, torch.tensor(kwargs['y0'], dtype=x.dtype), x, atol=5e-7, rtol=1e-5)[:, ode_dim_select]
 
         if added_zero:
             sol = sol[1:]

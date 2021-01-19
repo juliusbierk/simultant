@@ -1,12 +1,9 @@
-import json
-import pickle
-
 import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 from db import create_model, get_models_names, get_all_models
-from torchfcts import function_from_code, check_function_run, get_default_args, ode_from_code
+from torchfcts import function_from_code, get_default_args, ode_from_code, check_code_get_args
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -24,29 +21,8 @@ def print(*args):
 
 async def check_code(request):
     data = await request.json()
-    f_name = data['name_underscore']
-
-    try:
-        f = function_from_code(data['code'], f_name)
-    except Exception as e:
-        logging.debug('Could not form function', exc_info=e)
-        error = str(e).replace('<string>, ', '')
-        return web.json_response({'error': error})
-
-    try:
-        kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'])
-    except Exception as e:
-        logging.debug('Could not get arguments', exc_info=e)
-        error = 'Could not extract arguments:\n' + str(e)
-        return web.json_response({'error': error})
-
-    if not data['expr_mode'] and len(kwargs['y0']) != data['ode_dim']:
-        return web.json_response({'error': 'y0 must be a list of length equal to the ODE dimension.'})
-
-    error_on_run = check_function_run(f, kwargs, expr=data['expr_mode'], ode_dim=data['ode_dim'],
-                                      ode_dim_select=data['ode_dim_select'])
-
-    return web.json_response({'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in kwargs.items()]})
+    d = check_code_get_args(data['code'], data['name_underscore'], data['expr_mode'], data['ode_dim'], data['ode_dim_select'])
+    return web.json_response(d)
 
 
 async def add_model(request):
@@ -88,9 +64,9 @@ def plot_code_py(data):
     if not data['expr_mode']:
         f = ode_from_code(data['code'], f_name, data['ode_dim_select'])
     if 'xlim' in data:
-        x = torch.linspace(data['xlim'][0], data['xlim'][1], 250)
+        x = torch.linspace(data['xlim'][0], data['xlim'][1], 250, dtype=torch.double)
     else:
-        x = torch.linspace(0, 10, 250)
+        x = torch.linspace(0, 10, 250, dtype=torch.double)
     res = f(x, **kwargs)
     mask = torch.isfinite(res)
     return mask, res, x
@@ -126,12 +102,12 @@ for uri, f in routes:
         cors.add(resource.add_route(m, f))
 
 if __name__ == '__main__':
-    with open('tester.pickle', 'rb') as f:
-        data = pickle.load(f)
-    for ite in range(10):
-        print(ite)
-        plot_code_py(data)
-    exit()
+    # with open('tester.pickle', 'rb') as f:
+    #     data = pickle.load(f)
+    # for ite in range(10):
+    #     print(ite)
+    #     plot_code_py(data)
+    # exit()
 
     print('Python server started')
     web.run_app(app, host=HOST, port=PORT, shutdown_timeout=0.0)
