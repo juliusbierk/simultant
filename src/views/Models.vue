@@ -38,9 +38,9 @@
                           <span style="font-size: 18px;" class="ml-1">{{
                             name
                           }}</span>
-                          <span class="badge">{{
-                            content.expr_mode ? "" : "ODE"
-                          }}</span>
+                          <span v-if="content.expr_mode" class="badge"
+                            >ODE</span
+                          >
                         </button>
                       </div>
 
@@ -312,7 +312,7 @@ import "codemirror/mode/python/python.js";
 import _ from "lodash";
 
 export default {
-  name: "Home",
+  name: "Models",
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
