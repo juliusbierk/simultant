@@ -89,19 +89,6 @@ async def upload_data(request):
         has_header = sniffer.has_header(f)
 
         rows = [r for r in csv.reader(f.split('\n'), dialect=dialect) if len(r) > 0]
-        if not final_upload:
-            cut_horizontal = False
-            cut_vertical = False
-
-            if len(rows[0]) > 7:
-                rows = [r[:7] + ['&#8943;'] for r in rows]
-                cut_horizontal = True
-            if len(rows) > 7:
-                rows = rows[:7] + [['&#8942;'] * len(rows[0])]
-                cut_vertical = True
-
-            if cut_horizontal and cut_vertical:
-                rows[-1][-1] = '&#8945;'
 
         if has_header:
             header = rows[0]
@@ -110,7 +97,7 @@ async def upload_data(request):
             header = None
 
         first_column = [x[0] for x in rows]
-        if '' in first_column or len(first_column) != len(set(first_column)):
+        if '' in first_column:
             first_column_is_time = False
         else:
             dt = np.diff([float(x) for x in first_column])
@@ -118,6 +105,22 @@ async def upload_data(request):
                 first_column_is_time = (np.std(dt) / np.mean(dt)) < 2.0
             else:
                 first_column_is_time = False
+
+        if not final_upload:
+            cut_horizontal = False
+            cut_vertical = False
+
+            if len(rows[0]) > 7:
+                rows = [r[:7] + ['&#8943;'] for r in rows]
+                header = header[:7] + ['&#8943;']
+                cut_horizontal = True
+            if len(rows) > 7:
+                rows = rows[:7] + [['&#8942;'] * len(rows[0])]
+                cut_vertical = True
+
+            if cut_horizontal and cut_vertical:
+                rows[-1][-1] = '&#8945;'
+
 
         example = {'header': header, 'has_header': has_header,
                       'first_column_is_time': first_column_is_time, 'data': rows, 'fname': fname}
