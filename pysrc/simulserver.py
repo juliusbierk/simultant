@@ -60,7 +60,7 @@ async def plot_code(request):
 def plot_code_py(data):
     f_name = data['name_underscore']
     f = function_from_code(data['code'], f_name)
-    kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'])
+    kwargs = get_default_args(f, data['expr_mode'], data.get('ode_dim', None))
     if not data['expr_mode']:
         f = ode_from_code(data['code'], f_name, data['ode_dim_select'])
     if 'xlim' in data:

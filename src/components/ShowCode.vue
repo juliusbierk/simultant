@@ -5,14 +5,7 @@
 <script>
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
-
-function uuidv4() {
-  return "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-    var r = (Math.random() * 16) | 0,
-      v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
+import misc from "@/misc.js";
 
 export default {
   name: "ShowCode",
@@ -21,10 +14,9 @@ export default {
       code_id: null
     };
   },
-  methods: {
-  },
+  methods: {},
   mounted: function() {
-    this.code_id = "code" + uuidv4(); // wack method, but it works!
+    this.code_id = "code" + misc.uuid4(); // wack method, but it works!
     this.$nextTick(() => {
       CodeMirror(document.querySelector("#" + this.code_id), {
         lineNumbers: true,

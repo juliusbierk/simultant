@@ -1,18 +1,20 @@
 <template>
-  <div id="plot"></div>
+  <div :id="plot_id"></div>
 </template>
 
 <script>
 import Plotly from "plotly.js-dist";
 import plotlysettings from "@/plotsettings.js";
 import _ from "lodash";
+import misc from "@/misc.js";
 
 export default {
   name: "BasicPlot",
   data: function() {
     return {
       xlim: [0, 5],
-      ylim: null
+      ylim: null,
+      plot_id: null
     };
   },
   methods: {
@@ -53,9 +55,9 @@ export default {
           layout.yaxis.range = this.ylim;
         }
 
-        Plotly.newPlot("plot", [res], layout, plotlysettings.settings);
+        Plotly.newPlot(this.plot_id, [res], layout, plotlysettings.settings);
 
-        var plot = document.getElementById("plot");
+        var plot = document.getElementById(this.plot_id);
         plot.on("plotly_relayout", e => {
           let update = false;
 
@@ -94,7 +96,7 @@ export default {
           layout.yaxis.range = this.ylim;
         }
 
-        Plotly.react("plot", [res], layout);
+        Plotly.react(this.plot_id, [res], layout);
       });
     },
     reset_scale() {
@@ -113,7 +115,10 @@ export default {
     }
   },
   mounted: function() {
-    this.update();
+    this.plot_id = "plot" + misc.uuid4(); // wack method, but it works!
+    this.$nextTick(() => {
+      this.update();
+    });
   },
   props: {
     url: String,
