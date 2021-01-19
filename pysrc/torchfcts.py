@@ -1,5 +1,4 @@
 import inspect
-from functools import partial
 import torch
 from silly import sillyode
 from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace, logspace, arange, \
@@ -7,7 +6,8 @@ from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace
     transpose, unsqueeze, abs, cosh, sinh, tan, tanh, asinh, acosh, atanh, ceil, clamp, erf, erfc, \
     floor, log, lgamma, log10, logical_and, logical_not, logical_or, logical_xor, pow, round, sigmoid, \
     argmin, argmax, amin, amax, min, max, mean, mode, median, sum, prod, std, unique, var, isinf, isnan, \
-    isfinite, fft, rfft, ifft, cross, cumsum, cumprod, diag, flatten, roll, dot, det, solve, trapz
+    isfinite, fft, rfft, ifft, cross, cumsum, cumprod, diag, flatten, roll, dot, det, solve, trapz, empty, \
+    empty_like
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -29,7 +29,7 @@ torchfcts = {"sin": sin, "cos": cos, "exp": exp, "tensor": tensor, "sqrt": sqrt,
              "var": var, "isinf": isinf, "isnan": isnan,
              "isfinite": isfinite, "fft": fft, "ifft": ifft, "rfft": rfft, "cross": cross, "cumsum": cumsum,
              "cumprod": cumprod, "diag": diag, "flatten": flatten, "roll": roll, "dot": dot, "det": det, "solve": solve,
-             "trapz": trapz}
+             "trapz": trapz, "empty": empty, "empty_like": empty_like}
 
 
 def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
