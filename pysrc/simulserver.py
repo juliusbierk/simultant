@@ -123,7 +123,7 @@ async def upload_data(request):
                 for i in range(0, num_rows.shape[1], 2):
                     x = num_rows[:, i]
                     y = num_rows[:, i + 1]
-                    mask = np.isnan(y)
+                    mask = ~np.isnan(y)
                     if any(np.isnan(x[mask])):
                         return web.json_response({'success': False, 'error': 'x-axis not defined for all y-values.'})
                     dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
@@ -133,7 +133,7 @@ async def upload_data(request):
                 x = num_rows[:, 0]
                 for i in range(1, num_rows.shape[1]):
                     y = num_rows[:, i]
-                    mask = np.isnan(y)
+                    mask = ~np.isnan(y)
                     if any(np.isnan(x[mask])):
                         return web.json_response({'success': False, 'error': 'x-axis not defined for all y-values.'})
                     dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),

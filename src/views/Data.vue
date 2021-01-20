@@ -99,14 +99,14 @@
                   <p></p>
                   Specify one x-axis as the first column<button
                     @click="set_example_data"
-                    v-show="interviewing_example"
+                    v-show="interweaving_example"
                     style="margin-bottom:2px"
                     class="defaultcursor button mini rounded"
                   >
                     Show</button
                   >, or several by interweaving x- and y-axes<button
                     @click="set_example_interviewing_data"
-                    v-show="!interviewing_example"
+                    v-show="!interweaving_example"
                     style="margin-bottom:2px"
                     class="defaultcursor button mini rounded"
                   >
@@ -214,24 +214,30 @@
 </template>
 
 <script>
+function get_upload_defaults() {
+  return {
+    create_open: true,
+    header: null,
+    data: null,
+    filename: null,
+    filenames: null,
+    multiple_x_axes: false,
+    has_header: null,
+    show_example: false,
+    target_files: null,
+    commit_data: false,
+    upload_error: null,
+    interweaving_example: false
+  };
+}
+
 export default {
   name: "Data",
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
-      create_open: true,
-      header: null,
-      data: null,
-      filename: null,
-      filenames: null,
-      multiple_x_axes: false,
-      has_header: null,
-      show_example: false,
-      target_files: null,
-      commit_data: false,
-      upload_error: null,
-      interviewing_example: false,
-      db_data: null
+      db_data: null,
+      ...get_upload_defaults()
     };
   },
   methods: {
@@ -245,7 +251,7 @@ export default {
         ["4", "5.5", "", "6.1"]
       ];
       this.multiple_x_axes = false;
-      this.interviewing_example = false;
+      this.interweaving_example = false;
     },
     set_example_interviewing_data() {
       this.header = ["x_1", "y_1", "x_2", "y_2"];
@@ -257,7 +263,7 @@ export default {
         ["4", "3.3", "", ""]
       ];
       this.multiple_x_axes = true;
-      this.interviewing_example = true;
+      this.interweaving_example = true;
     },
     submit_data() {
       this.commit_data = true;
@@ -272,8 +278,12 @@ export default {
       if (!sure_reset) {
         return;
       }
-      this.$router.go();
+      this.do_reset();
     },
+      do_reset() {
+Object.assign(this.$data, get_upload_defaults());
+      this.set_example_data();
+      },
     upload() {
       this.show_example = false;
       const files = this.target_files;
@@ -298,7 +308,8 @@ export default {
             const data = await result.json();
             if (this.commit_data) {
               if (data.success) {
-                this.$router.go();
+                this.do_reset();
+                this.update_datasets();
               } else {
                 this.commit_data = false;
                 this.upload_error = "Data could not be processed.";
@@ -322,14 +333,17 @@ export default {
               "Could not process file. Please double check that it is a valid .csv or .tsv file.";
           });
       }
-    }
+    },
+      update_datasets() {
+        fetch(this.py + "/data_list", {}).then(async result => {
+            this.db_data = await result.json();
+          });
+      }
   },
   mounted: function() {
     this.set_example_data();
+    this.update_datasets();
 
-    fetch(this.py + "/data_list", {}).then(async result => {
-      this.db_data = await result.json();
-    });
   }
 };
 </script>
