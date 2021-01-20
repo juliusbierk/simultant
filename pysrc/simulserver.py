@@ -81,8 +81,14 @@ async def upload_data(request):
     final_upload = False
 
     example = None
+    filenames = []
+
     for fname in data:
+        if not fname.startswith('file_'):
+            continue
         f = data[fname].file.read().decode('latin-1')
+        fname = fname[5:]
+        filenames.append(fname)
 
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(f)
@@ -114,8 +120,9 @@ async def upload_data(request):
                 rows = [r[:7] + ['&#8943;'] for r in rows]
                 header = header[:7] + ['&#8943;']
                 cut_horizontal = True
+
             if len(rows) > 7:
-                rows = rows[:7] + [['&#8942;'] * len(rows[0])]
+                rows = rows[:7] + [['<center>&#8942;</center>'] * len(rows[0])]
                 cut_vertical = True
 
             if cut_horizontal and cut_vertical:
@@ -125,7 +132,7 @@ async def upload_data(request):
         example = {'header': header, 'has_header': has_header,
                       'first_column_is_time': first_column_is_time, 'data': rows, 'fname': fname}
 
-    res = {'filenames': list(data.keys()), 'example': example}
+    res = {'filenames': filenames, 'example': example}
 
     return web.json_response(res)
 

@@ -23,7 +23,7 @@
           <div class="window-content p-2">
 
             <div class="row flex-justify-center">
-              <div class="cell-6">
+              <div v-show="!filename" class="cell-6">
                 <input
                   id="file"
                   type="file"
@@ -36,8 +36,46 @@
 
             <div v-if="!filename" class="row flex-justify-center">
               <div class="cell-5">
-                Files must be in a .csv or .tsv format
+                <small>
+                  Files must be in a<code style="margin-bottom:2px">.csv</code>or<code style="margin-bottom:2px">.tsv</code>format.
                 <button v-if="!show_example" @click="show_example = true;" style="margin-bottom:2px" class="defaultcursor button mini rounded">Show Example</button>
+                </small>
+
+              </div>
+            </div>
+
+            <div v-if="filename || show_example" class="row">
+              <div class="cell-8 offset-2">
+                <small v-show="filename && filenames.length === 1">{{ filename }}:</small>
+                <small v-show="filename && filenames.length !== 1">Processing {{ filenames }}, showing "{{ filename }}":</small>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th
+                        v-bind:class="{
+                          'bg-lightTime': multiple_x_axes
+                            ? i % 2 === 1
+                            : i === 1
+                        }"
+                        v-for="i in header.length"
+                        v-bind:key="i"
+                        v-html="header[i - 1]"
+                      ></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="i in data.length" v-bind:key="i">
+                      <td
+                        v-bind:class="{
+                          'bg-time': multiple_x_axes ? j % 2 === 1 : j === 1
+                        }"
+                        v-for="j in data[i - 1].length"
+                        v-bind:key="j"
+                        v-html="data[i - 1][j - 1]"
+                      ></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -73,39 +111,6 @@
               </div>
             </div>
 
-            <div v-if="filename || show_example" class="row">
-              <div class="cell-8 offset-2">
-                <b v-show="filename">{{ filename }}:</b>
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th
-                        v-bind:class="{
-                          'bg-lightTime': multiple_x_axes
-                            ? i % 2 === 1
-                            : i === 1
-                        }"
-                        v-for="i in header.length"
-                        v-bind:key="i"
-                        v-html="header[i - 1]"
-                      ></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="i in data.length" v-bind:key="i">
-                      <td
-                        v-bind:class="{
-                          'bg-time': multiple_x_axes ? j % 2 === 1 : j === 1
-                        }"
-                        v-for="j in data[i - 1].length"
-                        v-bind:key="j"
-                        v-html="data[i - 1][j - 1]"
-                      ></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -127,8 +132,9 @@ export default {
         ["2", "3.3", "3.6", "3.1"]
       ],
       filename: null,
+        filenames: null,
       multiple_x_axes: false,
-        has_header: true,
+        has_header: null,
         show_example: false,
     };
   },
@@ -139,8 +145,10 @@ export default {
         // For now just do one file:
         const formData = new FormData();
         for (const file of files) {
-          formData.append(file.name, file);
+          formData.append("file_" + file.name, file);
         }
+
+        formData.append('has_header', this.has_header);
 
         fetch(this.py + "/upload_data", {
           method: "POST",
@@ -150,7 +158,9 @@ export default {
             const data = await result.json();
             this.header = data.example.header;
             this.data = data.example.data;
+            this.has_header = data.example.has_header;
             this.filename = data.example.fname;
+            this.filenames = data.filenames;
           })
           .catch(() => {
             alert("Could not process file. Are you sure this is a csv file?");
