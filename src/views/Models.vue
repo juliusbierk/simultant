@@ -220,7 +220,6 @@
                     style="margin-top:0; margin-bottom:0"
                   >
                     <b>Parameters:</b>
-
                     <button
                       v-for="p in parameters"
                       v-bind:key="p.name"

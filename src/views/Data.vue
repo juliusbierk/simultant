@@ -4,7 +4,7 @@
       <div class="cell">
         <div class="window" v-bind:class="{ minimized: !create_open }">
           <div class="window-caption">
-            <span class="title">Upload New Data</span>
+            <span class="title">Import Data</span>
 
             <div class="buttons">
               <span
@@ -180,6 +180,36 @@
         </div>
       </div>
     </div>
+
+    <div class="row" v-show="db_data">
+      <div class="cell">
+        <div class="window">
+          <div class="window-caption">
+            <span class="title">Datasets</span>
+          </div>
+          <div class="window-content p-2">
+            <div class="row">
+              <div
+                class="cell-6"
+                v-for="(name_id_list, parent) in db_data"
+                v-bind:key="parent"
+              >
+                <div class="card">
+                  <div class="card-header">
+                    {{ parent }}
+                  </div>
+                  <div class="card-content p-2">
+                    {{ name_id_list }}
+                  </div>
+                  <!--                  <div class="card-footer p-2">-->
+                  <!--                  </div>-->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -298,8 +328,7 @@ export default {
     this.set_example_data();
 
     fetch(this.py + "/data_list", {}).then(async result => {
-      const res = await result.json();
-      console.log(res);
+      this.db_data = await result.json();
     });
   }
 };
