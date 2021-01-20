@@ -11,12 +11,12 @@
               <span
                 v-show="create_open"
                 @click="create_open = false"
-                class="btn-min defaultcursor"
+                class="btn-min btn-corner-hover defaultcursor"
               ></span>
               <span
                 v-show="!create_open"
                 @click="create_open = true"
-                class="btn-max defaultcursor"
+                class="btn-max btn-corner-hover defaultcursor"
               ></span>
             </div>
           </div>
@@ -227,5 +227,9 @@ export default {
 
 .bg-darkTime {
   background-color: #f0e9df !important;
+}
+
+.btn-corner-hover:hover {
+  background-color: #7f8ca1;
 }
 </style>
