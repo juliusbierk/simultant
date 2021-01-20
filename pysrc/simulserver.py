@@ -79,12 +79,12 @@ def plot_code_py(data):
 
 async def upload_data(request):
     data = await request.post()
-    final_upload = False
 
     example = None
     filenames = []
     has_header = json.loads(data['has_header'])
-    print('>>>', has_header)
+    commit_data = json.loads(data['commit_data'])
+    multiple_x_axes = json.loads(data['multiple_x_axes'])
 
     for fname in data:
         if not fname.startswith('file_'):
@@ -106,9 +106,7 @@ async def upload_data(request):
         else:
             header = ['x'] + [f'#{i}' for i in range(1, len(rows[0]))]
 
-
-
-        if not final_upload:
+        if not commit_data:
             cut_horizontal = False
             cut_vertical = False
 
@@ -124,12 +122,13 @@ async def upload_data(request):
             if cut_horizontal and cut_vertical:
                 rows[-1][-1] = '&#8945;'
 
-
         example = {'header': header, 'has_header': has_header, 'data': rows, 'fname': fname}
 
-    res = {'filenames': filenames, 'example': example}
-
-    return web.json_response(res)
+    if commit_data:
+        return web.json_response({'success': True, 'error': None})
+    else:
+        res = {'filenames': filenames, 'example': example}
+        return web.json_response(res)
 
 
 def guess_seperator(s):

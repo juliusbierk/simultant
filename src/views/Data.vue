@@ -89,6 +89,14 @@
               </div>
             </div>
 
+            <div class="row flex-justify-center" v-if="upload_error">
+              <div class="cell-5">
+                <div class="remark alert">
+                  {{ upload_error }}
+                </div>
+              </div>
+            </div>
+
             <div v-if="filename" class="row">
               <div class="cell-4 offset-3">
                 <label class="switch transition-on">
@@ -133,7 +141,7 @@
                 <button
                   class="defaultcursor button success"
                   style="margin-right:10px"
-                  @click="submit_model"
+                  @click="submit_data"
                 >
                   Add Data
                 </button>
@@ -164,16 +172,22 @@ export default {
       multiple_x_axes: false,
       has_header: null,
       show_example: false,
-      target_files: null
+      target_files: null,
+      commit_data: false,
+      upload_error: null
     };
   },
   methods: {
+    submit_data() {
+      this.commit_data = true;
+      this.upload();
+    },
     upload_event(e) {
       this.target_files = e.target.files;
       this.upload();
     },
     reset() {
-      let sure_reset = confirm("Reset model?");
+      let sure_reset = confirm("Are you sure?");
       if (!sure_reset) {
         return;
       }
@@ -189,6 +203,10 @@ export default {
         }
 
         formData.append("has_header", this.has_header);
+        formData.append("commit_data", this.commit_data);
+        formData.append("multiple_x_axes", this.multiple_x_axes);
+
+        this.upload_error = null;
 
         fetch(this.py + "/upload_data", {
           method: "POST",
@@ -196,14 +214,30 @@ export default {
         })
           .then(async result => {
             const data = await result.json();
-            this.header = data.example.header;
-            this.data = data.example.data;
-            this.has_header = data.example.has_header;
-            this.filename = data.example.fname;
-            this.filenames = data.filenames;
+            if (this.commit_data) {
+              if (data.success) {
+                this.$router.go();
+              } else {
+                this.upload_error =
+                  "Data could not be processed. Please check that it is fully numerical.";
+                if (
+                  typeof data.error === "string" ||
+                  data.error instanceof String
+                ) {
+                  this.upload_error += " " + data.error;
+                }
+              }
+            } else {
+              this.header = data.example.header;
+              this.data = data.example.data;
+              this.has_header = data.example.has_header;
+              this.filename = data.example.fname;
+              this.filenames = data.filenames;
+            }
           })
           .catch(() => {
-            alert("Could not process file. Are you sure this is a csv file?");
+            this.upload_error =
+              "Could not process file. Please double check that it is a valid .csv or .tsv file.";
           });
       }
     }
