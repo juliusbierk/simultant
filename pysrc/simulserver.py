@@ -5,7 +5,7 @@ import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-from db import create_model, get_models_names, get_all_models
+from db import create_model, get_models_names, get_all_models, create_dataset, get_data_names
 from torchfcts import function_from_code, get_default_args, ode_from_code, check_code_get_args
 import logging
 import csv
@@ -54,6 +54,10 @@ async def model_exist_check(request):
 
 async def model_list(request):
     return web.json_response(get_all_models())
+
+
+async def data_list(request):
+    return web.json_response(get_data_names())
 
 
 async def plot_code(request):
@@ -116,7 +120,13 @@ async def upload_data(request):
                 return web.json_response({'success': False, 'error': 'Data contains non-numerical entries.'})
 
             if multiple_x_axes:
-                pass
+                for i in range(0, num_rows.shape[1], 2):
+                    x = num_rows[:, i]
+                    y = num_rows[:, i + 1]
+                    mask = np.isnan(y)
+                    dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
+                               'orig_x': list(x[mask]), 'orig_y': list(y[mask])}
+                    create_dataset(header[i + 1], fname, dataset)
             else:
                 x = num_rows[:, 0]
                 for i in range(1, num_rows.shape[1]):
@@ -124,8 +134,7 @@ async def upload_data(request):
                     mask = np.isnan(y)
                     dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
                                'orig_x': list(x[mask]), 'orig_y': list(y[mask])}
-                    create_dataset(str(uuid4(), dataset))
-
+                    create_dataset(header[i], fname, dataset)
 
         else:
             cut_horizontal = False
@@ -152,13 +161,6 @@ async def upload_data(request):
         return web.json_response(res)
 
 
-def guess_seperator(s):
-    options = ['\t', ';', ',']
-    c = Counter(s)
-    c = [c[x] for x in options]
-    return options[np.argmax(c)]
-
-
 async def shuwdown(request):
     print('Stopping python server')
     raise GracefulExit
@@ -180,6 +182,7 @@ routes = [('/check_code', check_code),
           ('/model_exist_check', model_exist_check),
           ('/model_list', model_list),
           ('/upload_data', upload_data),
+          ('/data_list', data_list),
           ('/exit', shuwdown),
           ]
 

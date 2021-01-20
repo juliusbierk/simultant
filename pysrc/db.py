@@ -1,5 +1,6 @@
 import sqlite3
 import json
+from collections import defaultdict
 from uuid import uuid4
 
 conn = sqlite3.connect('db.sqlite')  # Use absolute paths!
@@ -12,7 +13,11 @@ def create_dataset(name, parent, content):
     conn.commit()
 
 def get_data_names():
-    return [x[0] for x in c.execute("SELECT name FROM data").fetchall()]
+    d = defaultdict(list)
+    for x in c.execute("SELECT id, name, parent FROM data").fetchall():
+        d[x[2]].append({'name': x[1], 'id': x[0]})
+    return dict(d)
+
 
 def get_data_content(ID):
     a = c.execute("SELECT content FROM data WHERE id=?", (ID, )).fetchone()

@@ -39,12 +39,11 @@
                   Files must be in a<code style="margin-bottom:2px">.csv</code
                   >or<code style="margin-bottom:2px">.tsv</code>format.
                   <button
-                    v-if="!show_example"
-                    @click="show_example = true"
+                    @click="show_example = !show_example"
                     style="margin-bottom:2px"
                     class="defaultcursor button mini rounded"
                   >
-                    Show Example
+                    {{show_example ? 'Hide Example' : 'Show Example'}}
                   </button>
                 </small>
               </div>
@@ -123,7 +122,7 @@
             </div>
 
             <div v-if="filename" class="row">
-              <div class="cell-4 offset-3">
+              <div class="cell-3 offset-2">
                 <label class="switch transition-on">
                   <input
                     type="checkbox"
@@ -137,6 +136,10 @@
                     has_header ? "First row is header" : "No header"
                   }}</span>
                 </label>
+
+              </div>
+
+              <div class="cell-3">
 
                 <label class="switch transition-on">
                   <input
@@ -197,6 +200,7 @@ export default {
       commit_data: false,
       upload_error: null,
         interviewing_example: false,
+        db_data: null,
     };
   },
   methods: {
@@ -292,6 +296,11 @@ export default {
   },
   mounted: function() {
       this.set_example_data();
+
+      fetch(this.py + "/data_list", {}).then(async result => {
+        const res = await result.json();
+        console.log(res);
+      });
   }
 };
 </script>
