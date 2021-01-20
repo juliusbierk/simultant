@@ -359,6 +359,9 @@ export default {
           }
         }
         this.models = res;
+        if (Object.keys(res).length === 0) {
+            this.toggle_add_model();
+        }
       });
     },
     submit_model() {

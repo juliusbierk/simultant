@@ -93,6 +93,9 @@ async def upload_data(request):
         fname = fname[5:]
         filenames.append(fname)
 
+        if not commit_data and len(filenames) > 1:
+            continue
+
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(f)
         if has_header is None:
@@ -106,7 +109,25 @@ async def upload_data(request):
         else:
             header = ['x'] + [f'#{i}' for i in range(1, len(rows[0]))]
 
-        if not commit_data:
+        if commit_data:
+            try:
+                num_rows = np.array([[np.nan if x.strip() == '' else np.double(x) for x in r] for r in rows])
+            except ValueError:
+                return web.json_response({'success': False, 'error': 'Data contains non-numerical entries.'})
+
+            if multiple_x_axes:
+                pass
+            else:
+                x = num_rows[:, 0]
+                for i in range(1, num_rows.shape[1]):
+                    y = num_rows[:, i]
+                    mask = np.isnan(y)
+                    dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
+                               'orig_x': list(x[mask]), 'orig_y': list(y[mask])}
+                    create_dataset(str(uuid4(), dataset))
+
+
+        else:
             cut_horizontal = False
             cut_vertical = False
 
@@ -122,7 +143,7 @@ async def upload_data(request):
             if cut_horizontal and cut_vertical:
                 rows[-1][-1] = '&#8945;'
 
-        example = {'header': header, 'has_header': has_header, 'data': rows, 'fname': fname}
+            example = {'header': header, 'has_header': has_header, 'data': rows, 'fname': fname}
 
     if commit_data:
         return web.json_response({'success': True, 'error': None})

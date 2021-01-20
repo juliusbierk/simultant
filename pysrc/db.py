@@ -1,20 +1,21 @@
 import sqlite3
 import json
+from uuid import uuid4
 
 conn = sqlite3.connect('db.sqlite')  # Use absolute paths!
 c = conn.cursor()
 
 ### DATA ###
 
-def create_dataset(name, content):
-    c.execute("REPLACE INTO data VALUES (?, ?)", (name, json.dumps(content)))
+def create_dataset(name, parent, content):
+    c.execute("INSERT INTO data VALUES (?, ?, ?, ?)", (str(uuid4()), name, parent, json.dumps(content)))
     conn.commit()
 
 def get_data_names():
     return [x[0] for x in c.execute("SELECT name FROM data").fetchall()]
 
-def get_data_content(name):
-    a = c.execute("SELECT content FROM data WHERE name=?", (name, )).fetchone()
+def get_data_content(ID):
+    a = c.execute("SELECT content FROM data WHERE id=?", (ID, )).fetchone()
     if a is not None:
         return json.loads(a[0])
 

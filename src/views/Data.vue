@@ -4,7 +4,6 @@
       <div class="cell">
         <div class="window" v-bind:class="{ minimized: !create_open }">
           <div class="window-caption">
-            <!--            <span class="icon mif-windows"></span>-->
             <span class="title">Upload New Data</span>
 
             <div class="buttons">
@@ -20,6 +19,7 @@
               ></span>
             </div>
           </div>
+
           <div class="window-content p-2">
             <div class="row flex-justify-center">
               <div v-show="!filename" class="cell-6">
@@ -88,6 +88,31 @@
                 </table>
               </div>
             </div>
+
+            <div class="row flex-justify-center" v-if="show_example">
+              <div class="cell-5">
+                <div class="remark info">
+                  Each column should contain a dataset. The first row can be used for naming each dataset.<p></p>
+                  Entries can be empty, specifying that a value is unknown at that point.<p></p>
+                  Specify one x-axis as the first column<button
+                    @click="set_example_data"
+                    v-show="interviewing_example"
+                    style="margin-bottom:2px"
+                    class="defaultcursor button mini rounded"
+                  >
+                    Show
+                  </button>, or several by interweaving x- and y-axes<button
+                    @click="set_example_interviewing_data"
+                    v-show="!interviewing_example"
+                    style="margin-bottom:2px"
+                    class="defaultcursor button mini rounded"
+                  >
+                    Show
+                  </button>.
+                </div>
+              </div>
+            </div>
+
 
             <div class="row flex-justify-center" v-if="upload_error">
               <div class="cell-5">
@@ -161,12 +186,8 @@ export default {
     return {
       py: "http://127.0.0.1:7555",
       create_open: true,
-      header: ["x", "y_1", "y_2", "y_3"],
-      data: [
-        ["0", "1.3", "1.1", "1.5"],
-        ["1", "2.1", "2.5", "2.3"],
-        ["2", "3.3", "3.6", "3.1"]
-      ],
+      header: null,
+      data: null,
       filename: null,
       filenames: null,
       multiple_x_axes: false,
@@ -174,10 +195,35 @@ export default {
       show_example: false,
       target_files: null,
       commit_data: false,
-      upload_error: null
+      upload_error: null,
+        interviewing_example: false,
     };
   },
   methods: {
+      set_example_data() {
+        this.header = ["x", "y_1", "y_2", "y_3"];
+        this.data = [
+        ["0", "1.3", "1.1", "1.5"],
+        ["1", "2.1", "2.5", "2.3"],
+        ["2", "3.3", "3.1", "3.1"],
+        ["3", "4.4", "", "4.8"],
+        ["4", "5.5", "", "6.1"]
+        ];
+        this.multiple_x_axes = false;
+        this.interviewing_example = false;
+      },
+      set_example_interviewing_data() {
+        this.header = ["x_1", "y_1", "x_2", "y_2"];
+        this.data = [
+        ["0", "1.3", "0", "1.5"],
+        ["1", "2.1", "1", "2.3"],
+        ["2", "3.3", "2", "3.1"],
+            ["3", "3.3", "", ""],
+            ["4", "3.3", "", ""]
+        ];
+        this.multiple_x_axes = true;
+        this.interviewing_example = true;
+      },
     submit_data() {
       this.commit_data = true;
       this.upload();
@@ -194,6 +240,7 @@ export default {
       this.$router.go();
     },
     upload() {
+          this.show_example = false;
       const files = this.target_files;
       if (files) {
         // For now just do one file:
@@ -218,8 +265,9 @@ export default {
               if (data.success) {
                 this.$router.go();
               } else {
+                  this.commit_data = false;
                 this.upload_error =
-                  "Data could not be processed. Please check that it is fully numerical.";
+                  "Data could not be processed.";
                 if (
                   typeof data.error === "string" ||
                   data.error instanceof String
@@ -242,7 +290,9 @@ export default {
       }
     }
   },
-  mounted: function() {}
+  mounted: function() {
+      this.set_example_data();
+  }
 };
 </script>
 
