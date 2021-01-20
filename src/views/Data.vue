@@ -43,7 +43,7 @@
                     style="margin-bottom:2px"
                     class="defaultcursor button mini rounded"
                   >
-                    {{show_example ? 'Hide Example' : 'Show Example'}}
+                    {{ show_example ? "Hide Example" : "Show Example" }}
                   </button>
                 </small>
               </div>
@@ -91,27 +91,30 @@
             <div class="row flex-justify-center" v-if="show_example">
               <div class="cell-5">
                 <div class="remark info">
-                  Each column should contain a dataset. The first row can be used for naming each dataset.<p></p>
-                  Entries can be empty, specifying that a value is unknown at that point.<p></p>
+                  Each column should contain a dataset. The first row can be
+                  used for naming each dataset.
+                  <p></p>
+                  Entries can be empty, specifying that a value is unknown at
+                  that point.
+                  <p></p>
                   Specify one x-axis as the first column<button
                     @click="set_example_data"
                     v-show="interviewing_example"
                     style="margin-bottom:2px"
                     class="defaultcursor button mini rounded"
                   >
-                    Show
-                  </button>, or several by interweaving x- and y-axes<button
+                    Show</button
+                  >, or several by interweaving x- and y-axes<button
                     @click="set_example_interviewing_data"
                     v-show="!interviewing_example"
                     style="margin-bottom:2px"
                     class="defaultcursor button mini rounded"
                   >
-                    Show
-                  </button>.
+                    Show</button
+                  >.
                 </div>
               </div>
             </div>
-
 
             <div class="row flex-justify-center" v-if="upload_error">
               <div class="cell-5">
@@ -136,11 +139,9 @@
                     has_header ? "First row is header" : "No header"
                   }}</span>
                 </label>
-
               </div>
 
               <div class="cell-3">
-
                 <label class="switch transition-on">
                   <input
                     type="checkbox"
@@ -199,35 +200,35 @@ export default {
       target_files: null,
       commit_data: false,
       upload_error: null,
-        interviewing_example: false,
-        db_data: null,
+      interviewing_example: false,
+      db_data: null
     };
   },
   methods: {
-      set_example_data() {
-        this.header = ["x", "y_1", "y_2", "y_3"];
-        this.data = [
+    set_example_data() {
+      this.header = ["x", "y_1", "y_2", "y_3"];
+      this.data = [
         ["0", "1.3", "1.1", "1.5"],
         ["1", "2.1", "2.5", "2.3"],
         ["2", "3.3", "3.1", "3.1"],
         ["3", "4.4", "", "4.8"],
         ["4", "5.5", "", "6.1"]
-        ];
-        this.multiple_x_axes = false;
-        this.interviewing_example = false;
-      },
-      set_example_interviewing_data() {
-        this.header = ["x_1", "y_1", "x_2", "y_2"];
-        this.data = [
+      ];
+      this.multiple_x_axes = false;
+      this.interviewing_example = false;
+    },
+    set_example_interviewing_data() {
+      this.header = ["x_1", "y_1", "x_2", "y_2"];
+      this.data = [
         ["0", "1.3", "0", "1.5"],
         ["1", "2.1", "1", "2.3"],
         ["2", "3.3", "2", "3.1"],
-            ["3", "3.3", "", ""],
-            ["4", "3.3", "", ""]
-        ];
-        this.multiple_x_axes = true;
-        this.interviewing_example = true;
-      },
+        ["3", "3.3", "", ""],
+        ["4", "3.3", "", ""]
+      ];
+      this.multiple_x_axes = true;
+      this.interviewing_example = true;
+    },
     submit_data() {
       this.commit_data = true;
       this.upload();
@@ -244,7 +245,7 @@ export default {
       this.$router.go();
     },
     upload() {
-          this.show_example = false;
+      this.show_example = false;
       const files = this.target_files;
       if (files) {
         // For now just do one file:
@@ -269,9 +270,8 @@ export default {
               if (data.success) {
                 this.$router.go();
               } else {
-                  this.commit_data = false;
-                this.upload_error =
-                  "Data could not be processed.";
+                this.commit_data = false;
+                this.upload_error = "Data could not be processed.";
                 if (
                   typeof data.error === "string" ||
                   data.error instanceof String
@@ -295,12 +295,12 @@ export default {
     }
   },
   mounted: function() {
-      this.set_example_data();
+    this.set_example_data();
 
-      fetch(this.py + "/data_list", {}).then(async result => {
-        const res = await result.json();
-        console.log(res);
-      });
+    fetch(this.py + "/data_list", {}).then(async result => {
+      const res = await result.json();
+      console.log(res);
+    });
   }
 };
 </script>
