@@ -1,8 +1,6 @@
 aiohttp>=3.6
-aiohttp-cors
+aiohttp-cors>=0.7
 numpy>=1.19
 scipy>=1.5
 torch>=1.7
 pyinstaller>=4.1
-bokeh>=2.2
-torchdiffeq>=0.1.1
