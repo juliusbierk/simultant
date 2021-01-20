@@ -39,15 +39,21 @@
                 <table class="table">
                   <thead>
                     <tr>
-                      <th v-for="s in header" v-bind:key="s" v-html="s"></th>
+                      <th
+                        v-bind:class="{ 'bg-lightTime': i === 1 }"
+                        v-for="i in header.length"
+                        v-bind:key="i"
+                        v-html="header[i - 1]"
+                      ></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="i in data.length" v-bind:key="i">
                       <td
+                        v-bind:class="{ 'bg-time': j === 1 }"
                         v-for="j in data[i - 1].length"
                         v-bind:key="j"
-                        v-html="data[i-1][j-1]"
+                        v-html="data[i - 1][j - 1]"
                       ></td>
                     </tr>
                   </tbody>
@@ -75,7 +81,7 @@ export default {
         ["1", "2.1", "2.5", "2.3"],
         ["2", "3.3", "3.6", "3.1"]
       ],
-        filename: "Example data"
+      filename: "Example data"
     };
   },
   methods: {
@@ -113,5 +119,17 @@ export default {
 <style>
 .files {
   display: none;
+}
+
+.bg-lightTime {
+  background-color: #f7f5f2 !important;
+}
+
+.bg-time {
+  background-color: #f5f1eb !important;
+}
+
+.bg-darkTime {
+  background-color: #f0e9df !important;
 }
 </style>
