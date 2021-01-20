@@ -1,3 +1,4 @@
+import json
 from collections import Counter
 import numpy as np
 import torch
@@ -82,6 +83,8 @@ async def upload_data(request):
 
     example = None
     filenames = []
+    has_header = json.loads(data['has_header'])
+    print('>>>', has_header)
 
     for fname in data:
         if not fname.startswith('file_'):
@@ -92,7 +95,8 @@ async def upload_data(request):
 
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(f)
-        has_header = sniffer.has_header(f)
+        if has_header is None:
+            has_header = sniffer.has_header(f)
 
         rows = [r for r in csv.reader(f.split('\n'), dialect=dialect) if len(r) > 0]
 
@@ -100,17 +104,9 @@ async def upload_data(request):
             header = rows[0]
             rows = rows[1:]
         else:
-            header = None
+            header = ['x'] + [f'#{i}' for i in range(1, len(rows[0]))]
 
-        first_column = [x[0] for x in rows]
-        if '' in first_column:
-            first_column_is_time = False
-        else:
-            dt = np.diff([float(x) for x in first_column])
-            if np.all(dt > 0):
-                first_column_is_time = (np.std(dt) / np.mean(dt)) < 2.0
-            else:
-                first_column_is_time = False
+
 
         if not final_upload:
             cut_horizontal = False
@@ -129,8 +125,7 @@ async def upload_data(request):
                 rows[-1][-1] = '&#8945;'
 
 
-        example = {'header': header, 'has_header': has_header,
-                      'first_column_is_time': first_column_is_time, 'data': rows, 'fname': fname}
+        example = {'header': header, 'has_header': has_header, 'data': rows, 'fname': fname}
 
     res = {'filenames': filenames, 'example': example}
 

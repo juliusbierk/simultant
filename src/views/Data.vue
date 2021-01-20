@@ -21,7 +21,6 @@
             </div>
           </div>
           <div class="window-content p-2">
-
             <div class="row flex-justify-center">
               <div v-show="!filename" class="cell-6">
                 <input
@@ -29,7 +28,7 @@
                   type="file"
                   data-role="file"
                   data-mode="drop"
-                  @change="upload"
+                  @change="upload_event"
                 />
               </div>
             </div>
@@ -37,17 +36,28 @@
             <div v-if="!filename" class="row flex-justify-center">
               <div class="cell-5">
                 <small>
-                  Files must be in a<code style="margin-bottom:2px">.csv</code>or<code style="margin-bottom:2px">.tsv</code>format.
-                <button v-if="!show_example" @click="show_example = true;" style="margin-bottom:2px" class="defaultcursor button mini rounded">Show Example</button>
+                  Files must be in a<code style="margin-bottom:2px">.csv</code
+                  >or<code style="margin-bottom:2px">.tsv</code>format.
+                  <button
+                    v-if="!show_example"
+                    @click="show_example = true"
+                    style="margin-bottom:2px"
+                    class="defaultcursor button mini rounded"
+                  >
+                    Show Example
+                  </button>
                 </small>
-
               </div>
             </div>
 
             <div v-if="filename || show_example" class="row">
               <div class="cell-8 offset-2">
-                <small v-show="filename && filenames.length === 1">{{ filename }}:</small>
-                <small v-show="filename && filenames.length !== 1">Processing {{ filenames }}, showing "{{ filename }}":</small>
+                <small v-show="filename && filenames.length === 1"
+                  >{{ filename }}:</small
+                >
+                <small v-show="filename && filenames.length !== 1"
+                  >Processing {{ filenames }}, showing "{{ filename }}":</small
+                >
                 <table class="table">
                   <thead>
                     <tr>
@@ -80,7 +90,7 @@
             </div>
 
             <div v-if="filename" class="row">
-              <div class="cell-6 offset-3">
+              <div class="cell-4 offset-3">
                 <label class="switch transition-on">
                   <input
                     type="checkbox"
@@ -88,6 +98,7 @@
                     v-model="has_header"
                     data-role-switch="true"
                     class=""
+                    @change="upload"
                   /><span class="check"></span>
                   <span class="caption">{{
                     has_header ? "First row is header" : "No header"
@@ -109,8 +120,25 @@
                   }}</span>
                 </label>
               </div>
-            </div>
 
+              <div class="cell-3 offset-1">
+                <button
+                  @click="reset"
+                  class="defaultcursor button"
+                  style="margin-right:10px"
+                >
+                  Reset
+                </button>
+
+                <button
+                  class="defaultcursor button success"
+                  style="margin-right:10px"
+                  @click="submit_model"
+                >
+                  Add Data
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -132,15 +160,27 @@ export default {
         ["2", "3.3", "3.6", "3.1"]
       ],
       filename: null,
-        filenames: null,
+      filenames: null,
       multiple_x_axes: false,
-        has_header: null,
-        show_example: false,
+      has_header: null,
+      show_example: false,
+      target_files: null
     };
   },
   methods: {
-    upload(e) {
-      var files = e.target.files;
+    upload_event(e) {
+      this.target_files = e.target.files;
+      this.upload();
+    },
+    reset() {
+      let sure_reset = confirm("Reset model?");
+      if (!sure_reset) {
+        return;
+      }
+      this.$router.go();
+    },
+    upload() {
+      const files = this.target_files;
       if (files) {
         // For now just do one file:
         const formData = new FormData();
@@ -148,7 +188,7 @@ export default {
           formData.append("file_" + file.name, file);
         }
 
-        formData.append('has_header', this.has_header);
+        formData.append("has_header", this.has_header);
 
         fetch(this.py + "/upload_data", {
           method: "POST",

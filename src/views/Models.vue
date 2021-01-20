@@ -407,7 +407,6 @@ export default {
     },
     reset() {
       let sure_reset = confirm("Reset model?");
-      console.log(sure_reset);
       if (!sure_reset) {
         return;
       }
