@@ -9,7 +9,7 @@
     </div>
 
     <div class="row" v-if="Object.keys(db_data).length">
-      <div class="cell">
+      <div :class="{ 'cell-12': choose_fit_open, 'cell-4': !choose_fit_open }">
         <div class="window" v-bind:class="{ minimized: !choose_fit_open }">
           <div class="window-caption">
             <span class="title">Fits</span>
@@ -31,17 +31,49 @@
           <div class="window-content p-2"></div>
         </div>
       </div>
+      <div class="cell-4" v-show="!choose_fit_open && !data_selection_open">
+        <div class="window" v-bind:class="{ minimized: !data_selection_open }">
+          <div class="window-caption">
+            <span class="title">Data Selection</span>
+
+            <div class="buttons">
+              <span
+                v-show="data_selection_open"
+                @click="data_selection_open = false"
+                class="btn-min btn-corner-hover defaultcursor"
+              ></span>
+              <span
+                v-show="!data_selection_open"
+                @click="data_selection_open = true"
+                class="btn-max btn-corner-hover defaultcursor"
+              ></span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="row" v-if="Object.keys(db_data).length">
-      <div class="cell">
-        <div class="window">
+      <div class="cell-6" v-show="choose_fit_open || data_selection_open">
+        <div class="window" v-bind:class="{ minimized: !data_selection_open }">
           <div class="window-caption">
-            <!--            <span class="icon mif-windows"></span>-->
-            <span class="title">Data</span>
+            <span class="title">Data Selection</span>
+
+            <div class="buttons">
+              <span
+                v-show="data_selection_open"
+                @click="data_selection_open = false"
+                class="btn-min btn-corner-hover defaultcursor"
+              ></span>
+              <span
+                v-show="!data_selection_open"
+                @click="data_selection_open = true"
+                class="btn-max btn-corner-hover defaultcursor"
+              ></span>
+            </div>
           </div>
 
-          <div style="min-height: 500px;" class="window-content p-2">
+          <div style="min-height: 300px;" class="window-content p-2">
             <div class="row">
               <div class="cell-6 offset-1">
                 <label for="group_select"><small>Data Group</small></label>
@@ -95,12 +127,43 @@
                 </select>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div class="card"></div>
+      <div class="cell-6">
+        <div class="window" v-bind:class="{ minimized: !model_selection_open }">
+          <div class="window-caption">
+            <span class="title">Model Selection</span>
 
-            <div class="row">
+            <div class="buttons">
+              <span
+                v-show="model_selection_open"
+                @click="model_selection_open = false"
+                class="btn-min btn-corner-hover defaultcursor"
+              ></span>
+              <span
+                v-show="!model_selection_open"
+                @click="model_selection_open = true"
+                class="btn-max btn-corner-hover defaultcursor"
+              ></span>
             </div>
           </div>
+
+          <div style="min-height: 300px;" class="window-content p-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" v-if="Object.keys(db_data).length">
+      <div class="cell">
+        <div class="window">
+          <div class="window-caption">
+            <!--            <span class="icon mif-windows"></span>-->
+            <span class="title">Data</span>
+          </div>
+
+          <div class="window-content p-2"></div>
         </div>
       </div>
       <div class="cell">
@@ -126,6 +189,8 @@ export default {
     return {
       py: "http://127.0.0.1:7555",
       choose_fit_open: true,
+      data_selection_open: true,
+      model_selection_open: true,
       db_data: {},
       selected_data_group: null,
       selected_dataset_ids: null
