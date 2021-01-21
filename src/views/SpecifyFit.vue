@@ -1,6 +1,14 @@
 <template>
   <div style="padding:10px" class="grid">
-    <div class="row">
+    <div class="row" v-if="!Object.keys(db_data).length">
+      <div class="cell-6 offset-3">
+        <div class="remark alert">
+          No data has been imported.
+        </div>
+      </div>
+    </div>
+
+    <div class="row" v-if="Object.keys(db_data).length">
       <div class="cell">
         <div class="window" v-bind:class="{ minimized: !choose_fit_open }">
           <div class="window-caption">
@@ -24,7 +32,8 @@
         </div>
       </div>
     </div>
-    <div class="row">
+
+    <div class="row" v-if="Object.keys(db_data).length">
       <div class="cell">
         <div class="window">
           <div class="window-caption">
@@ -36,10 +45,19 @@
             <div class="row">
               <div class="cell-6 offset-1">
                 <label for="group_select"><small>Data Group</small></label>
-                <select id="group_select" data-role="select">
-                  <option value="mini">Mini</option>
-                  <option value="site">Site</option>
-                  <option value="portal">Portal</option>
+                <select
+                  id="group_select"
+                  data-role="select"
+                  @change="update_selection_datasets"
+                >
+                  <option style="display:none" disabled selected value></option>
+                  <option
+                    v-for="(content, parent) in db_data"
+                    :value="parent"
+                    v-bind:key="parent"
+                  >
+                    {{ parent }}</option
+                  >
                 </select>
               </div>
               <div class="cell-3">
@@ -55,17 +73,15 @@
             </div>
 
             <div class="row">
-              <div class="cell-9 offset-1">
+              <div class="cell-9 offset-1" v-if="selected_data_group">
                 <label for="dataset_select"><small>Datasets</small></label>
                 <select id="dataset_select" data-role="select" multiple>
                   <option value="1" selected>Amazon</option>
-                  <option value="2" selected>Apple</option>
-                  <option value="3" selected>Blogger</option>
-                  <option value="4" selected>Evernote</option>
-                  <option value="5" selected>GitHub</option>
                 </select>
               </div>
             </div>
+
+            <div class="card"></div>
 
             <div class="row">
               asdasd
@@ -95,19 +111,36 @@ export default {
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
-      choose_fit_open: true
+      choose_fit_open: true,
+      db_data: {},
+        selected_data_group: null,
     };
   },
   components: {
     BasicPlot
   },
-  methods: {},
-  mounted: function() {}
+  methods: {
+    update_datasets() {
+      fetch(this.py + "/data_list", {}).then(async result => {
+        this.db_data = await result.json();
+      });
+    },
+    update_selection_datasets(e) {
+      this.selected_data_group = e.target.value;
+    }
+  },
+  mounted: function() {
+    this.update_datasets();
+  }
 };
 </script>
 
 <style>
 .btn-corner-hover:hover {
   background-color: #7f8ca1;
+}
+
+li.disabled {
+  display: none !important;
 }
 </style>

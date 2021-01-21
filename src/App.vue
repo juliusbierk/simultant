@@ -90,10 +90,14 @@ a {
   cursor: default;
 }
 
-.defaultcursor {
-  cursor: default !important;
-}
-.select-input {
+.defaultcursor,
+.select-input,
+.default-icon-cross,
+.dropdown-toggle,
+.drop-container,
+.select.input-normal,
+.input-clear-button,
+.remover{
   cursor: default !important;
 }
 </style>
