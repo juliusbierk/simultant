@@ -29,9 +29,7 @@
 <script>
 export default {
   data() {
-    return {
-      greeting: "Hello"
-    };
+    return {};
   },
   methods: {
     rpush(to) {
@@ -66,6 +64,10 @@ export default {
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+.window-caption > .title {
+  margin-left: 5px;
 }
 
 :not(input):not(textarea),
