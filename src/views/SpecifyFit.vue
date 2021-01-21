@@ -19,7 +19,59 @@
             <span class="title">Data</span>
           </div>
 
-          <div class="window-content p-2"></div>
+          <div style="min-height: 500px;" class="window-content p-2">
+            <div class="row">
+              <div class="cell-7 offset-1">
+                <label for="group_select"><small>Data Group</small></label>
+              <select id="group_select" data-role="select">
+                <option value="mini">Mini</option>
+                  <option value="site">Site</option>
+                  <option value="portal">Portal</option>
+              </select>
+              </div>
+              <div class="cell-3">
+                <div class="row flex-justify-center">
+                    <button style="position: relative; top:22px" class="button primary">Add to Fit</button>
+
+                </div>
+
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="cell-9 offset-1">
+                <label for="dataset_select"><small>Datasets</small></label>
+              <select id="dataset_select" data-role="select" multiple>
+                <option
+                  value="1"
+                  >Amazon</option
+                >
+                <option
+                  value="2"
+                  >Apple</option
+                >
+                <option
+                  value="3"
+                  >Blogger</option
+                >
+                <option
+                  value="4"
+                  >Evernote</option
+                >
+                <option
+                  value="5"
+                  >GitHub</option
+                >
+              </select>
+              </div>
+            </div>
+
+            <div class="row">
+              asdasd
+            </div>
+
+          </div>
+
         </div>
       </div>
       <div class="cell">
