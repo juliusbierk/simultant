@@ -86,7 +86,7 @@ async def plot_data(request):
     data = await request.json()
 
     plot_data = []
-    max_n = data.get('max_n', 1500)
+    max_n = data.get('max_n', 250)
     for content in data['content']:
         dataset = get_data_content(content['id'])
         if len(dataset['x']) > max_n:
