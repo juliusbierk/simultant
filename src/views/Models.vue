@@ -38,7 +38,7 @@
                           <span style="font-size: 18px;" class="ml-1">{{
                             name
                           }}</span>
-                          <span v-if="content.expr_mode" class="badge"
+                          <span v-if="!content.expr_mode" class="badge"
                             >ODE</span
                           >
                         </button>
@@ -87,6 +87,7 @@
                     <BasicPlot
                       :url="this.py + '/plot_code'"
                       :body="content"
+                      :dataplot="false"
                     ></BasicPlot>
                   </div>
                   <div v-if="content.show_code" class="card-footer p-2">
@@ -290,6 +291,7 @@
                     ref="add_plot"
                     :url="this.py + '/plot_code'"
                     :body="plot_body"
+                    :dataplot="false"
                   ></BasicPlot>
                 </div>
               </div>

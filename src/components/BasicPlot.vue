@@ -19,12 +19,7 @@ export default {
   },
   methods: {
     update_body(body) {
-      let nbody = {
-        ...body
-      };
-      nbody.xlim = this.xlim;
-      nbody.ylim = this.ylim;
-      return nbody;
+      return { content: body, xlim: this.xlim, ylim: this.ylim };
     },
     update_ylim(res) {
       if (!this.ylim) {
@@ -45,35 +40,44 @@ export default {
       }).then(async result => {
         var res = await result.json();
         this.update_ylim(res);
-        res.mode = "lines";
 
         let layout = {
           ...plotlysettings.layout
         };
-        layout.xaxis.range = this.xlim;
-        if (this.ylim) {
-          layout.yaxis.range = this.ylim;
+
+        if (!this.dataplot) {
+          layout.xaxis.range = this.xlim;
+          if (this.ylim) {
+            layout.yaxis.range = this.ylim;
+          }
         }
 
-        Plotly.newPlot(this.plot_id, [res], layout, plotlysettings.settings);
+        Plotly.newPlot(
+          this.plot_id,
+          this.dataplot ? res : [res],
+          layout,
+          plotlysettings.settings
+        );
 
-        var plot = document.getElementById(this.plot_id);
-        plot.on("plotly_relayout", e => {
-          let update = false;
+        if (!this.dataplot) {
+          var plot = document.getElementById(this.plot_id);
+          plot.on("plotly_relayout", e => {
+            let update = false;
 
-          if (e["xaxis.range[0]"]) {
-            this.xlim = [e["xaxis.range[0]"], e["xaxis.range[1]"]];
-            update = true;
-          }
-          if (e["yaxis.range[0]"]) {
-            this.ylim = [e["yaxis.range[0]"], e["yaxis.range[1]"]];
-            update = true;
-          }
+            if (e["xaxis.range[0]"]) {
+              this.xlim = [e["xaxis.range[0]"], e["xaxis.range[1]"]];
+              update = true;
+            }
+            if (e["yaxis.range[0]"]) {
+              this.ylim = [e["yaxis.range[0]"], e["yaxis.range[1]"]];
+              update = true;
+            }
 
-          if (update) {
-            this.debounced_react();
-          }
-        });
+            if (update) {
+              this.debounced_react();
+            }
+          });
+        }
       });
     },
     react() {
@@ -86,7 +90,6 @@ export default {
       }).then(async result => {
         var res = await result.json();
         this.update_ylim(res);
-        res.mode = "lines";
 
         let layout = {
           ...plotlysettings.layout
@@ -96,7 +99,7 @@ export default {
           layout.yaxis.range = this.ylim;
         }
 
-        Plotly.react(this.plot_id, [res], layout);
+        Plotly.react(this.plot_id, this.dataplot ? res : [res], layout);
       });
     },
     reset_scale() {
@@ -122,7 +125,8 @@ export default {
   },
   props: {
     url: String,
-    body: Object
+    body: Object,
+    dataplot: Boolean
   }
 };
 </script>

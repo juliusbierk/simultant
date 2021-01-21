@@ -3,7 +3,8 @@ export default {
     margin: { t: 10 },
     xaxis: {},
     yaxis: {},
-    dragmode: "pan"
+    dragmode: "pan",
+    hovermode: false
   },
   settings: {
     modeBarButtonsToRemove: [

@@ -9,13 +9,14 @@ c = conn.cursor()
 ### DATA ###
 
 def create_dataset(name, parent, content):
-    c.execute("INSERT INTO data VALUES (?, ?, ?, ?)", (str(uuid4()), name, parent, json.dumps(content)))
+    info = f'{len(content["x"])} datapoints'
+    c.execute("INSERT INTO data VALUES (?, ?, ?, ?, ?)", (str(uuid4()), name, parent, info, json.dumps(content)))
     conn.commit()
 
 def get_data_names():
     d = defaultdict(list)
-    for x in c.execute("SELECT id, name, parent FROM data").fetchall():
-        d[x[2]].append({'name': x[1], 'id': x[0]})
+    for x in c.execute("SELECT id, name, parent, info FROM data").fetchall():
+        d[x[2]].append({'name': x[1], 'id': x[0], 'info': x[3]})
     return dict(d)
 
 

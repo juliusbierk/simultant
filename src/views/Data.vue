@@ -181,7 +181,7 @@
       </div>
     </div>
 
-    <div class="row" v-show="db_data">
+    <div class="row" v-if="db_data && Object.keys(db_data).length">
       <div class="cell">
         <div class="window">
           <div class="window-caption">
@@ -191,15 +191,45 @@
             <div class="row">
               <div
                 class="cell-6"
-                v-for="(name_id_list, parent) in db_data"
+                v-for="(content, parent) in db_data"
                 v-bind:key="parent"
               >
                 <div class="card">
                   <div class="card-header">
-                    {{ parent }}
+                    <div class="row">
+                      <div class="cell-6">
+                        {{ parent }}
+                      </div>
+
+                      <div class="offset-3">
+                        <input
+                          @click="content.show_plot = !content.show_plot"
+                          type="checkbox"
+                          data-role="switch"
+                          data-caption="Plot"
+                        />
+                        <span style="margin-right:50px"></span>
+                      </div>
+                    </div>
                   </div>
                   <div class="card-content p-2">
-                    {{ name_id_list }}
+                    <button
+                      v-for="p in content"
+                      v-bind:key="p.id"
+                      style="margin-left:5px; margin-top:3px; margin-bottom:3px"
+                      data-role="hint"
+                      hintHide="0"
+                      :data-hint-text="p.info"
+                      data-cls-hint="bg-lightCyan fg-white"
+                      class="defaultcursor button secondary small rounded outline"
+                    >
+                      {{ p.name }}
+                    </button>
+                    <BasicPlot
+                      :url="this.py + '/plot_data'"
+                      :body="content"
+                      :dataplot="true"
+                    ></BasicPlot>
                   </div>
                   <!--                  <div class="card-footer p-2">-->
                   <!--                  </div>-->
@@ -214,6 +244,8 @@
 </template>
 
 <script>
+import BasicPlot from "@/components/BasicPlot.vue";
+
 function get_upload_defaults() {
   return {
     create_open: true,
@@ -239,6 +271,9 @@ export default {
       db_data: null,
       ...get_upload_defaults()
     };
+  },
+  components: {
+    BasicPlot
   },
   methods: {
     set_example_data() {

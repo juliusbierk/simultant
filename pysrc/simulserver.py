@@ -5,7 +5,7 @@ import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-from db import create_model, get_models_names, get_all_models, create_dataset, get_data_names
+from db import create_model, get_models_names, get_all_models, create_dataset, get_data_names, get_data_content
 from torchfcts import function_from_code, get_default_args, ode_from_code, check_code_get_args
 import logging
 import csv
@@ -67,11 +67,12 @@ async def plot_code(request):
 
 
 def plot_code_py(data):
-    f_name = data['name_underscore']
-    f = function_from_code(data['code'], f_name)
-    kwargs = get_default_args(f, data['expr_mode'], data.get('ode_dim', None))
-    if not data['expr_mode']:
-        f = ode_from_code(data['code'], f_name, data['ode_dim_select'])
+    content = data['content']
+    f_name = content['name_underscore']
+    f = function_from_code(content['code'], f_name)
+    kwargs = get_default_args(f, content['expr_mode'], content.get('ode_dim', None))
+    if not content['expr_mode']:
+        f = ode_from_code(content['code'], f_name, content['ode_dim_select'])
     if 'xlim' in data:
         x = torch.linspace(data['xlim'][0], data['xlim'][1], 250, dtype=torch.double)
     else:
@@ -79,6 +80,17 @@ def plot_code_py(data):
     res = f(x, **kwargs)
     mask = torch.isfinite(res)
     return mask, res, x
+
+
+async def plot_data(request):
+    data = await request.json()
+
+    plot_data = []
+    for content in data['content']:
+        dataset = get_data_content(content['id'])
+        plot_data.append({'x': dataset['x'], 'y': dataset['y'], 'name': dataset['name'], 'mode': 'markers'})
+
+    return web.json_response(plot_data)
 
 
 async def upload_data(request):
@@ -187,6 +199,7 @@ routes = [('/check_code', check_code),
           ('/model_list', model_list),
           ('/upload_data', upload_data),
           ('/data_list', data_list),
+          ('/plot_data', plot_data),
           ('/exit', shuwdown),
           ]
 
