@@ -73,10 +73,25 @@
             </div>
 
             <div class="row">
-              <div class="cell-9 offset-1" v-if="selected_data_group">
+              <div
+                class="cell-9 offset-1"
+                v-if="selected_data_group"
+                :key="selected_data_group"
+              >
                 <label for="dataset_select"><small>Datasets</small></label>
-                <select id="dataset_select" data-role="select" multiple>
-                  <option value="1" selected>Amazon</option>
+                <select
+                  id="dataset_select"
+                  data-role="select"
+                  v-model="selected_dataset_ids"
+                  multiple
+                >
+                  <option
+                    v-for="content in db_data[selected_data_group]"
+                    v-bind:key="content.id"
+                    :value="content.id"
+                    >{{ content.name }}</option
+                  >
+                  >
                 </select>
               </div>
             </div>
@@ -84,7 +99,6 @@
             <div class="card"></div>
 
             <div class="row">
-              asdasd
             </div>
           </div>
         </div>
@@ -113,7 +127,8 @@ export default {
       py: "http://127.0.0.1:7555",
       choose_fit_open: true,
       db_data: {},
-        selected_data_group: null,
+      selected_data_group: null,
+      selected_dataset_ids: null
     };
   },
   components: {
@@ -126,7 +141,13 @@ export default {
       });
     },
     update_selection_datasets(e) {
-      this.selected_data_group = e.target.value;
+      if (e.target.value) {
+        this.selected_dataset_ids = [];
+        for (const x of this.db_data[e.target.value]) {
+          this.selected_dataset_ids.push(x.id);
+        }
+        this.selected_data_group = e.target.value;
+      }
     }
   },
   mounted: function() {
