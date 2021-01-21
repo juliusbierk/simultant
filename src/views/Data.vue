@@ -215,27 +215,26 @@
                   <div class="card-content p-2">
                     <div v-show="!content.show_plot">
                       <button
-                      v-for="p in content"
-                      v-bind:key="p.id"
-                      style="margin-left:5px; margin-top:3px; margin-bottom:3px"
-                      data-role="hint"
-                      hintHide="0"
-                      :data-hint-text="p.info"
-                      data-cls-hint="bg-lightCyan fg-white"
-                      class="defaultcursor button secondary small rounded outline"
-                    >
-                      {{ p.name }}
-                    </button>
+                        v-for="p in content"
+                        v-bind:key="p.id"
+                        style="margin-left:5px; margin-top:3px; margin-bottom:3px"
+                        data-role="hint"
+                        hintHide="0"
+                        :data-hint-text="p.info"
+                        data-cls-hint="bg-lightCyan fg-white"
+                        class="defaultcursor button secondary small rounded outline"
+                      >
+                        {{ p.name }}
+                      </button>
                     </div>
 
                     <div v-if="content.show_plot">
-                    <BasicPlot
-                      :url="this.py + '/plot_data'"
-                      :body="content"
-                      :dataplot="true"
-                    ></BasicPlot>
+                      <BasicPlot
+                        :url="this.py + '/plot_data'"
+                        :body="content"
+                        :dataplot="true"
+                      ></BasicPlot>
                     </div>
-
                   </div>
                   <!--                  <div class="card-footer p-2">-->
                   <!--                  </div>-->

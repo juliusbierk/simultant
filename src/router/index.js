@@ -6,6 +6,7 @@ import {
 import Home from "../views/Home.vue";
 import Models from "../views/Models.vue";
 import Data from "../views/Data.vue";
+import SpecifyFit from "../views/SpecifyFit";
 
 const routes = [
   {
@@ -29,6 +30,11 @@ const routes = [
     // // which is lazy-loaded when the route is visited.
     // component: () =>
     //   import(/* webpackChunkName: "about" */ "../views/About.vue")
+  },
+  {
+    path: "/specifyfit",
+    name: "Fit",
+    component: SpecifyFit
   }
 ];
 
