@@ -9,7 +9,7 @@
     </div>
 
     <div class="row" v-if="Object.keys(db_data).length">
-      <div :class="{ 'cell-12': choose_fit_open, 'cell-4': !choose_fit_open }">
+      <div :class="{ 'cell-12': choose_fit_open, 'cell-3': !choose_fit_open }">
         <div class="window" v-bind:class="{ minimized: !choose_fit_open }">
           <div class="window-caption">
             <span class="title">Fits</span>
@@ -31,7 +31,7 @@
           <div class="window-content p-2"></div>
         </div>
       </div>
-      <div class="cell-4" v-show="!choose_fit_open && !data_selection_open">
+      <div class="cell-3" v-show="!choose_fit_open && !data_selection_open">
         <div class="window" v-bind:class="{ minimized: !data_selection_open }">
           <div class="window-caption">
             <span class="title">Data Selection</span>
@@ -131,7 +131,12 @@
         </div>
       </div>
 
-      <div class="cell-6">
+      <div
+        :class="{
+          'cell-6': true,
+          'offset-6': !choose_fit_open && !data_selection_open
+        }"
+      >
         <div class="window" v-bind:class="{ minimized: !model_selection_open }">
           <div class="window-caption">
             <span class="title">Model Selection</span>
