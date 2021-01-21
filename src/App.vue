@@ -93,4 +93,7 @@ a {
 .defaultcursor {
   cursor: default !important;
 }
+.select-input {
+  cursor: default !important;
+}
 </style>
