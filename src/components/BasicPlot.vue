@@ -51,7 +51,6 @@ export default {
             layout.yaxis.range = this.ylim;
           }
         }
-
         Plotly.newPlot(
           this.plot_id,
           this.dataplot ? res : [res],

@@ -213,7 +213,8 @@
                     </div>
                   </div>
                   <div class="card-content p-2">
-                    <button
+                    <div v-show="!content.show_plot">
+                      <button
                       v-for="p in content"
                       v-bind:key="p.id"
                       style="margin-left:5px; margin-top:3px; margin-bottom:3px"
@@ -225,11 +226,16 @@
                     >
                       {{ p.name }}
                     </button>
+                    </div>
+
+                    <div v-if="content.show_plot">
                     <BasicPlot
                       :url="this.py + '/plot_data'"
                       :body="content"
                       :dataplot="true"
                     ></BasicPlot>
+                    </div>
+
                   </div>
                   <!--                  <div class="card-footer p-2">-->
                   <!--                  </div>-->
@@ -268,7 +274,7 @@ export default {
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
-      db_data: null,
+      db_data: {},
       ...get_upload_defaults()
     };
   },
@@ -371,7 +377,16 @@ export default {
     },
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
-        this.db_data = await result.json();
+        const res = await result.json();
+
+        for (const name of Object.keys(res)) {
+          if (this.db_data[name]) {
+            res[name].show_plot = this.db_data[name].show_plot;
+          } else {
+            res[name].show_plot = false;
+          }
+        }
+        this.db_data = res;
       });
     }
   },

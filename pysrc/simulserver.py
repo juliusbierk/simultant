@@ -86,9 +86,15 @@ async def plot_data(request):
     data = await request.json()
 
     plot_data = []
+    max_n = data.get('max_n', 1500)
     for content in data['content']:
         dataset = get_data_content(content['id'])
-        plot_data.append({'x': dataset['x'], 'y': dataset['y'], 'name': dataset['name'], 'mode': 'markers'})
+        if len(dataset['x']) > max_n:
+            skip = 1 + int(len(dataset['x']) / max_n)
+        else:
+            skip = 1
+        plot_data.append({'x': dataset['x'][::skip], 'y': dataset['y'][::skip], 'name': dataset['name'], 'mode': 'markers',
+                          'type': 'scattergl'})
 
     return web.json_response(plot_data)
 
