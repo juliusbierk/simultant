@@ -280,10 +280,10 @@ export default {
       }
       this.do_reset();
     },
-      do_reset() {
-Object.assign(this.$data, get_upload_defaults());
+    do_reset() {
+      Object.assign(this.$data, get_upload_defaults());
       this.set_example_data();
-      },
+    },
     upload() {
       this.show_example = false;
       const files = this.target_files;
@@ -334,16 +334,15 @@ Object.assign(this.$data, get_upload_defaults());
           });
       }
     },
-      update_datasets() {
-        fetch(this.py + "/data_list", {}).then(async result => {
-            this.db_data = await result.json();
-          });
-      }
+    update_datasets() {
+      fetch(this.py + "/data_list", {}).then(async result => {
+        this.db_data = await result.json();
+      });
+    }
   },
   mounted: function() {
     this.set_example_data();
     this.update_datasets();
-
   }
 };
 </script>
