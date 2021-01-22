@@ -351,6 +351,18 @@ import BasicPlot from "@/components/BasicPlot.vue";
 import { v4 as uuidv4 } from "uuid";
 import { reactive } from "vue";
 
+function parameter_uuid() {
+  return "par_" + uuidv4();
+}
+
+function model_uuid() {
+  return "model_" + uuidv4();
+}
+
+function data_uuid() {
+  return "data_" + uuidv4();
+}
+
 export default {
   name: "Data",
   data: function() {
@@ -380,7 +392,9 @@ export default {
   },
   computed: {
     parameter_ui() {
-      return {};
+      const model_parameters = {};
+
+      return { model: model_parameters };
     }
   },
   methods: {
@@ -410,11 +424,13 @@ export default {
     add_datasets() {
       const first_add = Object.keys(this.fit["data"]).length === 0;
       for (let i = 0; i < this.selected_dataset_ids.length; i++) {
-        this.fit["data"][uuidv4()] = {
+        this.fit["data"][data_uuid()] = {
           id: this.selected_dataset_ids[i],
           name: this.selected_dataset_names[i],
           parent: this.selected_data_group,
-          in_use: true
+          in_use: true,
+          model: null,
+          model_parameters: null
         };
       }
 
@@ -427,19 +443,28 @@ export default {
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
-      const model_id = uuidv4();
+      const model_id = model_uuid();
       this.fit["models"][model_id] = reactive({
         // is reactive needed here?
         name: this.model_selected
       });
 
+      const model_parameters = {};
+      let mp;
       for (const p of this.models[this.model_selected].args) {
-        this.fit["parameters"][uuidv4()] = {
+        mp = parameter_uuid();
+        this.fit["parameters"][mp] = {
           name: p.name,
-          value: p.value,
-          "tied-to": model_id,
-          "tied-to-type": "model"
+          value: p.value
         };
+
+        model_parameters[p.name] = mp;
+      }
+
+      if (this.apply_to_all) {
+        for (const d in this.fit.data) {
+          this.apply_model_to_dataset(model_id, d, model_parameters);
+        }
       }
 
       // Clean up selection:
@@ -448,6 +473,9 @@ export default {
       if (first_add) {
         this.model_selection_open = false;
       }
+    },
+    apply_model_to_dataset(model_id, dataset_id, parameters) {
+      console.log(model_id, "->", dataset_id, "using", parameters);
     }
   },
   mounted: function() {
