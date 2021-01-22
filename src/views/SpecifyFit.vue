@@ -105,7 +105,10 @@
 
               <div style="min-height: 300px;" class="window-content p-2">
                 <div class="row">
-                  <div class="cell-6 offset-1">
+                  <div
+                    class="cell-6 offset-1"
+                    :key="data_selection_render_index"
+                  >
                     <label for="group_select"><small>Data Group</small></label>
                     <select
                       id="group_select"
@@ -158,6 +161,7 @@
                       <button
                         style="position: relative; top:22px"
                         class="button primary defaultcursor"
+                        @click="add_datasets"
                       >
                         Add to Fit
                       </button>
@@ -175,7 +179,35 @@
                 <span class="title">Data</span>
               </div>
 
-              <div class="window-content p-2"></div>
+              <div class="window-content p-2">
+                <div v-for="(content, id) in fit.data" :key="id">
+                  <div class="card">
+                    <div class="card-header">
+                      <div class="row">
+                        <div class="cell-6">
+                          <a
+                            style="font-size:20px"
+                            class="btn-close defaultcursor"
+                            >&#10005;</a
+                          >
+                          {{ content.parent }} : {{ content.name }}
+                        </div>
+                        <div class="cell-6">
+                          ModelDropDown
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card-content">
+                      <div class="row">
+                        <div class="cell-11 offset-1">
+                          Parameters:
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -205,7 +237,64 @@
                 </div>
               </div>
 
-              <div style="min-height: 300px;" class="window-content p-2"></div>
+              <div style="min-height: 300px;" class="window-content p-2">
+                <div class="row">
+                  <div
+                    class="cell-6 offset-1"
+                    :key="model_selection_render_index"
+                  >
+                    <label for="model_select"><small>Model</small></label>
+                    <select
+                      id="model_select"
+                      data-role="select"
+                      v-model="model_selected"
+                    >
+                      <option
+                        style="display:none"
+                        disabled
+                        selected
+                        value
+                      ></option>
+                      <option
+                        v-for="(content, name) in models"
+                        :value="name"
+                        :key="name"
+                      >
+                        {{ name }}</option
+                      >
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row" v-show="model_selected">
+                  <div
+                    class="cell-5 offset-1"
+                    v-show="Object.keys(fit.data).length > 0"
+                  >
+                    <input
+                      id="apply_to_all_checkbox"
+                      v-model="apply_to_all"
+                      type="checkbox"
+                      data-role="checkbox"
+                      checked
+                    />
+                    <label
+                      style="position: relative; bottom:5px"
+                      for="apply_to_all_checkbox"
+                      ><small>Apply to all datasets</small></label
+                    >
+                  </div>
+
+                  <div class="cell-3 offset-1">
+                    <button
+                      class="button primary defaultcursor"
+                      @click="add_model"
+                    >
+                      Add to Fit
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -216,7 +305,17 @@
                 <span class="title">Models &amp; Parameters</span>
               </div>
 
-              <div class="window-content p-2"></div>
+              <div class="window-content p-2">
+                <div v-for="(content, name) in models" :key="name">
+                  {{ name }}
+                </div>
+
+                {{ db_data }}
+
+                <p></p>
+
+                {{ models }}
+              </div>
             </div>
           </div>
         </div>
@@ -227,6 +326,7 @@
 
 <script>
 import BasicPlot from "@/components/BasicPlot.vue";
+import { v4 as uuidv4 } from "uuid";
 
 export default {
   name: "Data",
@@ -237,8 +337,14 @@ export default {
       data_selection_open: true,
       model_selection_open: true,
       db_data: {},
+      models: {},
       selected_data_group: null,
       selected_dataset_ids: null,
+      selected_dataset_names: null,
+      model_selected: null,
+      data_selection_render_index: 0,
+      model_selection_render_index: 0,
+      apply_to_all: true,
       fit: {
         data: {},
         models: {},
@@ -253,20 +359,45 @@ export default {
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
         this.db_data = await result.json();
+        this.data_selection_render_index += 1;
+      });
+    },
+    update_model_list() {
+      fetch(this.py + "/model_list", {}).then(async result => {
+        this.models = await result.json();
+        this.model_selection_render_index += 1;
       });
     },
     update_selection_datasets(e) {
       if (e.target.value) {
         this.selected_dataset_ids = [];
+        this.selected_dataset_names = [];
         for (const x of this.db_data[e.target.value]) {
           this.selected_dataset_ids.push(x.id);
+          this.selected_dataset_names.push(x.name);
         }
         this.selected_data_group = e.target.value;
       }
+    },
+    add_datasets() {
+      for (let i = 0; i < this.selected_dataset_ids.length; i++) {
+        this.fit["data"][uuidv4()] = {
+          id: this.selected_dataset_ids[i],
+          name: this.selected_dataset_names[i],
+          parent: this.selected_data_group,
+          in_use: true
+        };
+      }
+
+      // Clean up selection:
+      this.selected_data_group = null;
+      this.data_selection_render_index += 1; // This is a key that makes the element re-render
+      this.data_selection_open = false;
     }
   },
   mounted: function() {
     this.update_datasets();
+    this.update_model_list();
   }
 };
 </script>

@@ -97,7 +97,8 @@ a {
 .drop-container,
 .select.input-normal,
 .input-clear-button,
-.remover {
+.remover,
+.checkbox {
   cursor: default !important;
 }
 </style>
