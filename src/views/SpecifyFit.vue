@@ -378,6 +378,11 @@ export default {
   components: {
     BasicPlot
   },
+  computed: {
+    parameter_ui() {
+      return {};
+    }
+  },
   methods: {
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
@@ -423,13 +428,18 @@ export default {
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
       const model_id = uuidv4();
-      this.fit["models"][model_id] = reactive({  // is reactive needed here?
+      this.fit["models"][model_id] = reactive({
+        // is reactive needed here?
         name: this.model_selected
       });
 
       for (const p of this.models[this.model_selected].args) {
-          this.fit["parameters"][uuidv4()] = {'name': p.name, 'value': p.value,
-              'tied-to': model_id, 'tied-to-type': 'model'}
+        this.fit["parameters"][uuidv4()] = {
+          name: p.name,
+          value: p.value,
+          "tied-to": model_id,
+          "tied-to-type": "model"
+        };
       }
 
       // Clean up selection:
