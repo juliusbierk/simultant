@@ -9,7 +9,7 @@
     </div>
 
     <div class="row" v-if="Object.keys(db_data).length">
-      <div :class="{ 'cell-12': choose_fit_open, 'cell-3': !choose_fit_open }">
+      <div :class="{ 'cell-12': choose_fit_open, 'cell-2': !choose_fit_open }">
         <div class="window" v-bind:class="{ minimized: !choose_fit_open }">
           <div class="window-caption">
             <span class="title">Fits</span>
@@ -54,7 +54,7 @@
       </div>
 
       <div
-        :class="{ 'cell-3': true, 'offset-3': data_selection_open }"
+        :class="{ 'cell-3': true, 'offset-4': data_selection_open, 'offset-1': !data_selection_open }"
         v-show="!choose_fit_open && !model_selection_open"
       >
         <div class="window" v-bind:class="{ minimized: !model_selection_open }">
@@ -306,15 +306,33 @@
               </div>
 
               <div class="window-content p-2">
-                <div v-for="(content, name) in models" :key="name">
-                  {{ name }}
+                <div v-for="(content, id) in fit.models" :key="id">
+                  <div class="card">
+                    <div class="card-header">
+                      <div class="row">
+                        <div class="cell-6">
+                          <a
+                            style="font-size:20px"
+                            class="btn-close defaultcursor"
+                            >&#10005;</a
+                          >
+                          {{ content.name }}
+                        </div>
+                        <div class="cell-6">
+                          ModelDropDown
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card-content">
+                      <div class="row">
+                        <div class="cell-11 offset-1">
+                          Parameters:
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                {{ db_data }}
-
-                <p></p>
-
-                {{ models }}
               </div>
             </div>
           </div>
@@ -380,6 +398,7 @@ export default {
       }
     },
     add_datasets() {
+      const first_add = Object.keys(this.fit["data"]).length === 0;
       for (let i = 0; i < this.selected_dataset_ids.length; i++) {
         this.fit["data"][uuidv4()] = {
           id: this.selected_dataset_ids[i],
@@ -392,7 +411,22 @@ export default {
       // Clean up selection:
       this.selected_data_group = null;
       this.data_selection_render_index += 1; // This is a key that makes the element re-render
-      this.data_selection_open = false;
+      if (first_add) {
+        this.data_selection_open = false;
+      }
+    },
+    add_model() {
+      const first_add = Object.keys(this.fit["models"]).length === 0;
+      this.fit["models"][uuidv4()] = {
+        name: this.model_selected
+      };
+
+      // Clean up selection:
+      this.model_selected = null;
+      this.model_selection_render_index += 1; // This is a key that makes the element re-render
+      if (first_add) {
+        this.model_selection_open = false;
+      }
     }
   },
   mounted: function() {
