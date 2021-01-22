@@ -196,8 +196,8 @@
                           >
                           {{ content.parent }} : {{ content.name }}
                         </div>
-                        <div class="cell-6">
-                          ModelDropDown
+                        <div class="cell-6" v-if="fit.models[content.model]">
+                          Applied Model: {{ fit.models[content.model].name }}
                         </div>
                       </div>
                     </div>
@@ -429,8 +429,7 @@ export default {
           name: this.selected_dataset_names[i],
           parent: this.selected_data_group,
           in_use: true,
-          model: null,
-          model_parameters: null
+          model: null
         };
       }
 
@@ -455,7 +454,8 @@ export default {
         mp = parameter_uuid();
         this.fit["parameters"][mp] = {
           name: p.name,
-          value: p.value
+          value: p.value,
+          const: false,
         };
 
         model_parameters[p.name] = mp;
@@ -475,6 +475,7 @@ export default {
       }
     },
     apply_model_to_dataset(model_id, dataset_id, parameters) {
+        this.fit.data[dataset_id].model = model_id;
       console.log(model_id, "->", dataset_id, "using", parameters);
     }
   },
