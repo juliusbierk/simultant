@@ -93,7 +93,10 @@ async def plot_data(request):
             skip = 1 + int(len(dataset['x']) / max_n)
         else:
             skip = 1
-        plot_data.append({'x': dataset['x'][::skip], 'y': dataset['y'][::skip], 'name': dataset['name'], 'mode': 'markers',
+
+        x = dataset['x'][::skip]
+        y = dataset['y'][::skip]
+        plot_data.append({'x': x, 'y': y, 'name': dataset['name'], 'mode': 'markers',
                           'type': 'scattergl'})
 
     return web.json_response(plot_data)

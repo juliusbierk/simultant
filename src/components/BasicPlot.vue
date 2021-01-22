@@ -39,18 +39,17 @@ export default {
         body: JSON.stringify(this.update_body(this.body))
       }).then(async result => {
         var res = await result.json();
-        this.update_ylim(res);
-
-        let layout = {
-          ...plotlysettings.layout
-        };
+        let layout = _.cloneDeep(plotlysettings.layout);
 
         if (!this.dataplot) {
-          layout.xaxis.range = this.xlim;
-          if (this.ylim) {
-            layout.yaxis.range = this.ylim;
-          }
+            this.update_ylim(res);
+
+            layout.xaxis.range = this.xlim;
+              if (this.ylim) {
+                layout.yaxis.range = this.ylim;
+              }
         }
+
         Plotly.newPlot(
           this.plot_id,
           this.dataplot ? res : [res],
@@ -98,7 +97,7 @@ export default {
           layout.yaxis.range = this.ylim;
         }
 
-        Plotly.react(this.plot_id, this.dataplot ? res : [res], layout);
+        Plotly.react(this.plot_id, [res], layout);
       });
     },
     reset_scale() {
@@ -117,6 +116,7 @@ export default {
     }
   },
   mounted: function() {
+      console.log(this.body);
     this.plot_id = "plot" + misc.uuid4(); // wack method, but it works!
     this.$nextTick(() => {
       this.update();
