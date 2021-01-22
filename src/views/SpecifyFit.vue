@@ -53,7 +53,10 @@
         </div>
       </div>
 
-      <div :class="{'cell-3':true, 'offset-3':data_selection_open}" v-show="!choose_fit_open && !model_selection_open">
+      <div
+        :class="{ 'cell-3': true, 'offset-3': data_selection_open }"
+        v-show="!choose_fit_open && !model_selection_open"
+      >
         <div class="window" v-bind:class="{ minimized: !model_selection_open }">
           <div class="window-caption">
             <span class="title">Model Selection</span>
@@ -124,16 +127,6 @@
                       >
                     </select>
                   </div>
-                  <div class="cell-3">
-                    <div class="row flex-justify-center">
-                      <button
-                        style="position: relative; top:22px"
-                        class="button primary defaultcursor"
-                      >
-                        Add to Fit
-                      </button>
-                    </div>
-                  </div>
                 </div>
 
                 <div class="row">
@@ -157,6 +150,18 @@
                       >
                       >
                     </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="cell-3 offset-8" v-show="selected_data_group">
+                    <div class="row">
+                      <button
+                        style="position: relative; top:22px"
+                        class="button primary defaultcursor"
+                      >
+                        Add to Fit
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -233,7 +238,12 @@ export default {
       model_selection_open: true,
       db_data: {},
       selected_data_group: null,
-      selected_dataset_ids: null
+      selected_dataset_ids: null,
+      fit: {
+        data: {},
+        models: {},
+        parameters: {}
+      }
     };
   },
   components: {

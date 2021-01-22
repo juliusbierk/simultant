@@ -5,7 +5,7 @@
 <script>
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
-import misc from "@/misc.js";
+import { v4 as uuidv4 } from "uuid";
 
 export default {
   name: "ShowCode",
@@ -16,7 +16,7 @@ export default {
   },
   methods: {},
   mounted: function() {
-    this.code_id = "code" + misc.uuid4(); // wack method, but it works!
+    this.code_id = "code" + uuidv4(); // wack method, but it works!
     this.$nextTick(() => {
       CodeMirror(document.querySelector("#" + this.code_id), {
         lineNumbers: true,

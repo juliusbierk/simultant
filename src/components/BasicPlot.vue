@@ -6,7 +6,7 @@
 import Plotly from "plotly.js-dist";
 import plotlysettings from "@/plotsettings.js";
 import _ from "lodash";
-import misc from "@/misc.js";
+import { v4 as uuidv4 } from "uuid";
 
 export default {
   name: "BasicPlot",
@@ -42,12 +42,12 @@ export default {
         let layout = _.cloneDeep(plotlysettings.layout);
 
         if (!this.dataplot) {
-            this.update_ylim(res);
+          this.update_ylim(res);
 
-            layout.xaxis.range = this.xlim;
-              if (this.ylim) {
-                layout.yaxis.range = this.ylim;
-              }
+          layout.xaxis.range = this.xlim;
+          if (this.ylim) {
+            layout.yaxis.range = this.ylim;
+          }
         }
 
         Plotly.newPlot(
@@ -116,8 +116,8 @@ export default {
     }
   },
   mounted: function() {
-      console.log(this.body);
-    this.plot_id = "plot" + misc.uuid4(); // wack method, but it works!
+    console.log(this.body);
+    this.plot_id = "plot" + uuidv4(); // wack method, but it works!
     this.$nextTick(() => {
       this.update();
     });
