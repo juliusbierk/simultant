@@ -197,7 +197,8 @@
                           {{ content.parent }} : {{ content.name }}
                         </div>
                         <div class="cell-6" v-if="fit.models[content.model]">
-                          Applied Model: {{ fit.models[content.model].name }}
+                          Applied Model:
+                          {{ fit.models[content.model].print_name }}
                         </div>
                       </div>
                     </div>
@@ -320,7 +321,7 @@
                             class="btn-close defaultcursor"
                             >&#10005;</a
                           >
-                          {{ content.name }}
+                          {{ content.print_name }}
                         </div>
                         <div class="cell-6">
                           ModelDropDown
@@ -340,6 +341,9 @@
               </div>
             </div>
           </div>
+
+          <div class="card"></div>
+          {{ parameter_ui }}
         </div>
       </div>
     </div>
@@ -393,9 +397,48 @@ export default {
   },
   computed: {
     parameter_ui() {
-      const model_parameters = {};
+      const parameters_type = {};
+      const models = {};
+      for (const p in this.fit.parameters) {
+        models[p] = [];
+      }
 
-      return { model: model_parameters };
+      for (const d in this.fit.data) {
+        if (this.fit.data[d].parameters) {
+          for (const p in this.fit.data[d].parameters) {
+            models[this.fit.data[d].parameters[p]].push(this.fit.data[d].model);
+          }
+        }
+      }
+
+      const model_use_times = {};
+      let m;
+      for (const d in this.fit.data) {
+        m = this.fit.data[d].model;
+        model_use_times[m] = model_use_times[m] ? model_use_times[m] + 1 : 1;
+      }
+
+      let count, keys;
+      for (const p in this.fit.parameters) {
+        count = _.countBy(models[p]);
+        keys = Object.keys(count);
+        if (keys.length === 1) {
+          m = keys[0];
+          if (count[m] === 1) {
+            parameters_type[p] = "local";
+          } else {
+            if (model_use_times[m] === count[m]) {
+              parameters_type[p] = "global";
+            } else {
+              parameters_type[p] = "shared";
+            }
+          }
+        } else {
+          parameters_type[p] = "shared";
+        }
+      }
+
+      return parameters_type;
     }
   },
   methods: {
@@ -447,7 +490,8 @@ export default {
       const model_id = model_uuid();
       this.fit["models"][model_id] = reactive({
         // is reactive needed here?
-        name: this.model_selected
+        name: this.model_selected,
+        print_name: this.model_selected // change if model is already in fit.models.
       });
 
       const model_parameters = {};
