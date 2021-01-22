@@ -54,7 +54,11 @@
       </div>
 
       <div
-        :class="{ 'cell-3': true, 'offset-4': data_selection_open, 'offset-1': !data_selection_open }"
+        :class="{
+          'cell-3': true,
+          'offset-4': data_selection_open,
+          'offset-1': !data_selection_open
+        }"
         v-show="!choose_fit_open && !model_selection_open"
       >
         <div class="window" v-bind:class="{ minimized: !model_selection_open }">
@@ -327,7 +331,7 @@
                     <div class="card-content">
                       <div class="row">
                         <div class="cell-11 offset-1">
-                          Parameters:
+                          Parameters: {{ fit.parameters }}
                         </div>
                       </div>
                     </div>
@@ -345,13 +349,14 @@
 <script>
 import BasicPlot from "@/components/BasicPlot.vue";
 import { v4 as uuidv4 } from "uuid";
+import { reactive } from "vue";
 
 export default {
   name: "Data",
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
-      choose_fit_open: true,
+      choose_fit_open: false,
       data_selection_open: true,
       model_selection_open: true,
       db_data: {},
@@ -417,9 +422,15 @@ export default {
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
-      this.fit["models"][uuidv4()] = {
+      const model_id = uuidv4();
+      this.fit["models"][model_id] = reactive({  // is reactive needed here?
         name: this.model_selected
-      };
+      });
+
+      for (const p of this.models[this.model_selected].args) {
+          this.fit["parameters"][uuidv4()] = {'name': p.name, 'value': p.value,
+              'tied-to': model_id, 'tied-to-type': 'model'}
+      }
 
       // Clean up selection:
       this.model_selected = null;
