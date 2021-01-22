@@ -53,7 +53,7 @@
         </div>
       </div>
 
-      <div class="cell-3" v-show="!choose_fit_open && !model_selection_open">
+      <div :class="{'cell-3':true, 'offset-3':data_selection_open}" v-show="!choose_fit_open && !model_selection_open">
         <div class="window" v-bind:class="{ minimized: !model_selection_open }">
           <div class="window-caption">
             <span class="title">Model Selection</span>
@@ -77,144 +77,143 @@
 
     <div class="row" v-if="Object.keys(db_data).length">
       <div class="cell-6">
-        <div class="row"></div>
-      </div>
+        <div class="row">
+          <div class="cell-12" v-show="choose_fit_open || data_selection_open">
+            <div
+              class="window"
+              v-bind:class="{ minimized: !data_selection_open }"
+            >
+              <div class="window-caption">
+                <span class="title">Data Selection</span>
 
-      <div class="cell-6">
-        <div class="row"></div>
-      </div>
-    </div>
-
-    <div class="row" v-if="Object.keys(db_data).length">
-      <div class="cell-6" v-show="choose_fit_open || data_selection_open">
-        <div class="window" v-bind:class="{ minimized: !data_selection_open }">
-          <div class="window-caption">
-            <span class="title">Data Selection</span>
-
-            <div class="buttons">
-              <span
-                v-show="data_selection_open"
-                @click="data_selection_open = false"
-                class="btn-min btn-corner-hover defaultcursor"
-              ></span>
-              <span
-                v-show="!data_selection_open"
-                @click="data_selection_open = true"
-                class="btn-max btn-corner-hover defaultcursor"
-              ></span>
-            </div>
-          </div>
-
-          <div style="min-height: 300px;" class="window-content p-2">
-            <div class="row">
-              <div class="cell-6 offset-1">
-                <label for="group_select"><small>Data Group</small></label>
-                <select
-                  id="group_select"
-                  data-role="select"
-                  @change="update_selection_datasets"
-                >
-                  <option style="display:none" disabled selected value></option>
-                  <option
-                    v-for="(content, parent) in db_data"
-                    :value="parent"
-                    v-bind:key="parent"
-                  >
-                    {{ parent }}</option
-                  >
-                </select>
+                <div class="buttons">
+                  <span
+                    v-show="data_selection_open"
+                    @click="data_selection_open = false"
+                    class="btn-min btn-corner-hover defaultcursor"
+                  ></span>
+                  <span
+                    v-show="!data_selection_open"
+                    @click="data_selection_open = true"
+                    class="btn-max btn-corner-hover defaultcursor"
+                  ></span>
+                </div>
               </div>
-              <div class="cell-3">
-                <div class="row flex-justify-center">
-                  <button
-                    style="position: relative; top:22px"
-                    class="button primary defaultcursor"
+
+              <div style="min-height: 300px;" class="window-content p-2">
+                <div class="row">
+                  <div class="cell-6 offset-1">
+                    <label for="group_select"><small>Data Group</small></label>
+                    <select
+                      id="group_select"
+                      data-role="select"
+                      @change="update_selection_datasets"
+                    >
+                      <option
+                        style="display:none"
+                        disabled
+                        selected
+                        value
+                      ></option>
+                      <option
+                        v-for="(content, parent) in db_data"
+                        :value="parent"
+                        v-bind:key="parent"
+                      >
+                        {{ parent }}</option
+                      >
+                    </select>
+                  </div>
+                  <div class="cell-3">
+                    <div class="row flex-justify-center">
+                      <button
+                        style="position: relative; top:22px"
+                        class="button primary defaultcursor"
+                      >
+                        Add to Fit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div
+                    class="cell-9 offset-1"
+                    v-if="selected_data_group"
+                    :key="selected_data_group"
                   >
-                    Add to Fit
-                  </button>
+                    <label for="dataset_select"><small>Datasets</small></label>
+                    <select
+                      id="dataset_select"
+                      data-role="select"
+                      v-model="selected_dataset_ids"
+                      multiple
+                    >
+                      <option
+                        v-for="content in db_data[selected_data_group]"
+                        v-bind:key="content.id"
+                        :value="content.id"
+                        >{{ content.name }}</option
+                      >
+                      >
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="row">
-              <div
-                class="cell-9 offset-1"
-                v-if="selected_data_group"
-                :key="selected_data_group"
-              >
-                <label for="dataset_select"><small>Datasets</small></label>
-                <select
-                  id="dataset_select"
-                  data-role="select"
-                  v-model="selected_dataset_ids"
-                  multiple
-                >
-                  <option
-                    v-for="content in db_data[selected_data_group]"
-                    v-bind:key="content.id"
-                    :value="content.id"
-                    >{{ content.name }}</option
-                  >
-                  >
-                </select>
+          <div class="cell-12">
+            <div class="window">
+              <div class="window-caption">
+                <!--            <span class="icon mif-windows"></span>-->
+                <span class="title">Data</span>
               </div>
+
+              <div class="window-content p-2"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <div
-        :class="{
-          'cell-6': true,
-          'offset-6': !choose_fit_open && !data_selection_open
-        }"
-      >
-        <div
-          class="window"
-          v-show="choose_fit_open || model_selection_open"
-          v-bind:class="{ minimized: !model_selection_open }"
-        >
-          <div class="window-caption">
-            <span class="title">Model Selection</span>
+      <div class="cell-6">
+        <div class="row">
+          <div class="cell-12" v-show="choose_fit_open || model_selection_open">
+            <div
+              class="window"
+              v-bind:class="{ minimized: !model_selection_open }"
+            >
+              <div class="window-caption">
+                <span class="title">Model Selection</span>
 
-            <div class="buttons">
-              <span
-                v-show="model_selection_open"
-                @click="model_selection_open = false"
-                class="btn-min btn-corner-hover defaultcursor"
-              ></span>
-              <span
-                v-show="!model_selection_open"
-                @click="model_selection_open = true"
-                class="btn-max btn-corner-hover defaultcursor"
-              ></span>
+                <div class="buttons">
+                  <span
+                    v-show="model_selection_open"
+                    @click="model_selection_open = false"
+                    class="btn-min btn-corner-hover defaultcursor"
+                  ></span>
+                  <span
+                    v-show="!model_selection_open"
+                    @click="model_selection_open = true"
+                    class="btn-max btn-corner-hover defaultcursor"
+                  ></span>
+                </div>
+              </div>
+
+              <div style="min-height: 300px;" class="window-content p-2"></div>
             </div>
           </div>
 
-          <div style="min-height: 300px;" class="window-content p-2"></div>
-        </div>
-      </div>
-    </div>
+          <div class="cell-12">
+            <div class="window">
+              <div class="window-caption">
+                <!--            <span class="icon mif-windows"></span>-->
+                <span class="title">Models &amp; Parameters</span>
+              </div>
 
-    <div class="row" v-if="Object.keys(db_data).length">
-      <div class="cell">
-        <div class="window">
-          <div class="window-caption">
-            <!--            <span class="icon mif-windows"></span>-->
-            <span class="title">Data</span>
+              <div class="window-content p-2"></div>
+            </div>
           </div>
-
-          <div class="window-content p-2"></div>
-        </div>
-      </div>
-      <div class="cell">
-        <div class="window">
-          <div class="window-caption">
-            <!--            <span class="icon mif-windows"></span>-->
-            <span class="title">Models &amp; Parameters</span>
-          </div>
-
-          <div class="window-content p-2"></div>
         </div>
       </div>
     </div>
