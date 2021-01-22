@@ -205,7 +205,7 @@
                     <div class="card-content">
                       <div class="row">
                         <div class="cell-11 offset-1">
-                          Parameters:
+                          Parameters: {{ content.parameters }}
                         </div>
                       </div>
                     </div>
@@ -330,13 +330,13 @@
 
                     <div class="card-content">
                       <div class="row">
-                        <div class="cell-11 offset-1">
-                          Parameters: {{ fit.parameters }}
-                        </div>
+                        <div class="cell-11 offset-1"></div>
                       </div>
                     </div>
                   </div>
                 </div>
+
+                ---------- All Parameters: {{ fit.parameters }}
               </div>
             </div>
           </div>
@@ -350,6 +350,7 @@
 import BasicPlot from "@/components/BasicPlot.vue";
 import { v4 as uuidv4 } from "uuid";
 import { reactive } from "vue";
+import _ from "lodash";
 
 function parameter_uuid() {
   return "par_" + uuidv4();
@@ -429,7 +430,8 @@ export default {
           name: this.selected_dataset_names[i],
           parent: this.selected_data_group,
           in_use: true,
-          model: null
+          model: null,
+          parameters: null
         };
       }
 
@@ -455,7 +457,7 @@ export default {
         this.fit["parameters"][mp] = {
           name: p.name,
           value: p.value,
-          const: false,
+          const: false
         };
 
         model_parameters[p.name] = mp;
@@ -475,8 +477,8 @@ export default {
       }
     },
     apply_model_to_dataset(model_id, dataset_id, parameters) {
-        this.fit.data[dataset_id].model = model_id;
-      console.log(model_id, "->", dataset_id, "using", parameters);
+      this.fit.data[dataset_id].model = model_id;
+      this.fit.data[dataset_id].parameters = _.cloneDeep(parameters);
     }
   },
   mounted: function() {
