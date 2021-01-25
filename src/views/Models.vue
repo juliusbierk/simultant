@@ -70,7 +70,7 @@
                             v-bind:key="p.name"
                             style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                             data-role="hint"
-                            hintHide="0"
+                            data-hint-hide="0"
                             :data-hint-text="
                               'Default value: ' + p.value.toString()
                             "
@@ -148,7 +148,7 @@
                   class="cell-6"
                   data-role="hint"
                   data-hint-text="The dimension of the ODE"
-                  hintHide="0"
+                  data-hint-hide="0"
                   data-cls-hint="bg-lightCyan fg-white"
                 >
                   <input
@@ -168,7 +168,7 @@
                   class="cell-6"
                   data-role="hint"
                   data-hint-text="The index of y containing the fit function"
-                  hintHide="0"
+                  data-hint-hide="0"
                   data-cls-hint="bg-lightCyan fg-white"
                 >
                   <input
@@ -226,7 +226,7 @@
                       v-bind:key="p.name"
                       style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                       data-role="hint"
-                      hintHide="0"
+                      data-hint-hide="0"
                       :data-hint-text="'Default value: ' + p.value.toString()"
                       data-cls-hint="bg-lightCyan fg-white"
                       class="defaultcursor button secondary small rounded outline"

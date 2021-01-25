@@ -336,10 +336,7 @@
                       >
                         <div
                           class="offset-1"
-                          v-if="
-                            parameter_ui.model_to_parameters[[id, pname]]
-                              .length === 1
-                          "
+                          style="margin-bottom:3px; margin-top:3px"
                         >
                           <ParameterType
                             :name="pname"
@@ -351,10 +348,13 @@
                             :id="
                               parameter_ui.model_to_parameters[[id, pname]][0]
                             "
+                            @tieToData="
+                              tie_to_data(
+                                parameter_ui.model_to_parameters[[id, pname]][0]
+                              )
+                            "
+                            view_in="model_section"
                           ></ParameterType>
-                        </div>
-                        <div v-else>
-                          MORE THAN 1
                         </div>
                       </div>
 
@@ -555,6 +555,24 @@ export default {
       if (first_add) {
         this.data_selection_open = false;
       }
+    },
+    tie_to_data(p_in) {
+      let p, newp;
+      for (const d in this.fit.data) {
+        if (this.fit.data[d].parameters) {
+          for (const pname in this.fit.data[d].parameters) {
+            p = this.fit.data[d].parameters[pname];
+            if (p === p_in) {
+              newp = parameter_uuid();
+              this.fit.parameters[newp] = _.cloneDeep(
+                this.fit.parameters[p_in]
+              );
+              this.fit.data[d].parameters[pname] = newp;
+            }
+          }
+        }
+      }
+      delete this.fit.parameters[p_in];
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;

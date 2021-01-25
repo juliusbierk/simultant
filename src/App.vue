@@ -11,7 +11,7 @@
         <a href="#"><p class="topmenuitem">Data</p></a>
       </li>
       <li v-on:click="rpush('/specifyfit')">
-        <a href="#"><p class="topmenuitem">Specify Fit</p></a>
+        <a href="#"><p class="topmenuitem">Fit Topology</p></a>
       </li>
       <li v-on:click="rpush('/runfit')">
         <a href="#"><p class="topmenuitem">Run Fit</p></a>

@@ -219,7 +219,7 @@
                         v-bind:key="p.id"
                         style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                         data-role="hint"
-                        hintHide="0"
+                        data-hint-hide="0"
                         :data-hint-text="p.info"
                         data-cls-hint="bg-lightCyan fg-white"
                         class="defaultcursor button secondary small rounded outline"
