@@ -307,7 +307,7 @@
             <div class="window">
               <div class="window-caption">
                 <!--            <span class="icon mif-windows"></span>-->
-                <span class="title">Models &amp; Parameters</span>
+                <span class="title">Models</span>
               </div>
 
               <div class="window-content p-2">
@@ -315,7 +315,7 @@
                   <div class="card">
                     <div class="card-header">
                       <div class="row">
-                        <div class="cell-6">
+                        <div class="cell-5">
                           <a
                             style="font-size:20px"
                             class="btn-close defaultcursor"
@@ -323,15 +323,36 @@
                           >
                           {{ content.print_name }}
                         </div>
-                        <div class="cell-6">
-                          ModelDropDown
+                        <div class="cell-7">
+                          <button
+                              v-for="p in models[content.name].args"
+                              v-bind:key="p.name"
+                              style="margin-left:5px; margin-top:3px; margin-bottom:3px"
+                              data-role="hint"
+                              hintHide="0"
+                              :data-hint-text="'Default value: ' + p.value.toString()"
+                              data-cls-hint="bg-lightCyan fg-white"
+                              class="defaultcursor button secondary small rounded outline"
+                            >
+                              {{ p.name }}
+                            </button>
                         </div>
                       </div>
                     </div>
 
                     <div class="card-content">
-                      <div class="row">
-                        <div class="cell-11 offset-1"></div>
+                      <div class="row"
+                            v-for="p in parameter_ui.model_to_parameters[id]"
+                      :key="p">
+                        <div class="cell-3 offset-1">
+                          {{ p }}
+                        </div>
+
+                        <div class="cell-8">
+                          type={{ parameter_ui.parameter_type[p] }}
+                        </div>
+
+
                       </div>
                     </div>
                   </div>
@@ -398,6 +419,13 @@ export default {
   computed: {
     parameter_ui() {
       const parameters_type = {};
+      const model_to_parameters = {};
+      const data_to_parameters = {};
+
+      // temp variables
+        let m, count, keys;
+
+      // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
       const models = {};
       for (const p in this.fit.parameters) {
         models[p] = [];
@@ -411,17 +439,23 @@ export default {
         }
       }
 
+      // Count the number of times specific model is used.
       const model_use_times = {};
-      let m;
       for (const d in this.fit.data) {
         m = this.fit.data[d].model;
         model_use_times[m] = model_use_times[m] ? model_use_times[m] + 1 : 1;
       }
 
-      let count, keys;
       for (const p in this.fit.parameters) {
         count = _.countBy(models[p]);
         keys = Object.keys(count);
+        for (const key of keys) {
+            if (model_to_parameters[key]) {
+                model_to_parameters[key].push(p);
+            } else {
+                model_to_parameters[key] = [p];
+            }
+        }
         if (keys.length === 1) {
           m = keys[0];
           if (count[m] === 1) {
@@ -430,7 +464,7 @@ export default {
             if (model_use_times[m] === count[m]) {
               parameters_type[p] = "global";
             } else {
-              parameters_type[p] = "shared";
+              parameters_type[p] = "grouped";
             }
           }
         } else {
@@ -438,7 +472,11 @@ export default {
         }
       }
 
-      return parameters_type;
+      return {
+          parameter_type: parameters_type,
+          model_to_parameters: model_to_parameters,
+          data_to_parameters: data_to_parameters
+      };
     }
   },
   methods: {
