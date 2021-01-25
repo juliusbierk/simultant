@@ -323,26 +323,41 @@
                           >
                           {{ content.print_name }}
                         </div>
-                        <div class="cell-7">
-                          <button
-                            v-for="p in models[content.name].args"
-                            v-bind:key="p.name"
-                            style="margin-left:5px; margin-top:3px; margin-bottom:3px"
-                            data-role="hint"
-                            hintHide="0"
-                            :data-hint-text="
-                              'Default value: ' + p.value.toString()
-                            "
-                            data-cls-hint="bg-lightCyan fg-white"
-                            class="defaultcursor button secondary small rounded outline"
-                          >
-                            {{ p.name }}
-                          </button>
-                        </div>
+                        <div class="cell-7"></div>
                       </div>
                     </div>
 
                     <div class="card-content">
+                      <div
+                        v-for="pname in Object.keys(
+                          models[content.name].kwargs
+                        )"
+                        :key="pname"
+                      >
+                        <div
+                          class="offset-1"
+                          v-if="
+                            parameter_ui.model_to_parameters[[id, pname]]
+                              .length === 1
+                          "
+                        >
+                          <ParameterType
+                            :name="pname"
+                            :type="
+                              parameter_ui.parameter_type[
+                                parameter_ui.model_to_parameters[[id, pname]][0]
+                              ]
+                            "
+                            :id="
+                              parameter_ui.model_to_parameters[[id, pname]][0]
+                            "
+                          ></ParameterType>
+                        </div>
+                        <div v-else>
+                          MORE THAN 1
+                        </div>
+                      </div>
+
                       <div
                         class="row"
                         v-for="p in parameter_ui.model_to_parameters[id]"
@@ -359,14 +374,16 @@
                     </div>
                   </div>
                 </div>
-
-                ---------- All Parameters: {{ fit.parameters }}
               </div>
             </div>
           </div>
 
           <div class="card"></div>
           {{ parameter_ui }}
+
+          <div class="card"></div>
+
+          {{ fit }}
         </div>
       </div>
     </div>
@@ -375,6 +392,7 @@
 
 <script>
 import BasicPlot from "@/components/BasicPlot.vue";
+import ParameterType from "@/components/ParameterType.vue";
 import { v4 as uuidv4 } from "uuid";
 import { reactive } from "vue";
 import _ from "lodash";
@@ -416,16 +434,17 @@ export default {
     };
   },
   components: {
-    BasicPlot
+    BasicPlot,
+    ParameterType
   },
   computed: {
     parameter_ui() {
+      // This function converts this.fit (which uniquely defines the fit)
+      // into useful data structures that can be used in the UI.
+
       const parameters_type = {};
       const model_to_parameters = {};
       const data_to_parameters = {};
-
-      // temp variables
-      let m, count, keys;
 
       // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
       const models = {};
@@ -433,23 +452,33 @@ export default {
         models[p] = [];
       }
 
+      let parameter_id, parameter_name_in_model, model_id;
+
       for (const d in this.fit.data) {
         if (this.fit.data[d].parameters) {
           for (const p in this.fit.data[d].parameters) {
-            models[this.fit.data[d].parameters[p]].push(this.fit.data[d].model);
+            parameter_id = this.fit.data[d].parameters[p];
+            parameter_name_in_model = p;
+            model_id = this.fit.data[d].model;
+            models[parameter_id].push([model_id, parameter_name_in_model]);
           }
         }
       }
 
       // Count the number of times specific model is used.
+      let m;
       const model_use_times = {};
       for (const d in this.fit.data) {
         m = this.fit.data[d].model;
         model_use_times[m] = model_use_times[m] ? model_use_times[m] + 1 : 1;
       }
 
+      // Finally run through each parameter to determine its type
+      let count, keys, mp;
       for (const p in this.fit.parameters) {
+        // This will implicitely convert an array [parameter_id, parameter_name_in_model] to a string, but that is ok.
         count = _.countBy(models[p]);
+
         keys = Object.keys(count);
         for (const key of keys) {
           if (model_to_parameters[key]) {
@@ -458,12 +487,14 @@ export default {
             model_to_parameters[key] = [p];
           }
         }
+
         if (keys.length === 1) {
-          m = keys[0];
-          if (count[m] === 1) {
+          mp = keys[0];
+          if (count[mp] === 1) {
             parameters_type[p] = "local";
           } else {
-            if (model_use_times[m] === count[m]) {
+            m = mp.split(",")[0];
+            if (model_use_times[m] === count[mp]) {
               parameters_type[p] = "global";
             } else {
               parameters_type[p] = "grouped";
