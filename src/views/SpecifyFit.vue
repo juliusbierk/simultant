@@ -80,6 +80,28 @@
           </div>
         </div>
       </div>
+
+      <div
+        v-show="!choose_fit_open"
+        :class="{
+          'cell-1': true,
+          'offset-9': model_selection_open && data_selection_open,
+          'offset-6': model_selection_open && !data_selection_open,
+          'offset-2':
+            (!model_selection_open && data_selection_open) ||
+            (!model_selection_open && !data_selection_open)
+        }"
+      >
+        <button
+          style="font-size:30px; margin-right:2px"
+          class="button defaultcursor"
+        >
+          &#9100;
+        </button>
+        <button style="font-size:30px" class="button defaultcursor">
+          <span class="flip">&#9100;</span>
+        </button>
+      </div>
     </div>
 
     <div class="row" v-if="Object.keys(db_data).length">
@@ -206,7 +228,18 @@
                     <div class="card-content">
                       <div class="row">
                         <div class="cell-11 offset-1">
-                          Parameters: {{ content.parameters }}
+                          <div
+                            style="margin-bottom:3px; margin-top:3px"
+                            v-for="(pid, pname) in content.parameters"
+                            :key="pid"
+                          >
+                            <ParameterType
+                              :name="pname"
+                              :type="parameter_ui.parameter_type[pid]"
+                              :id="pid"
+                              view_in="data_section"
+                            ></ParameterType>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -628,5 +661,14 @@ export default {
 
 li.disabled {
   display: none !important;
+}
+
+.flip {
+  display: inline-block;
+  -moz-transform: scale(-1, 1);
+  -webkit-transform: scale(-1, 1);
+  -o-transform: scale(-1, 1);
+  -ms-transform: scale(-1, 1);
+  transform: scale(-1, 1);
 }
 </style>
