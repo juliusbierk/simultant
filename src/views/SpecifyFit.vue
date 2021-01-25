@@ -325,25 +325,29 @@
                         </div>
                         <div class="cell-7">
                           <button
-                              v-for="p in models[content.name].args"
-                              v-bind:key="p.name"
-                              style="margin-left:5px; margin-top:3px; margin-bottom:3px"
-                              data-role="hint"
-                              hintHide="0"
-                              :data-hint-text="'Default value: ' + p.value.toString()"
-                              data-cls-hint="bg-lightCyan fg-white"
-                              class="defaultcursor button secondary small rounded outline"
-                            >
-                              {{ p.name }}
-                            </button>
+                            v-for="p in models[content.name].args"
+                            v-bind:key="p.name"
+                            style="margin-left:5px; margin-top:3px; margin-bottom:3px"
+                            data-role="hint"
+                            hintHide="0"
+                            :data-hint-text="
+                              'Default value: ' + p.value.toString()
+                            "
+                            data-cls-hint="bg-lightCyan fg-white"
+                            class="defaultcursor button secondary small rounded outline"
+                          >
+                            {{ p.name }}
+                          </button>
                         </div>
                       </div>
                     </div>
 
                     <div class="card-content">
-                      <div class="row"
-                            v-for="p in parameter_ui.model_to_parameters[id]"
-                      :key="p">
+                      <div
+                        class="row"
+                        v-for="p in parameter_ui.model_to_parameters[id]"
+                        :key="p"
+                      >
                         <div class="cell-3 offset-1">
                           {{ p }}
                         </div>
@@ -351,8 +355,6 @@
                         <div class="cell-8">
                           type={{ parameter_ui.parameter_type[p] }}
                         </div>
-
-
                       </div>
                     </div>
                   </div>
@@ -423,7 +425,7 @@ export default {
       const data_to_parameters = {};
 
       // temp variables
-        let m, count, keys;
+      let m, count, keys;
 
       // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
       const models = {};
@@ -450,11 +452,11 @@ export default {
         count = _.countBy(models[p]);
         keys = Object.keys(count);
         for (const key of keys) {
-            if (model_to_parameters[key]) {
-                model_to_parameters[key].push(p);
-            } else {
-                model_to_parameters[key] = [p];
-            }
+          if (model_to_parameters[key]) {
+            model_to_parameters[key].push(p);
+          } else {
+            model_to_parameters[key] = [p];
+          }
         }
         if (keys.length === 1) {
           m = keys[0];
@@ -473,9 +475,9 @@ export default {
       }
 
       return {
-          parameter_type: parameters_type,
-          model_to_parameters: model_to_parameters,
-          data_to_parameters: data_to_parameters
+        parameter_type: parameters_type,
+        model_to_parameters: model_to_parameters,
+        data_to_parameters: data_to_parameters
       };
     }
   },
