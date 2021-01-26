@@ -598,23 +598,35 @@ export default {
     tie_to_data(p_in) {
       let p, newp;
       for (const d in this.fit.data) {
-        if (this.fit.data[d].parameters) {
-          for (const pname in this.fit.data[d].parameters) {
-            p = this.fit.data[d].parameters[pname];
-            if (p === p_in) {
-              newp = parameter_uuid();
-              this.fit.parameters[newp] = _.cloneDeep(
-                this.fit.parameters[p_in]
-              );
-              this.fit.data[d].parameters[pname] = newp;
-            }
+        for (const pname in this.fit.data[d].parameters) {
+          p = this.fit.data[d].parameters[pname];
+          if (p === p_in) {
+            newp = parameter_uuid();
+            this.fit.parameters[newp] = _.cloneDeep(
+              this.fit.parameters[p_in]
+            );
+            this.fit.data[d].parameters[pname] = newp;
           }
         }
       }
       delete this.fit.parameters[p_in];
     },
     tie_to_model(model_id, parameter_name) {
-      alert(model_id + '___' + parameter_name);
+      const newp = parameter_uuid();
+      const model_name = this.fit.models[model_id].name;
+      this.fit.parameters[newp] =  {name: parameter_name, value: this.models[model_name].kwargs[parameter_name], const: false};
+
+      let p;
+
+      for (const d in this.fit.data) {
+        if (this.fit.data[d].model === model_id) {
+          p = this.fit.data[d].parameters[parameter_name];
+          if (p in this.fit.parameters ) {
+            delete this.fit.parameters[p];
+          }
+          this.fit.data[d].parameters[parameter_name] = newp;
+        }
+      }
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
