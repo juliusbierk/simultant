@@ -198,7 +198,7 @@
             </div>
           </div>
 
-          <div class="cell-12">
+          <div class="cell-12" v-show="Object.keys(fit.data).length > 0">
             <div class="window">
               <div class="window-caption">
                 <!--            <span class="icon mif-windows"></span>-->
@@ -239,6 +239,7 @@
                               :id="pid"
                               @tieToModel="tie_to_model(content.model, pname)"
                               view_in="data_section"
+                              :detached_info="parameter_ui.detached_info"
                             ></ParameterType>
                           </div>
                         </div>
@@ -337,7 +338,7 @@
             </div>
           </div>
 
-          <div class="cell-12">
+          <div class="cell-12" v-show="Object.keys(fit.models).length > 0">
             <div class="window">
               <div class="window-caption">
                 <!--            <span class="icon mif-windows"></span>-->
@@ -357,7 +358,15 @@
                           >
                           {{ content.print_name }}
                         </div>
-                        <div class="cell-7"></div>
+
+                        <div class="offset-4">
+                          <input
+                            @click="content.show_code = !content.show_code"
+                            type="checkbox"
+                            data-role="switch"
+                            data-caption="Code"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -388,6 +397,12 @@
                               )
                             "
                             @tieToModel="tie_to_model(id, pname)"
+                            @detach="
+                              detach(
+                                parameter_ui.model_to_parameters[[id, pname]][0]
+                              )
+                            "
+                            :detached_info="parameter_ui.detached_info"
                             view_in="model_section"
                           ></ParameterType>
                         </div>
@@ -407,6 +422,65 @@
                         </div>
                       </div>
                     </div>
+
+                    <div v-if="content.show_code" class="card-footer p-2">
+                      <ShowCode :code="models[content.name].code"></ShowCode>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="cell-12"
+            v-show="
+              Object.keys(fit.models).length > 1 ||
+                (Object.keys(fit.models).length > 0 &&
+                  Object.keys(fit.data).length > 1)
+            "
+          >
+            <div class="window">
+              <div class="window-caption">
+                <!--            <span class="icon mif-windows"></span>-->
+                <span class="title">Detached Parameters</span>
+              </div>
+
+              <div class="window-content p-2">
+                <div class="row">
+                  <div class="cell-8 offset-1">
+                    <input
+                      type="text"
+                      data-role="input"
+                      data-prepend="Parameter name: "
+                      v-model="add_parameter_name"
+                    />
+                  </div>
+                  <div class="cell-3">
+                    <button
+                      class="button defaultcursor"
+                      @click="add_detached_parameter"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  class="row"
+                  v-for="id in fit.detached_parameters"
+                  :key="id"
+                >
+                  <div class="cell-8 offset-1">
+                    <button
+                      data-role="hint"
+                      data-hint-text="This is a detached parameter, which can be shared between models and/or datasets."
+                      data-hint-hide="0"
+                      data-cls-hint="bg-lightCyan fg-white"
+                      class="button info defaultcursor rounded outline "
+                    >
+                      {{ fit.parameters[id].name }}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -415,6 +489,8 @@
 
           <div class="card"></div>
           Numbers of parameters: {{ Object.keys(fit.parameters).length }}
+          <br />
+          Number of detached parameters: {{ fit.detached_parameters.length }}
         </div>
       </div>
     </div>
@@ -424,6 +500,7 @@
 <script>
 import BasicPlot from "@/components/BasicPlot.vue";
 import ParameterType from "@/components/ParameterType.vue";
+import ShowCode from "@/components/ShowCode.vue";
 import { v4 as uuidv4 } from "uuid";
 import { reactive } from "vue";
 import _ from "lodash";
@@ -457,16 +534,19 @@ export default {
       data_selection_render_index: 0,
       model_selection_render_index: 0,
       apply_to_all: true,
+      add_parameter_name: "",
       fit: {
         data: {},
         models: {},
-        parameters: {}
+        parameters: {},
+        detached_parameters: []
       }
     };
   },
   components: {
     BasicPlot,
-    ParameterType
+    ParameterType,
+    ShowCode
   },
   computed: {
     parameter_ui() {
@@ -476,6 +556,7 @@ export default {
       const parameters_type = {};
       const model_to_parameters = {};
       const data_to_parameters = {};
+      const detached_info = {};
 
       // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
       const models = {};
@@ -504,9 +585,21 @@ export default {
         model_use_times[m] = model_use_times[m] ? model_use_times[m] + 1 : 1;
       }
 
+      // Count detached
+      for (const p in this.fit.parameters) {
+        if (this.fit.detached_parameters.contains(p)) {
+          parameters_type[p] = "detached";
+          detached_info[p] = { "name": this.fit.parameters[p].name, "use_count": 0 };
+        }
+      }
+
       // Finally run through each parameter to determine its type
       let count, keys, mp;
       for (const p in this.fit.parameters) {
+        if (this.fit.detached_parameters.contains(p)) {
+          continue;
+        }
+
         // This will implicitely convert an array [parameter_id, parameter_name_in_model] to a string, but that is ok.
         count = _.countBy(models[p]);
 
@@ -539,7 +632,8 @@ export default {
       return {
         parameter_type: parameters_type,
         model_to_parameters: model_to_parameters,
-        data_to_parameters: data_to_parameters
+        data_to_parameters: data_to_parameters,
+        detached_info: detached_info
       };
     }
   },
@@ -587,6 +681,20 @@ export default {
         this.data_selection_open = false;
       }
     },
+    add_detached_parameter() {
+      if (this.add_parameter_name !== "") {
+        const p = parameter_uuid();
+
+        this.fit.parameters[p] = {
+          name: this.add_parameter_name,
+          value: 1,
+          const: false
+        };
+
+        this.fit.detached_parameters.push(p);
+        this.add_parameter_name = "";
+      }
+    },
     tie_to_data(p_in) {
       let p, newp;
       for (const d in this.fit.data) {
@@ -595,6 +703,7 @@ export default {
           if (p === p_in) {
             newp = parameter_uuid();
             this.fit.parameters[newp] = _.cloneDeep(this.fit.parameters[p_in]);
+            this.fit.parameters[newp].const = true;
             this.fit.data[d].parameters[pname] = newp;
           }
         }
@@ -622,14 +731,17 @@ export default {
         }
       }
     },
+    detach(p_id) {
+      alert(p_id);
+    },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
       const model_id = model_uuid();
-      this.fit["models"][model_id] = reactive({
-        // is reactive needed here?
+      this.fit["models"][model_id] = {
         name: this.model_selected,
-        print_name: this.model_selected // change if model is already in fit.models.
-      });
+        print_name: this.model_selected, // change if model is already in fit.models.
+        show_code: false
+      };
 
       const model_parameters = {};
       let mp;

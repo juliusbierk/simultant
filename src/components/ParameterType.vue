@@ -20,14 +20,20 @@
   <span>
     <span v-if="type === 'global' && view_in === 'model_section'">
       <span
-        ><button class="button info defaultcursor">Tied to Model</button></span
+        ><button class="button info defaultcursor">
+          Model Parameter
+        </button></span
       >
       <span
         ><button class="button defaultcursor" @click="$emit('tieToData')">
           Tie to Data
         </button></span
       >
-      <span><button class="button defaultcursor">Detach</button></span>
+      <span
+        ><button class="button defaultcursor" @click="$emit('detach')">
+          Tie to Detached
+        </button></span
+      >
     </span>
 
     <span v-if="type === 'local'">
@@ -38,11 +44,13 @@
       >
       <span
         ><button class="button info defaultcursor">
-          Tied to Data
+          Data Parameter
         </button></span
       >
       <span v-if="view_in === 'data_section'"
-        ><button class="button defaultcursor">Detach</button></span
+        ><button class="button defaultcursor" @click="$emit('detach')">
+          Tie to Detached
+        </button></span
       >
     </span>
   </span>
@@ -77,9 +85,10 @@ export default {
     name: String,
     type: String,
     id: String,
-    view_in: String
+    view_in: String,
+    detached_info: Object
   },
-  emits: ["tieToData", "tieToModel"]
+  emits: ["tieToData", "tieToModel", "detach"]
 };
 </script>
 
