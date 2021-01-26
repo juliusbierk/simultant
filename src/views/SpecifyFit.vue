@@ -589,7 +589,10 @@ export default {
       for (const p in this.fit.parameters) {
         if (this.fit.detached_parameters.contains(p)) {
           parameters_type[p] = "detached";
-          detached_info[p] = { "name": this.fit.parameters[p].name, "use_count": 0 };
+          detached_info[p] = {
+            name: this.fit.parameters[p].name,
+            use_count: 0
+          };
         }
       }
 

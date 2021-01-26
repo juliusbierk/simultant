@@ -17,7 +17,26 @@
     </button>
   </span>
 
-  <span>
+  <span v-if="tie_to_detached">
+    <span style="font-size:22px">&#8620;</span>
+
+    <span
+      style="margin-left:5px"
+      v-for="(content, id) in detached_info"
+      :key="id"
+    >
+      <button class="button info defaultcursor rounded">
+        {{ content.name }}
+      </button>
+    </span>
+
+    <span style="margin-left:5px">
+      <button class="button defaultcursor" @click="tie_to_detached = false">
+        Cancel
+      </button>
+    </span>
+  </span>
+  <span v-else>
     <span v-if="type === 'global' && view_in === 'model_section'">
       <span
         ><button class="button info defaultcursor">
@@ -29,8 +48,8 @@
           Tie to Data
         </button></span
       >
-      <span
-        ><button class="button defaultcursor" @click="$emit('detach')">
+      <span v-show="n_detached > 0"
+        ><button class="button defaultcursor" @click="tie_to_detached = true">
           Tie to Detached
         </button></span
       >
@@ -47,8 +66,8 @@
           Data Parameter
         </button></span
       >
-      <span v-if="view_in === 'data_section'"
-        ><button class="button defaultcursor" @click="$emit('detach')">
+      <span v-if="view_in === 'data_section'" v-show="n_detached > 0"
+        ><button class="button defaultcursor" @click="tie_to_detached = true">
           Tie to Detached
         </button></span
       >
@@ -61,6 +80,11 @@
 <script>
 export default {
   name: "ParameterType",
+  data: function() {
+    return {
+      tie_to_detached: false
+    };
+  },
   computed: {
     parameter_hint_text() {
       if (this.view_in === "model_section") {
@@ -79,6 +103,9 @@ export default {
       }
 
       return "ERROR";
+    },
+    n_detached() {
+      return Object.keys(this.detached_info).length;
     }
   },
   props: {
