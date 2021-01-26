@@ -237,6 +237,9 @@
                               :name="pname"
                               :type="parameter_ui.parameter_type[pid]"
                               :id="pid"
+                              @tieToModel="
+                                  tie_to_model(content.model, pname)
+                                "
                               view_in="data_section"
                             ></ParameterType>
                           </div>
@@ -385,6 +388,9 @@
                               tie_to_data(
                                 parameter_ui.model_to_parameters[[id, pname]][0]
                               )
+                            "
+                            @tieToModel="
+                              tie_to_model(id, pname)
                             "
                             view_in="model_section"
                           ></ParameterType>
@@ -606,6 +612,9 @@ export default {
         }
       }
       delete this.fit.parameters[p_in];
+    },
+    tie_to_model(model_id, parameter_name) {
+      alert(model_id + '___' + parameter_name);
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
