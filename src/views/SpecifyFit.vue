@@ -237,9 +237,7 @@
                               :name="pname"
                               :type="parameter_ui.parameter_type[pid]"
                               :id="pid"
-                              @tieToModel="
-                                  tie_to_model(content.model, pname)
-                                "
+                              @tieToModel="tie_to_model(content.model, pname)"
                               view_in="data_section"
                             ></ParameterType>
                           </div>
@@ -389,9 +387,7 @@
                                 parameter_ui.model_to_parameters[[id, pname]][0]
                               )
                             "
-                            @tieToModel="
-                              tie_to_model(id, pname)
-                            "
+                            @tieToModel="tie_to_model(id, pname)"
                             view_in="model_section"
                           ></ParameterType>
                         </div>
@@ -418,11 +414,7 @@
           </div>
 
           <div class="card"></div>
-          {{ parameter_ui }}
-
-          <div class="card"></div>
-
-          {{ fit }}
+          Numbers of parameters: {{ Object.keys(fit.parameters).length }}
         </div>
       </div>
     </div>
@@ -602,9 +594,7 @@ export default {
           p = this.fit.data[d].parameters[pname];
           if (p === p_in) {
             newp = parameter_uuid();
-            this.fit.parameters[newp] = _.cloneDeep(
-              this.fit.parameters[p_in]
-            );
+            this.fit.parameters[newp] = _.cloneDeep(this.fit.parameters[p_in]);
             this.fit.data[d].parameters[pname] = newp;
           }
         }
@@ -614,14 +604,18 @@ export default {
     tie_to_model(model_id, parameter_name) {
       const newp = parameter_uuid();
       const model_name = this.fit.models[model_id].name;
-      this.fit.parameters[newp] =  {name: parameter_name, value: this.models[model_name].kwargs[parameter_name], const: false};
+      this.fit.parameters[newp] = {
+        name: parameter_name,
+        value: this.models[model_name].kwargs[parameter_name],
+        const: false
+      };
 
       let p;
 
       for (const d in this.fit.data) {
         if (this.fit.data[d].model === model_id) {
           p = this.fit.data[d].parameters[parameter_name];
-          if (p in this.fit.parameters ) {
+          if (p in this.fit.parameters) {
             delete this.fit.parameters[p];
           }
           this.fit.data[d].parameters[parameter_name] = newp;
