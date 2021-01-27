@@ -17,10 +17,24 @@
     </button>
   </span>
 
-  {{ type }} {{ is_tied_to_whom }}
-
-  <span v-if="tie_to_detached">
+  <span v-if="tie_to_detached || is_tied_to_whom[0]">
     <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae">&#8620;</span>
+  </span>
+
+  <span v-if="is_tied_to_whom[0]">
+
+    <span style="margin-left:5px">
+      <button class="button info defaultcursor rounded">
+        {{  parameter_ui.detached_info[is_tied_to_whom[1]].name }}
+      </button>
+    </span>
+
+    <span style="margin-left:5px">
+      <button class="button defaultcursor">
+        Detach
+      </button>
+    </span>
+
   </span>
 
   <span v-if="tie_to_detached">
