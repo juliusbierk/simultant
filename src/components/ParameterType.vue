@@ -17,15 +17,19 @@
     </button>
   </span>
 
-  <span v-if="tie_to_detached">
-    <span style="font-size:22px">&#8620;</span>
+  {{ type }} {{ is_tied_to_whom }}
 
+  <span v-if="tie_to_detached">
+    <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae">&#8620;</span>
+  </span>
+
+  <span v-if="tie_to_detached">
     <span
       style="margin-left:5px"
-      v-for="(content, id) in detached_info"
+      v-for="(content, id) in parameter_ui.detached_info"
       :key="id"
     >
-      <button class="button info defaultcursor rounded">
+      <button class="button info defaultcursor rounded" @click="$emit('detach', id); tie_to_detached=false">
         {{ content.name }}
       </button>
     </span>
@@ -105,15 +109,30 @@ export default {
       return "ERROR";
     },
     n_detached() {
-      return Object.keys(this.detached_info).length;
-    }
+      return Object.keys(this.parameter_ui.detached_info).length;
+    },
+    is_tied_to_whom() {
+      let pars;
+      if (!(this.type === 'global' || this.type === 'local')) {
+        if (this.view_in === 'model_section') {
+          pars = this.parameter_ui.model_to_parameters[[this.model_or_data_id, this.name]];
+        } else {
+          pars = this.parameter_ui.data_to_parameters[[this.model_or_data_id, this.name]];
+        }
+        if (pars && pars.length === 1) {
+          return [true, pars[0]];
+        }
+      }
+      return [false, null];
+    },
   },
   props: {
     name: String,
     type: String,
     id: String,
     view_in: String,
-    detached_info: Object
+    parameter_ui: Object,
+    model_or_data_id: String,
   },
   emits: ["tieToData", "tieToModel", "detach"]
 };

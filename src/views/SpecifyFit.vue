@@ -239,7 +239,8 @@
                               :id="pid"
                               @tieToModel="tie_to_model(content.model, pname)"
                               view_in="data_section"
-                              :detached_info="parameter_ui.detached_info"
+                              :parameter_ui="parameter_ui"
+                              :model_or_data_id="id"
                             ></ParameterType>
                           </div>
                         </div>
@@ -399,11 +400,13 @@
                             @tieToModel="tie_to_model(id, pname)"
                             @detach="
                               detach(
-                                parameter_ui.model_to_parameters[[id, pname]][0]
+                                parameter_ui.model_to_parameters[[id, pname]][0],
+                                $event
                               )
                             "
-                            :detached_info="parameter_ui.detached_info"
+                            :parameter_ui="parameter_ui"
                             view_in="model_section"
+                            :model_or_data_id="id"
                           ></ParameterType>
                         </div>
                       </div>
@@ -491,6 +494,11 @@
           Numbers of parameters: {{ Object.keys(fit.parameters).length }}
           <br />
           Number of detached parameters: {{ fit.detached_parameters.length }}
+
+          <br>
+          <br>
+
+          {{ parameter_ui }}
         </div>
       </div>
     </div>
@@ -588,7 +596,6 @@ export default {
       // Count detached
       for (const p in this.fit.parameters) {
         if (this.fit.detached_parameters.contains(p)) {
-          parameters_type[p] = "detached";
           detached_info[p] = {
             name: this.fit.parameters[p].name,
             use_count: 0
@@ -599,10 +606,6 @@ export default {
       // Finally run through each parameter to determine its type
       let count, keys, mp;
       for (const p in this.fit.parameters) {
-        if (this.fit.detached_parameters.contains(p)) {
-          continue;
-        }
-
         // This will implicitely convert an array [parameter_id, parameter_name_in_model] to a string, but that is ok.
         count = _.countBy(models[p]);
 
@@ -629,6 +632,10 @@ export default {
           }
         } else {
           parameters_type[p] = "shared";
+        }
+
+        if (this.fit.detached_parameters.contains(p)) {
+          parameters_type[p] = "detached";
         }
       }
 
@@ -734,8 +741,18 @@ export default {
         }
       }
     },
-    detach(p_id) {
-      alert(p_id);
+    detach(p_id, detached_id) {
+      let p;
+      for (const d in this.fit.data) {
+        for (const pname in this.fit.data[d].parameters) {
+          p = this.fit.data[d].parameters[pname];
+          if (p === p_id) {
+            this.fit.data[d].parameters[pname] = detached_id;
+          }
+        }
+      }
+      this.fit.parameters[detached_id].value = this.fit.parameters[p_id].value;
+      delete this.fit.parameters[p_id];
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
