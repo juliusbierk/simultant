@@ -400,7 +400,9 @@
                             @tieToModel="tie_to_model(id, pname)"
                             @detach="
                               detach(
-                                parameter_ui.model_to_parameters[[id, pname]][0],
+                                parameter_ui.model_to_parameters[
+                                  [id, pname]
+                                ][0],
                                 $event
                               )
                             "
@@ -495,8 +497,8 @@
           <br />
           Number of detached parameters: {{ fit.detached_parameters.length }}
 
-          <br>
-          <br>
+          <br />
+          <br />
 
           {{ parameter_ui }}
         </div>

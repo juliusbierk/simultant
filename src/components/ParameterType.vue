@@ -18,14 +18,15 @@
   </span>
 
   <span v-if="tie_to_detached || is_tied_to_whom[0]">
-    <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae">&#8620;</span>
+    <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae"
+      >&#8620;</span
+    >
   </span>
 
   <span v-if="is_tied_to_whom[0]">
-
     <span style="margin-left:5px">
       <button class="button info defaultcursor rounded">
-        {{  parameter_ui.detached_info[is_tied_to_whom[1]].name }}
+        {{ parameter_ui.detached_info[is_tied_to_whom[1]].name }}
       </button>
     </span>
 
@@ -34,7 +35,6 @@
         Detach
       </button>
     </span>
-
   </span>
 
   <span v-if="tie_to_detached">
@@ -43,7 +43,13 @@
       v-for="(content, id) in parameter_ui.detached_info"
       :key="id"
     >
-      <button class="button info defaultcursor rounded" @click="$emit('detach', id); tie_to_detached=false">
+      <button
+        class="button info defaultcursor rounded"
+        @click="
+          $emit('detach', id);
+          tie_to_detached = false;
+        "
+      >
         {{ content.name }}
       </button>
     </span>
@@ -127,18 +133,22 @@ export default {
     },
     is_tied_to_whom() {
       let pars;
-      if (!(this.type === 'global' || this.type === 'local')) {
-        if (this.view_in === 'model_section') {
-          pars = this.parameter_ui.model_to_parameters[[this.model_or_data_id, this.name]];
+      if (!(this.type === "global" || this.type === "local")) {
+        if (this.view_in === "model_section") {
+          pars = this.parameter_ui.model_to_parameters[
+            [this.model_or_data_id, this.name]
+          ];
         } else {
-          pars = this.parameter_ui.data_to_parameters[[this.model_or_data_id, this.name]];
+          pars = this.parameter_ui.data_to_parameters[
+            [this.model_or_data_id, this.name]
+          ];
         }
         if (pars && pars.length === 1) {
           return [true, pars[0]];
         }
       }
       return [false, null];
-    },
+    }
   },
   props: {
     name: String,
@@ -146,7 +156,7 @@ export default {
     id: String,
     view_in: String,
     parameter_ui: Object,
-    model_or_data_id: String,
+    model_or_data_id: String
   },
   emits: ["tieToData", "tieToModel", "detach"]
 };
