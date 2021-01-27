@@ -3,7 +3,7 @@
     class="rightmargin"
     v-if="
       view_in === 'model_section' ||
-        (view_in === 'data_section' && type !== 'global')
+        (view_in === 'data_section' && type !== 'model')
     "
   >
     <button
@@ -17,13 +17,13 @@
     </button>
   </span>
 
-  <span v-if="tie_to_detached || is_tied_to_whom[0]">
+  <span v-if="tie_to_detached || false">
     <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae"
       >&#8620;</span
     >
   </span>
 
-  <span v-if="is_tied_to_whom[0]">
+  <span v-if="false">
     <span style="margin-left:5px">
       <button class="button info defaultcursor rounded">
         {{ parameter_ui.detached_info[is_tied_to_whom[1]].name }}
@@ -38,21 +38,21 @@
   </span>
 
   <span v-if="tie_to_detached">
-    <span
-      style="margin-left:5px"
-      v-for="(content, id) in parameter_ui.detached_info"
-      :key="id"
-    >
-      <button
-        class="button info defaultcursor rounded"
-        @click="
-          $emit('detach', id);
-          tie_to_detached = false;
-        "
-      >
-        {{ content.name }}
-      </button>
-    </span>
+    <!--    <span-->
+    <!--      style="margin-left:5px"-->
+    <!--      v-for="(content, id) in parameter_ui.detached_info"-->
+    <!--      :key="id"-->
+    <!--    >-->
+    <!--      <button-->
+    <!--        class="button info defaultcursor rounded"-->
+    <!--        @click="-->
+    <!--          $emit('detach', id);-->
+    <!--          tie_to_detached = false;-->
+    <!--        "-->
+    <!--      >-->
+    <!--        {{ content.name }}-->
+    <!--      </button>-->
+    <!--    </span>-->
 
     <span style="margin-left:5px">
       <button class="button defaultcursor" @click="tie_to_detached = false">
@@ -61,7 +61,7 @@
     </span>
   </span>
   <span v-else>
-    <span v-if="type === 'global' && view_in === 'model_section'">
+    <span v-if="type === 'model' && view_in === 'model_section'">
       <span
         ><button class="button info defaultcursor">
           Model Parameter
@@ -112,7 +112,7 @@ export default {
   computed: {
     parameter_hint_text() {
       if (this.view_in === "model_section") {
-        if (this.type === "global") {
+        if (this.type === "model") {
           return "All datasets that use this model share this parameter.";
         }
         if (this.type === "local") {
@@ -129,28 +129,7 @@ export default {
       return "ERROR";
     },
     n_detached() {
-      return Object.keys(this.parameter_ui.detached_info).length;
-    },
-    is_tied_to_whom() {
-      let pars;
-      if (!(this.type === "global" || this.type === "local")) {
-        if (this.view_in === "model_section") {
-          pars = this.parameter_ui.model_to_parameters[
-            [this.model_or_data_id, this.name]
-          ];
-          if (pars && pars.length === 1) {
-            return [true, pars[0]];
-          }
-        } else {
-          return [
-            true,
-            this.parameter_ui.data_to_parameters[
-              [this.model_or_data_id, this.name]
-            ]
-          ];
-        }
-      }
-      return [false, null];
+      return 0;
     }
   },
   props: {
@@ -158,7 +137,6 @@ export default {
     type: String,
     id: String,
     view_in: String,
-    parameter_ui: Object,
     model_or_data_id: String
   },
   emits: ["tieToData", "tieToModel", "detach"]

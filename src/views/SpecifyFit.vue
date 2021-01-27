@@ -233,16 +233,16 @@
                             v-for="(pid, pname) in content.parameters"
                             :key="pid"
                           >
-                            <ParameterType
-                              :name="pname"
-                              :type="parameter_ui.parameter_type[pid]"
-                              :id="pid"
-                              @tieToModel="tie_to_model(content.model, pname)"
-                              view_in="data_section"
-                              :parameter_ui="parameter_ui"
-                              :model_or_data_id="id"
-                              @detach="detach(pid, $event)"
-                            ></ParameterType>
+                            {{ pname }}
+<!--                            <ParameterType-->
+<!--                              :name="pname"-->
+<!--                              :type="fit.parameters[pid].type"-->
+<!--                              :id="pid"-->
+<!--                              @tieToModel="tie_to_model(content.model, pname)"-->
+<!--                              view_in="data_section"-->
+<!--                              :model_or_data_id="id"-->
+<!--                              @detach="detach(pid, $event)"-->
+<!--                            ></ParameterType>-->
                           </div>
                         </div>
                       </div>
@@ -385,46 +385,18 @@
                         >
                           <ParameterType
                             :name="pname"
-                            :type="
-                              parameter_ui.parameter_type[
-                                parameter_ui.model_to_parameters[[id, pname]][0]
-                              ]
-                            "
-                            :id="
-                              parameter_ui.model_to_parameters[[id, pname]][0]
-                            "
+                            :type="model_parameters[id][pname].type"
+                            :id="model_parameters[id][pname].pid"
                             @tieToData="
-                              tie_to_data(
-                                parameter_ui.model_to_parameters[[id, pname]][0]
-                              )
+                              tie_to_data(model_parameters[id][pname].pid)
                             "
                             @tieToModel="tie_to_model(id, pname)"
                             @detach="
-                              detach(
-                                parameter_ui.model_to_parameters[
-                                  [id, pname]
-                                ][0],
-                                $event
-                              )
+                              detach(model_parameters[id][pname].pid, $event)
                             "
-                            :parameter_ui="parameter_ui"
                             view_in="model_section"
                             :model_or_data_id="id"
                           ></ParameterType>
-                        </div>
-                      </div>
-
-                      <div
-                        class="row"
-                        v-for="p in parameter_ui.model_to_parameters[id]"
-                        :key="p"
-                      >
-                        <div class="cell-3 offset-1">
-                          {{ p }}
-                        </div>
-
-                        <div class="cell-8">
-                          type={{ parameter_ui.parameter_type[p] }}
                         </div>
                       </div>
                     </div>
@@ -501,7 +473,7 @@
           <br />
           <br />
 
-          {{ parameter_ui }}
+          {{ model_parameters }}
         </div>
       </div>
     </div>
@@ -560,22 +532,11 @@ export default {
     ShowCode
   },
   computed: {
-    parameter_ui() {
-      // This function converts this.fit (which uniquely defines the fit)
-      // into useful data structures that can be used in the UI.
-
-      const parameters_type = {};
-      const model_to_parameters = {};
-      const data_to_parameters = {};
-      const detached_info = {};
-
+    model_parameters() {
       // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
       const models = {};
-      for (const p in this.fit.parameters) {
-        models[p] = [];
-      }
 
-      let parameter_id, parameter_name_in_model, model_id;
+      let parameter_id, parameter_name_in_model, model_id, key;
 
       for (const d in this.fit.data) {
         if (this.fit.data[d].parameters) {
@@ -583,72 +544,42 @@ export default {
             parameter_id = this.fit.data[d].parameters[p];
             parameter_name_in_model = p;
             model_id = this.fit.data[d].model;
-            models[parameter_id].push([model_id, parameter_name_in_model]);
-            data_to_parameters[[d, parameter_name_in_model]] = parameter_id;
-          }
-        }
-      }
 
-      // Count the number of times specific model is used.
-      let m;
-      const model_use_times = {};
-      for (const d in this.fit.data) {
-        m = this.fit.data[d].model;
-        model_use_times[m] = model_use_times[m] ? model_use_times[m] + 1 : 1;
-      }
-
-      // Count detached
-      for (const p in this.fit.parameters) {
-        if (this.fit.detached_parameters.contains(p)) {
-          detached_info[p] = {
-            name: this.fit.parameters[p].name,
-            use_count: 0
-          };
-        }
-      }
-
-      // Finally run through each parameter to determine its type
-      let count, keys, mp;
-      for (const p in this.fit.parameters) {
-        // This will implicitely convert an array [parameter_id, parameter_name_in_model] to a string, but that is ok.
-        count = _.countBy(models[p]);
-
-        keys = Object.keys(count);
-        for (const key of keys) {
-          if (model_to_parameters[key]) {
-            model_to_parameters[key].push(p);
-          } else {
-            model_to_parameters[key] = [p];
-          }
-        }
-
-        if (keys.length === 1) {
-          mp = keys[0];
-          if (count[mp] === 1) {
-            parameters_type[p] = "local";
-          } else {
-            m = mp.split(",")[0];
-            if (model_use_times[m] === count[mp]) {
-              parameters_type[p] = "global";
+            key = [model_id, parameter_name_in_model];
+            if (key in models) {
+              if (!models[key].contains(parameter_id)) {
+                models[key].push(parameter_id);
+              }
             } else {
-              parameters_type[p] = "grouped";
+              models[key] = [parameter_id];
             }
           }
-        } else {
-          parameters_type[p] = "shared";
-        }
-
-        if (this.fit.detached_parameters.contains(p)) {
-          parameters_type[p] = "detached";
         }
       }
 
-      return {
-        parameter_type: parameters_type,
-        model_to_parameters: model_to_parameters,
-        data_to_parameters: data_to_parameters,
-        detached_info: detached_info
-      };
+      const parameters = {};
+      for (const m in this.fit.models) {
+        parameters[m] = {};
+        for (const pname in this.models[this.fit.models[m].name].kwargs) {
+          key = [m, pname];
+          if (models[key].length === 0) {
+            console.log("assertion error!");
+          } else if (models[key].length === 1) {
+            parameter_id = models[key][0];
+            parameters[m][pname] = {
+              type: this.fit.parameters[parameter_id].type,
+              pid: null
+            };
+            if (this.fit.parameters[parameter_id].type === "model") {
+              parameters[m][pname].pid = parameter_id;
+            }
+          } else {
+            console.log("not implemented");
+          }
+        }
+      }
+
+      return parameters;
     }
   },
   methods: {
@@ -683,6 +614,7 @@ export default {
           name: this.selected_dataset_names[i],
           parent: this.selected_data_group,
           in_use: true,
+          weight: "uniform",
           model: null,
           parameters: null
         };
@@ -695,6 +627,46 @@ export default {
         this.data_selection_open = false;
       }
     },
+    add_model() {
+      const first_add = Object.keys(this.fit["models"]).length === 0;
+      const model_id = model_uuid();
+      this.fit["models"][model_id] = {
+        name: this.model_selected,
+        print_name: this.model_selected, // change if model is already in fit.models.
+        show_code: false
+      };
+
+      const model_parameters = {};
+      let mp;
+      for (const p of this.models[this.model_selected].args) {
+        mp = parameter_uuid();
+        this.fit["parameters"][mp] = {
+          name: p.name,
+          value: p.value,
+          const: false,
+          type: "model"
+        };
+
+        model_parameters[p.name] = mp;
+      }
+
+      if (this.apply_to_all) {
+        for (const d in this.fit.data) {
+          this.apply_model_to_dataset(model_id, d, model_parameters);
+        }
+      }
+
+      // Clean up selection:
+      this.model_selected = null;
+      this.model_selection_render_index += 1; // This is a key that makes the element re-render
+      if (first_add) {
+        this.model_selection_open = false;
+      }
+    },
+    apply_model_to_dataset(model_id, dataset_id, parameters) {
+      this.fit.data[dataset_id].model = model_id;
+      this.fit.data[dataset_id].parameters = _.cloneDeep(parameters);
+    },
     add_detached_parameter() {
       if (this.add_parameter_name !== "") {
         const p = parameter_uuid();
@@ -702,7 +674,8 @@ export default {
         this.fit.parameters[p] = {
           name: this.add_parameter_name,
           value: 1,
-          const: false
+          const: false,
+          type: "detached"
         };
 
         this.fit.detached_parameters.push(p);
@@ -757,45 +730,6 @@ export default {
       }
       this.fit.parameters[detached_id].value = this.fit.parameters[p_id].value;
       delete this.fit.parameters[p_id];
-    },
-    add_model() {
-      const first_add = Object.keys(this.fit["models"]).length === 0;
-      const model_id = model_uuid();
-      this.fit["models"][model_id] = {
-        name: this.model_selected,
-        print_name: this.model_selected, // change if model is already in fit.models.
-        show_code: false
-      };
-
-      const model_parameters = {};
-      let mp;
-      for (const p of this.models[this.model_selected].args) {
-        mp = parameter_uuid();
-        this.fit["parameters"][mp] = {
-          name: p.name,
-          value: p.value,
-          const: false
-        };
-
-        model_parameters[p.name] = mp;
-      }
-
-      if (this.apply_to_all) {
-        for (const d in this.fit.data) {
-          this.apply_model_to_dataset(model_id, d, model_parameters);
-        }
-      }
-
-      // Clean up selection:
-      this.model_selected = null;
-      this.model_selection_render_index += 1; // This is a key that makes the element re-render
-      if (first_add) {
-        this.model_selection_open = false;
-      }
-    },
-    apply_model_to_dataset(model_id, dataset_id, parameters) {
-      this.fit.data[dataset_id].model = model_id;
-      this.fit.data[dataset_id].parameters = _.cloneDeep(parameters);
     }
   },
   mounted: function() {
