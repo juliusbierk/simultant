@@ -3,7 +3,7 @@
     class="rightmargin"
     v-if="
       view_in === 'model_section' ||
-        (view_in === 'data_section' && type === 'local')
+        (view_in === 'data_section' && type !== 'global')
     "
   >
     <button
@@ -138,13 +138,16 @@ export default {
           pars = this.parameter_ui.model_to_parameters[
             [this.model_or_data_id, this.name]
           ];
+          if (pars && pars.length === 1) {
+            return [true, pars[0]];
+          }
         } else {
-          pars = this.parameter_ui.data_to_parameters[
-            [this.model_or_data_id, this.name]
+          return [
+            true,
+            this.parameter_ui.data_to_parameters[
+              [this.model_or_data_id, this.name]
+            ]
           ];
-        }
-        if (pars && pars.length === 1) {
-          return [true, pars[0]];
         }
       }
       return [false, null];

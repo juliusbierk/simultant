@@ -241,6 +241,7 @@
                               view_in="data_section"
                               :parameter_ui="parameter_ui"
                               :model_or_data_id="id"
+                              @detach="detach(pid, $event)"
                             ></ParameterType>
                           </div>
                         </div>
@@ -583,6 +584,7 @@ export default {
             parameter_name_in_model = p;
             model_id = this.fit.data[d].model;
             models[parameter_id].push([model_id, parameter_name_in_model]);
+            data_to_parameters[[d, parameter_name_in_model]] = parameter_id;
           }
         }
       }
