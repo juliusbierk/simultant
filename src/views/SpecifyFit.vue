@@ -233,16 +233,15 @@
                             v-for="(pid, pname) in content.parameters"
                             :key="pid"
                           >
-                            {{ pname }}
-                            <!--                            <ParameterType-->
-                            <!--                              :name="pname"-->
-                            <!--                              :type="fit.parameters[pid].type"-->
-                            <!--                              :id="pid"-->
-                            <!--                              @tieToModel="tie_to_model(content.model, pname)"-->
-                            <!--                              view_in="data_section"-->
-                            <!--                              :model_or_data_id="id"-->
-                            <!--                              @detach="detach(pid, $event)"-->
-                            <!--                            ></ParameterType>-->
+                                                        <ParameterType
+                                                          :name="pname"
+                                                          :type="fit.parameters[pid].type"
+                                                          :id="pid"
+                                                          @tieToModel="tie_to_model(content.model, pname)"
+                                                          view_in="data_section"
+                                                          :model_or_data_id="id"
+                                                          @detach="detach(pid, $event)"
+                                                        ></ParameterType>
                           </div>
                         </div>
                       </div>
