@@ -233,15 +233,15 @@
                             v-for="(pid, pname) in content.parameters"
                             :key="pid"
                           >
-                                                        <ParameterType
-                                                          :name="pname"
-                                                          :type="fit.parameters[pid].type"
-                                                          :id="pid"
-                                                          @tieToModel="tie_to_model(content.model, pname)"
-                                                          view_in="data_section"
-                                                          :model_or_data_id="id"
-                                                          @detach="detach(pid, $event)"
-                                                        ></ParameterType>
+                            <ParameterType
+                              :name="pname"
+                              :type="fit.parameters[pid].type"
+                              :id="pid"
+                              @tieToModel="tie_to_model(content.model, pname)"
+                              view_in="data_section"
+                              :model_or_data_id="id"
+                              @detach="detach(pid, $event)"
+                            ></ParameterType>
                           </div>
                         </div>
                       </div>
@@ -443,11 +443,7 @@
                   </div>
                 </div>
 
-                <div
-                  class="row"
-                  v-for="id in fit.detached_parameters"
-                  :key="id"
-                >
+                <div class="row" v-for="id in detached_parameters" :key="id">
                   <div class="cell-8 offset-1">
                     <button
                       data-role="hint"
@@ -467,7 +463,7 @@
           <div class="card"></div>
           Numbers of parameters: {{ Object.keys(fit.parameters).length }}
           <br />
-          Number of detached parameters: {{ fit.detached_parameters.length }}
+          Number of detached parameters: {{ detached_parameters.length }}
 
           <br />
           <br />
@@ -526,8 +522,7 @@ export default {
       fit: {
         data: {},
         models: {},
-        parameters: {},
-        detached_parameters: []
+        parameters: {}
       }
     };
   },
@@ -537,6 +532,15 @@ export default {
     ShowCode
   },
   computed: {
+    detached_parameters() {
+      const detached = [];
+      for (const p in this.fit.parameters) {
+        if (this.fit.parameters[p].type === "detached") {
+          detached.push(p);
+        }
+      }
+      return detached;
+    },
     model_parameters() {
       // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
       const models = {};
@@ -701,8 +705,6 @@ export default {
           const: false,
           type: "detached"
         };
-
-        this.fit.detached_parameters.push(p);
         this.add_parameter_name = "";
       }
     },
