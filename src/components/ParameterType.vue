@@ -135,9 +135,7 @@ export default {
   props: {
     name: String,
     type: String,
-    id: String,
     view_in: String,
-    model_or_data_id: String
   },
   emits: ["tieToData", "tieToModel", "detach"]
 };
