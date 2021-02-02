@@ -234,15 +234,15 @@
                             :key="pid"
                           >
                             {{ pname }}
-<!--                            <ParameterType-->
-<!--                              :name="pname"-->
-<!--                              :type="fit.parameters[pid].type"-->
-<!--                              :id="pid"-->
-<!--                              @tieToModel="tie_to_model(content.model, pname)"-->
-<!--                              view_in="data_section"-->
-<!--                              :model_or_data_id="id"-->
-<!--                              @detach="detach(pid, $event)"-->
-<!--                            ></ParameterType>-->
+                            <!--                            <ParameterType-->
+                            <!--                              :name="pname"-->
+                            <!--                              :type="fit.parameters[pid].type"-->
+                            <!--                              :id="pid"-->
+                            <!--                              @tieToModel="tie_to_model(content.model, pname)"-->
+                            <!--                              view_in="data_section"-->
+                            <!--                              :model_or_data_id="id"-->
+                            <!--                              @detach="detach(pid, $event)"-->
+                            <!--                            ></ParameterType>-->
                           </div>
                         </div>
                       </div>
@@ -474,6 +474,12 @@
           <br />
 
           {{ model_parameters }}
+
+          <br />
+          <br />
+          <br />
+
+          {{ fit }}
         </div>
       </div>
     </div>
@@ -574,7 +580,26 @@ export default {
               parameters[m][pname].pid = parameter_id;
             }
           } else {
-            console.log("not implemented");
+            let all_data = true;
+
+            for (const parameter_id of models[key]) {
+              if (this.fit.parameters[parameter_id].type !== "data") {
+                all_data = false;
+                break;
+              }
+            }
+
+            if (all_data) {
+              parameters[m][pname] = {
+                type: "data",
+                pid: null
+              };
+            } else {
+              parameters[m][pname] = {
+                type: "detached",
+                pid: null
+              };
+            }
           }
         }
       }
@@ -691,6 +716,7 @@ export default {
             newp = parameter_uuid();
             this.fit.parameters[newp] = _.cloneDeep(this.fit.parameters[p_in]);
             this.fit.parameters[newp].const = true;
+            this.fit.parameters[newp].type = "data";
             this.fit.data[d].parameters[pname] = newp;
           }
         }
@@ -703,7 +729,8 @@ export default {
       this.fit.parameters[newp] = {
         name: parameter_name,
         value: this.models[model_name].kwargs[parameter_name],
-        const: false
+        const: false,
+        type: "model"
       };
 
       let p;

@@ -26,7 +26,7 @@
   <span v-if="false">
     <span style="margin-left:5px">
       <button class="button info defaultcursor rounded">
-        {{ parameter_ui.detached_info[is_tied_to_whom[1]].name }}
+        asdsadadasdas
       </button>
     </span>
 
@@ -79,7 +79,7 @@
       >
     </span>
 
-    <span v-if="type === 'local'">
+    <span v-if="type === 'data'">
       <span
         ><button class="button defaultcursor" @click="$emit('tieToModel')">
           Tie to Model
@@ -115,13 +115,13 @@ export default {
         if (this.type === "model") {
           return "All datasets that use this model share this parameter.";
         }
-        if (this.type === "local") {
+        if (this.type === "data") {
           return "Each dataset that use this model has its own instance of this parameter.";
         }
       }
 
       if (this.view_in === "data_section") {
-        if (this.type === "local") {
+        if (this.type === "data") {
           return "This dataset has its own instance of this parameter.";
         }
       }
