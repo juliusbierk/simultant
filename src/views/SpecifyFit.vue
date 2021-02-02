@@ -239,6 +239,7 @@
                               @tieToModel="tie_to_model(content.model, pname)"
                               view_in="data_section"
                               @detach="detach(pid, $event)"
+                              :detached_parameters="detached_parameters"
                             ></ParameterType>
                           </div>
                         </div>
@@ -391,6 +392,7 @@
                               detach(model_parameters[id][pname].pid, $event)
                             "
                             view_in="model_section"
+                            :detached_parameters="detached_parameters"
                           ></ParameterType>
                         </div>
                       </div>
@@ -439,7 +441,7 @@
                   </div>
                 </div>
 
-                <div class="row" v-for="id in detached_parameters" :key="id">
+                <div class="row" v-for="(name, id) in detached_parameters" :key="id">
                   <div class="cell-8 offset-1">
                     <button
                       data-role="hint"
@@ -448,7 +450,7 @@
                       data-cls-hint="bg-lightCyan fg-white"
                       class="button info defaultcursor rounded outline "
                     >
-                      {{ fit.parameters[id].name }}
+                      {{ name }}
                     </button>
                   </div>
                 </div>
@@ -459,7 +461,7 @@
           <div class="card"></div>
           Numbers of parameters: {{ Object.keys(fit.parameters).length }}
           <br />
-          Number of detached parameters: {{ detached_parameters.length }}
+          Number of detached parameters: {{ Object.keys(detached_parameters).length }}
 
           <br />
           <br />
@@ -529,10 +531,10 @@ export default {
   },
   computed: {
     detached_parameters() {
-      const detached = [];
+      const detached = {};
       for (const p in this.fit.parameters) {
         if (this.fit.parameters[p].type === "detached") {
-          detached.push(p);
+          detached[p] = this.fit.parameters[p].name;
         }
       }
       return detached;

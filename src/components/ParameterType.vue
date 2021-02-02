@@ -38,21 +38,21 @@
   </span>
 
   <span v-if="tie_to_detached">
-    <!--    <span-->
-    <!--      style="margin-left:5px"-->
-    <!--      v-for="(content, id) in parameter_ui.detached_info"-->
-    <!--      :key="id"-->
-    <!--    >-->
-    <!--      <button-->
-    <!--        class="button info defaultcursor rounded"-->
-    <!--        @click="-->
-    <!--          $emit('detach', id);-->
-    <!--          tie_to_detached = false;-->
-    <!--        "-->
-    <!--      >-->
-    <!--        {{ content.name }}-->
-    <!--      </button>-->
-    <!--    </span>-->
+        <span
+          style="margin-left:5px"
+          v-for="(name, id) in detached_parameters"
+          :key="id"
+        >
+          <button
+            class="button info defaultcursor rounded"
+            @click="
+              $emit('detach', id);
+              tie_to_detached = false;
+            "
+          >
+            {{ name }}
+          </button>
+        </span>
 
     <span style="margin-left:5px">
       <button class="button defaultcursor" @click="tie_to_detached = false">
@@ -129,13 +129,14 @@ export default {
       return "ERROR";
     },
     n_detached() {
-      return 0;
+      return Object.keys(this.detached_parameters).length;
     }
   },
   props: {
     name: String,
     type: String,
     view_in: String,
+    detached_parameters: Object,
   },
   emits: ["tieToData", "tieToModel", "detach"]
 };
