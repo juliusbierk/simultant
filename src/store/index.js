@@ -7,11 +7,25 @@ export default createStore({
       data: {},
       models: {},
       parameters: {}
+    },
+    ui_specify: {
+      choose_fit_open: false,
+      data_selection_open: true,
+      model_selection_open: true
     }
   },
   mutations: {
     set_models(state, value) {
       state.models = value;
+    },
+    set_choose_fit_open(state, value) {
+      state.ui_specify.choose_fit_open = value;
+    },
+    set_data_selection_open(state, value) {
+      state.ui_specify.data_selection_open = value;
+    },
+    set_model_selection_open(state, value) {
+      state.ui_specify.model_selection_open = value;
     }
   },
   getters: {

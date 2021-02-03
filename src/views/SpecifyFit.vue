@@ -17,12 +17,12 @@
             <div class="buttons">
               <span
                 v-show="choose_fit_open"
-                @click="choose_fit_open = false"
+                @click="set_choose_fit_open(false)"
                 class="btn-min btn-corner-hover defaultcursor"
               ></span>
               <span
                 v-show="!choose_fit_open"
-                @click="choose_fit_open = true"
+                @click="set_choose_fit_open(true)"
                 class="btn-max btn-corner-hover defaultcursor"
               ></span>
             </div>
@@ -40,12 +40,12 @@
             <div class="buttons">
               <span
                 v-show="data_selection_open"
-                @click="data_selection_open = false"
+                @click="set_data_selection_open(false)"
                 class="btn-min btn-corner-hover defaultcursor"
               ></span>
               <span
                 v-show="!data_selection_open"
-                @click="data_selection_open = true"
+                @click="set_data_selection_open(true)"
                 class="btn-max btn-corner-hover defaultcursor"
               ></span>
             </div>
@@ -68,12 +68,12 @@
             <div class="buttons">
               <span
                 v-show="model_selection_open"
-                @click="model_selection_open = false"
+                @click="set_model_selection_open(false)"
                 class="btn-min btn-corner-hover defaultcursor"
               ></span>
               <span
                 v-show="!model_selection_open"
-                @click="model_selection_open = true"
+                @click="set_model_selection_open(true)"
                 class="btn-max btn-corner-hover defaultcursor"
               ></span>
             </div>
@@ -118,12 +118,12 @@
                 <div class="buttons">
                   <span
                     v-show="data_selection_open"
-                    @click="data_selection_open = false"
+                    @click="set_data_selection_open(false)"
                     class="btn-min btn-corner-hover defaultcursor"
                   ></span>
                   <span
                     v-show="!data_selection_open"
-                    @click="data_selection_open = true"
+                    @click="set_data_selection_open(true)"
                     class="btn-max btn-corner-hover defaultcursor"
                   ></span>
                 </div>
@@ -268,12 +268,12 @@
                 <div class="buttons">
                   <span
                     v-show="model_selection_open"
-                    @click="model_selection_open = false"
+                    @click="set_model_selection_open(false)"
                     class="btn-min btn-corner-hover defaultcursor"
                   ></span>
                   <span
                     v-show="!model_selection_open"
-                    @click="model_selection_open = true"
+                    @click="set_model_selection_open(true)"
                     class="btn-max btn-corner-hover defaultcursor"
                   ></span>
                 </div>
@@ -521,9 +521,6 @@ export default {
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
-      choose_fit_open: false,
-      data_selection_open: true,
-      model_selection_open: true,
       db_data: {},
       selected_data_group: null,
       selected_dataset_ids: null,
@@ -541,11 +538,23 @@ export default {
     ShowCode
   },
   computed: {
-    ...mapState(["fit", "models"]),
-    ...mapGetters(["detached_parameters", "model_parameters"])
+    ...mapState({
+      fit: "fit",
+      models: "models",
+      choose_fit_open: state => state.ui_specify.choose_fit_open,
+      data_selection_open: state => state.ui_specify.data_selection_open,
+      model_selection_open: state => state.ui_specify.model_selection_open
+    }),
+    ...mapGetters([
+      "detached_parameters",
+      "model_parameters",
+    ])
   },
   methods: {
-    ...mapMutations(["set_models"]),
+    ...mapMutations(["set_models",
+      "set_choose_fit_open",
+      "set_data_selection_open",
+      "set_model_selection_open"]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
         this.db_data = await result.json();
@@ -588,7 +597,7 @@ export default {
       this.selected_data_group = null;
       this.data_selection_render_index += 1; // This is a key that makes the element re-render
       if (first_add) {
-        this.data_selection_open = false;
+        this.set_data_selection_open(false);
       }
     },
     add_model() {
@@ -624,7 +633,7 @@ export default {
       this.model_selected = null;
       this.model_selection_render_index += 1; // This is a key that makes the element re-render
       if (first_add) {
-        this.model_selection_open = false;
+        this.set_model_selection_open(false);
       }
     },
     apply_model_to_dataset(model_id, dataset_id, parameters) {
