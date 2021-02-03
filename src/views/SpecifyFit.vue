@@ -547,7 +547,7 @@ export default {
       "delete_fit_parameters",
       "set_fit_data_parameter",
       "fit_add_model",
-      "fit_tie_to_data",
+      "fit_tie_to_data"
     ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {

@@ -46,7 +46,9 @@
 
   <span v-if="type === 'detached' && view_in === 'model_section'">
     <span style="margin-left:5px">
-      Mixed data/detached parameter.
+      <button class="button defaultcursor info">
+        Mixed data/detached parameter
+      </button>
     </span>
 
     <span
@@ -99,7 +101,7 @@
     </span>
 
     <span v-if="type === 'data'">
-      <span
+      <span v-if="view_in === 'model_section'"
         ><button class="button defaultcursor" @click="$emit('tieToModel')">
           Tie to Model
         </button></span
