@@ -120,6 +120,70 @@ export default createStore({
         }
       }
       delete state.fit.parameters[p_in];
+    },
+    fit_tie_to_model(state, payload) {
+      const model_id = payload.model_id;
+      const parameter_name = payload.parameter_name;
+
+      const newp = misc.parameter_uuid();
+      const model_name = state.fit.models[model_id].name;
+
+      state.fit.parameters[newp] = {
+          name: parameter_name,
+          value: state.models[model_name].kwargs[parameter_name],
+          const: false,
+          type: "model"
+      };
+
+
+      let p;
+
+      for (const d in state.fit.data) {
+        if (state.fit.data[d].model === model_id) {
+          p = state.fit.data[d].parameters[parameter_name];
+
+          state.fit.data[d].parameters[parameter_name] = newp;
+
+          if (
+            p in state.fit.parameters &&
+            state.fit.parameters[p].type !== "detached"
+          ) {
+            delete state.fit.parameters[p];
+          }
+        }
+      }
+    },
+    fit_attach(state, payload) {
+      const p_id = payload.p_id;
+      const detached_id = payload.detached_id;
+
+      let p;
+      for (const d in state.fit.data) {
+        for (const pname in state.fit.data[d].parameters) {
+          p = state.fit.data[d].parameters[pname];
+          if (p === p_id) {
+            state.fit.data[d].parameters[pname] = detached_id;
+          }
+        }
+      }
+      state.fit.parameters[detached_id].value = state.fit.parameters[p_id].value;
+      delete state.fit.parameters[p_id];
+    },
+    fit_detach_to_data(state, payload) {
+      const data_id = payload.data_id;
+      const parameter_name = payload.parameter_name;
+      const newp = misc.parameter_uuid();
+
+      state.fit.parameters[newp] = {
+          name: parameter_name,
+          value: state.fit.parameters[
+            state.fit.data[data_id].parameters[parameter_name]
+          ].value,
+          const: true,
+          type: "data"
+      };
+
+      state.fit.data[data_id].parameters[parameter_name] = newp;
     }
   },
   getters: {

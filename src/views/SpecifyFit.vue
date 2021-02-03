@@ -547,7 +547,10 @@ export default {
       "delete_fit_parameters",
       "set_fit_data_parameter",
       "fit_add_model",
-      "fit_tie_to_data"
+      "fit_tie_to_data",
+      "fit_tie_to_model",
+      "fit_attach",
+      "fit_detach_to_data",
     ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
@@ -633,84 +636,13 @@ export default {
       this.fit_tie_to_data(p_in);
     },
     tie_to_model(model_id, parameter_name) {
-      const newp = misc.parameter_uuid();
-      const model_name = this.fit.models[model_id].name;
-
-      this.set_fit_parameters({
-        id: newp,
-        value: {
-          name: parameter_name,
-          value: this.models[model_name].kwargs[parameter_name],
-          const: false,
-          type: "model"
-        }
-      });
-
-      let p;
-
-      for (const d in this.fit.data) {
-        if (this.fit.data[d].model === model_id) {
-          p = this.fit.data[d].parameters[parameter_name];
-
-          this.set_fit_data_parameter({
-            data_id: d,
-            parameter_name: parameter_name,
-            parameter_id: newp
-          });
-
-          if (
-            p in this.fit.parameters &&
-            this.fit.parameters[p].type !== "detached"
-          ) {
-            this.delete_fit_parameters(p);
-          }
-        }
-      }
+      this.fit_tie_to_model({model_id, parameter_name});
     },
     attach(p_id, detached_id) {
-      let p;
-      for (const d in this.fit.data) {
-        for (const pname in this.fit.data[d].parameters) {
-          p = this.fit.data[d].parameters[pname];
-          if (p === p_id) {
-            this.set_fit_data_parameter({
-              data_id: d,
-              parameter_name: pname,
-              parameter_id: detached_id
-            });
-          }
-        }
-      }
-
-      this.set_fit_parameters({
-        id: detached_id,
-        value: {
-          value: this.fit.parameters[p_id].value
-        }
-      });
-
-      this.delete_fit_parameters(p_id);
+      this.fit_attach({p_id, detached_id});
     },
     detach_to_data(data_id, parameter_name) {
-      const newp = misc.parameter_uuid();
-
-      this.set_fit_parameters({
-        id: newp,
-        value: {
-          name: parameter_name,
-          value: this.fit.parameters[
-            this.fit.data[data_id].parameters[parameter_name]
-          ].value,
-          const: true,
-          type: "data"
-        }
-      });
-
-      this.set_fit_data_parameter({
-        data_id: data_id,
-        parameter_name: parameter_name,
-        parameter_id: newp
-      });
+      this.fit_detach_to_data({data_id, parameter_name});
     }
   },
   mounted: function() {
