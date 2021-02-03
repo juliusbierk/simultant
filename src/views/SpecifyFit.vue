@@ -475,13 +475,13 @@
           <br />
           <br />
 
-          {{ model_parameters }}
+          {{ fit.parameters }}
 
           <br />
           <br />
           <br />
 
-          {{ fit }}
+          {{ detached_parameters }}
 
           <br />
           <br />

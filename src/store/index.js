@@ -40,7 +40,7 @@ export default createStore({
       }
     },
     set_fit_models(state, payload) {
-      if (payload.id in state.fit.data) {
+      if (payload.id in state.fit.models) {
         state.fit.models[payload.id] = {
           ...state.fit.models[payload.id],
           ...payload.value
@@ -50,7 +50,7 @@ export default createStore({
       }
     },
     set_fit_parameters(state, payload) {
-      if (payload.id in state.fit.data) {
+      if (payload.id in state.fit.parameters) {
         state.fit.parameters[payload.id] = {
           ...state.fit.parameters[payload.id],
           ...payload.value
