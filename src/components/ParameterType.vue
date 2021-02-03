@@ -139,11 +139,20 @@ export default {
         if (this.type === "data") {
           return "Each dataset that use this model has its own instance of this parameter.";
         }
+        if (this.type === "detached") {
+          return "This parameter is used in different ways for different datasets.";
+        }
+        if (this.type === "model-detached") {
+          return "All instances of this parameter has been tied to a single detached parameter.";
+        }
       }
 
       if (this.view_in === "data_section") {
         if (this.type === "data") {
           return "This dataset has its own instance of this parameter.";
+        }
+        if (this.type === "detached") {
+          return "The value of this parameter has been tied to a detached parameter.";
         }
       }
 

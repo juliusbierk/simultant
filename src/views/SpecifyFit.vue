@@ -465,27 +465,6 @@
               </div>
             </div>
           </div>
-
-          <div class="card"></div>
-          Numbers of parameters: {{ Object.keys(fit.parameters).length }}
-          <br />
-          Number of detached parameters:
-          {{ Object.keys(detached_parameters).length }}
-
-          <br />
-          <br />
-
-          {{ fit.parameters }}
-
-          <br />
-          <br />
-          <br />
-
-          {{ detached_parameters }}
-
-          <br />
-          <br />
-          <br />
         </div>
       </div>
     </div>
