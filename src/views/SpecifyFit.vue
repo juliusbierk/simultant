@@ -482,6 +482,12 @@
           <br />
 
           {{ fit }}
+
+          <br />
+          <br />
+          <br />
+
+          {{ models }}
         </div>
       </div>
     </div>
@@ -492,8 +498,9 @@
 import BasicPlot from "@/components/BasicPlot.vue";
 import ParameterType from "@/components/ParameterType.vue";
 import ShowCode from "@/components/ShowCode.vue";
-import store from '@/store'
+import store from "@/store";
 import { v4 as uuidv4 } from "uuid";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import _ from "lodash";
 
 function parameter_uuid() {
@@ -518,7 +525,6 @@ export default {
       data_selection_open: true,
       model_selection_open: true,
       db_data: {},
-      models: {},
       selected_data_group: null,
       selected_dataset_ids: null,
       selected_dataset_names: null,
@@ -526,7 +532,7 @@ export default {
       data_selection_render_index: 0,
       model_selection_render_index: 0,
       apply_to_all: true,
-      add_parameter_name: "",
+      add_parameter_name: ""
     };
   },
   components: {
@@ -535,89 +541,11 @@ export default {
     ShowCode
   },
   computed: {
-    detached_parameters() {
-      const detached = {};
-      for (const p in this.fit.parameters) {
-        if (this.fit.parameters[p].type === "detached") {
-          detached[p] = this.fit.parameters[p].name;
-        }
-      }
-      return detached;
-    },
-    model_parameters() {
-      // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
-      const models = {};
-
-      let parameter_id, parameter_name_in_model, model_id, key, parameter_type;
-
-      for (const d in this.fit.data) {
-        if (this.fit.data[d].parameters) {
-          for (const p in this.fit.data[d].parameters) {
-            parameter_id = this.fit.data[d].parameters[p];
-            parameter_name_in_model = p;
-            model_id = this.fit.data[d].model;
-
-            key = [model_id, parameter_name_in_model];
-            if (key in models) {
-              if (!models[key].contains(parameter_id)) {
-                models[key].push(parameter_id);
-              }
-            } else {
-              models[key] = [parameter_id];
-            }
-          }
-        }
-      }
-
-      // Then for each parameter we assign its type based on how it is used in each model
-      const parameters = {};
-      for (const m in this.fit.models) {
-        parameters[m] = {};
-        for (const pname in this.models[this.fit.models[m].name].kwargs) {
-          key = [m, pname];
-          if (models[key].length === 0) {
-            console.log("assertion error!");
-          } else if (models[key].length === 1) {
-            parameter_id = models[key][0];
-            parameter_type = this.fit.parameters[parameter_id].type;
-            parameters[m][pname] = {
-              type:
-                parameter_type === "detached"
-                  ? "model-detached"
-                  : parameter_type,
-              pid: parameter_id
-            };
-          } else {
-            // Now the parameter must be data and/or detached combination.
-
-            // Check if it is data or detached some are detached:
-            let all_data = true;
-            for (const parameter_id of models[key]) {
-              if (this.fit.parameters[parameter_id].type !== "data") {
-                all_data = false;
-                break;
-              }
-            }
-
-            if (all_data) {
-              parameters[m][pname] = {
-                type: "data",
-                pid: null
-              };
-            } else {
-              parameters[m][pname] = {
-                type: "detached",
-                pid: null
-              };
-            }
-          }
-        }
-      }
-
-      return parameters;
-    }
+    ...mapState(["fit", "models"]),
+    ...mapGetters(["detached_parameters", "model_parameters"])
   },
   methods: {
+    ...mapMutations(["set_models"]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
         this.db_data = await result.json();
@@ -626,7 +554,8 @@ export default {
     },
     update_model_list() {
       fetch(this.py + "/model_list", {}).then(async result => {
-        this.models = await result.json();
+        const models = await result.json();
+        this.set_models(models);
         this.model_selection_render_index += 1;
       });
     },
