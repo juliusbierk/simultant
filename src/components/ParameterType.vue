@@ -17,16 +17,16 @@
     </button>
   </span>
 
-  <span v-if="tie_to_detached || false">
+  <span v-if="tie_to_detached || type === 'detached' || type === 'model-detached'">
     <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae"
       >&#8620;</span
     >
   </span>
 
-  <span v-if="false">
+  <span v-if="(type === 'detached' && view_in === 'data_section') || (type === 'model-detached' && view_in === 'model_section')">
     <span style="margin-left:5px">
       <button class="button info defaultcursor rounded">
-        asdsadadasdas
+        {{ detached_parameters[id] }}
       </button>
     </span>
 
@@ -35,6 +35,13 @@
         Detach
       </button>
     </span>
+  </span>
+
+  <span v-if="(type === 'detached' && view_in === 'model_section')">
+    <span style="margin-left:5px">
+      Mixed data/detached parameter.
+    </span>
+
   </span>
 
   <span v-if="tie_to_detached">
@@ -46,7 +53,7 @@
           <button
             class="button info defaultcursor rounded"
             @click="
-              $emit('detach', id);
+              $emit('attach', id);
               tie_to_detached = false;
             "
           >
@@ -134,11 +141,12 @@ export default {
   },
   props: {
     name: String,
+    id: String,
     type: String,
     view_in: String,
     detached_parameters: Object,
   },
-  emits: ["tieToData", "tieToModel", "detach"]
+  emits: ["tieToData", "tieToModel", "attach"]
 };
 </script>
 

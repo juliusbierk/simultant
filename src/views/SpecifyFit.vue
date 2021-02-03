@@ -235,10 +235,11 @@
                           >
                             <ParameterType
                               :name="pname"
+                              :id="pid"
                               :type="fit.parameters[pid].type"
                               @tieToModel="tie_to_model(content.model, pname)"
                               view_in="data_section"
-                              @detach="detach(pid, $event)"
+                              @attach="attach(pid, $event)"
                               :detached_parameters="detached_parameters"
                             ></ParameterType>
                           </div>
@@ -388,9 +389,10 @@
                               tie_to_data(model_parameters[id][pname].pid)
                             "
                             @tieToModel="tie_to_model(id, pname)"
-                            @detach="
-                              detach(model_parameters[id][pname].pid, $event)
+                            @attach="
+                              attach(model_parameters[id][pname].pid, $event)
                             "
+                            :id="model_parameters[id][pname].pid"
                             view_in="model_section"
                             :detached_parameters="detached_parameters"
                           ></ParameterType>
@@ -543,7 +545,7 @@ export default {
       // First we calculate which parameters are used in each model (a model being one assigned to a dataset)
       const models = {};
 
-      let parameter_id, parameter_name_in_model, model_id, key;
+      let parameter_id, parameter_name_in_model, model_id, key, parameter_type;
 
       for (const d in this.fit.data) {
         if (this.fit.data[d].parameters) {
@@ -564,6 +566,7 @@ export default {
         }
       }
 
+      // Then for each parameter we assign its type based on how it is used in each model
       const parameters = {};
       for (const m in this.fit.models) {
         parameters[m] = {};
@@ -573,16 +576,16 @@ export default {
             console.log("assertion error!");
           } else if (models[key].length === 1) {
             parameter_id = models[key][0];
+            parameter_type = this.fit.parameters[parameter_id].type;
             parameters[m][pname] = {
-              type: this.fit.parameters[parameter_id].type,
-              pid: null
+              type: parameter_type === 'detached' ? 'model-detached' : parameter_type,
+              pid: parameter_id
             };
-            if (this.fit.parameters[parameter_id].type === "model") {
-              parameters[m][pname].pid = parameter_id;
-            }
           } else {
-            let all_data = true;
+            // Now the parameter must be data and/or detached combination.
 
+            // Check if it is data or detached some are detached:
+            let all_data = true;
             for (const parameter_id of models[key]) {
               if (this.fit.parameters[parameter_id].type !== "data") {
                 all_data = false;
@@ -737,14 +740,15 @@ export default {
       for (const d in this.fit.data) {
         if (this.fit.data[d].model === model_id) {
           p = this.fit.data[d].parameters[parameter_name];
-          if (p in this.fit.parameters) {
+          this.fit.data[d].parameters[parameter_name] = newp;
+
+          if (p in this.fit.parameters && this.fit.parameters[p].type !== 'detached') {
             delete this.fit.parameters[p];
           }
-          this.fit.data[d].parameters[parameter_name] = newp;
         }
       }
     },
-    detach(p_id, detached_id) {
+    attach(p_id, detached_id) {
       let p;
       for (const d in this.fit.data) {
         for (const pname in this.fit.data[d].parameters) {
