@@ -492,8 +492,8 @@
 import BasicPlot from "@/components/BasicPlot.vue";
 import ParameterType from "@/components/ParameterType.vue";
 import ShowCode from "@/components/ShowCode.vue";
+import store from '@/store'
 import { v4 as uuidv4 } from "uuid";
-import { reactive } from "vue";
 import _ from "lodash";
 
 function parameter_uuid() {
@@ -510,6 +510,7 @@ function data_uuid() {
 
 export default {
   name: "Data",
+  store,
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
@@ -526,11 +527,6 @@ export default {
       model_selection_render_index: 0,
       apply_to_all: true,
       add_parameter_name: "",
-      fit: {
-        data: {},
-        models: {},
-        parameters: {}
-      }
     };
   },
   components: {
