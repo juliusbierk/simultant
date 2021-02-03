@@ -17,13 +17,20 @@
     </button>
   </span>
 
-  <span v-if="tie_to_detached || type === 'detached' || type === 'model-detached'">
+  <span
+    v-if="tie_to_detached || type === 'detached' || type === 'model-detached'"
+  >
     <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae"
       >&#8620;</span
     >
   </span>
 
-  <span v-if="(type === 'detached' && view_in === 'data_section') || (type === 'model-detached' && view_in === 'model_section')">
+  <span
+    v-if="
+      (type === 'detached' && view_in === 'data_section') ||
+        (type === 'model-detached' && view_in === 'model_section')
+    "
+  >
     <span style="margin-left:5px">
       <button class="button info defaultcursor rounded">
         {{ detached_parameters[id] }}
@@ -31,35 +38,40 @@
     </span>
 
     <span style="margin-left:5px">
-      <button class="button defaultcursor">
+      <button class="button defaultcursor" @click="$emit('detach')">
         Detach
       </button>
     </span>
   </span>
 
-  <span v-if="(type === 'detached' && view_in === 'model_section')">
+  <span v-if="type === 'detached' && view_in === 'model_section'">
     <span style="margin-left:5px">
       Mixed data/detached parameter.
     </span>
 
+    <span
+      ><button class="button defaultcursor" @click="$emit('tieToModel')">
+        Tie to Model
+      </button></span
+    >
   </span>
 
   <span v-if="tie_to_detached">
-        <span
-          style="margin-left:5px"
-          v-for="(name, id) in detached_parameters"
-          :key="id"
-        >
-          <button
-            class="button info defaultcursor rounded"
-            @click="
-              $emit('attach', id);
-              tie_to_detached = false;
-            "
-          >
-            {{ name }}
-          </button>
-        </span>
+    <span
+      style="margin-left:5px"
+      v-for="(name, id) in detached_parameters"
+      :key="id"
+    >
+      <button
+        class="button dark defaultcursor rounded"
+        @click="
+          $emit('attach', id);
+          tie_to_detached = false;
+        "
+      >
+        {{ name }}
+      </button>
+    </span>
 
     <span style="margin-left:5px">
       <button class="button defaultcursor" @click="tie_to_detached = false">
@@ -144,9 +156,9 @@ export default {
     id: String,
     type: String,
     view_in: String,
-    detached_parameters: Object,
+    detached_parameters: Object
   },
-  emits: ["tieToData", "tieToModel", "attach"]
+  emits: ["tieToData", "tieToModel", "attach", "detach"]
 };
 </script>
 

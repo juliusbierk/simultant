@@ -240,6 +240,7 @@
                               @tieToModel="tie_to_model(content.model, pname)"
                               view_in="data_section"
                               @attach="attach(pid, $event)"
+                              @detach="detach_to_data(id, pname)"
                               :detached_parameters="detached_parameters"
                             ></ParameterType>
                           </div>
@@ -392,6 +393,7 @@
                             @attach="
                               attach(model_parameters[id][pname].pid, $event)
                             "
+                            @detach="tie_to_model(id, pname)"
                             :id="model_parameters[id][pname].pid"
                             view_in="model_section"
                             :detached_parameters="detached_parameters"
@@ -443,7 +445,11 @@
                   </div>
                 </div>
 
-                <div class="row" v-for="(name, id) in detached_parameters" :key="id">
+                <div
+                  class="row"
+                  v-for="(name, id) in detached_parameters"
+                  :key="id"
+                >
                   <div class="cell-8 offset-1">
                     <button
                       data-role="hint"
@@ -463,7 +469,8 @@
           <div class="card"></div>
           Numbers of parameters: {{ Object.keys(fit.parameters).length }}
           <br />
-          Number of detached parameters: {{ Object.keys(detached_parameters).length }}
+          Number of detached parameters:
+          {{ Object.keys(detached_parameters).length }}
 
           <br />
           <br />
@@ -578,7 +585,10 @@ export default {
             parameter_id = models[key][0];
             parameter_type = this.fit.parameters[parameter_id].type;
             parameters[m][pname] = {
-              type: parameter_type === 'detached' ? 'model-detached' : parameter_type,
+              type:
+                parameter_type === "detached"
+                  ? "model-detached"
+                  : parameter_type,
               pid: parameter_id
             };
           } else {
@@ -742,7 +752,10 @@ export default {
           p = this.fit.data[d].parameters[parameter_name];
           this.fit.data[d].parameters[parameter_name] = newp;
 
-          if (p in this.fit.parameters && this.fit.parameters[p].type !== 'detached') {
+          if (
+            p in this.fit.parameters &&
+            this.fit.parameters[p].type !== "detached"
+          ) {
             delete this.fit.parameters[p];
           }
         }
@@ -760,6 +773,18 @@ export default {
       }
       this.fit.parameters[detached_id].value = this.fit.parameters[p_id].value;
       delete this.fit.parameters[p_id];
+    },
+    detach_to_data(data_id, parameter_name) {
+      const newp = parameter_uuid();
+      this.fit.parameters[newp] = {
+        name: parameter_name,
+        value: this.fit.parameters[
+          this.fit.data[data_id].parameters[parameter_name]
+        ].value,
+        const: true,
+        type: "data"
+      };
+      this.fit.data[data_id].parameters[parameter_name] = newp;
     }
   },
   mounted: function() {
