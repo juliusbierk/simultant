@@ -481,12 +481,11 @@
           <br />
           <br />
 
-          {{ fit.parameters }}
+          {{ fit }}
 
           <br />
           <br />
           <br />
-
         </div>
       </div>
     </div>
@@ -498,21 +497,9 @@ import BasicPlot from "@/components/BasicPlot.vue";
 import ParameterType from "@/components/ParameterType.vue";
 import ShowCode from "@/components/ShowCode.vue";
 import store from "@/store";
-import { v4 as uuidv4 } from "uuid";
+import misc from "@/misc.js";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import _ from "lodash";
-
-function parameter_uuid() {
-  return "par_" + uuidv4();
-}
-
-function model_uuid() {
-  return "model_" + uuidv4();
-}
-
-function data_uuid() {
-  return "data_" + uuidv4();
-}
 
 export default {
   name: "Data",
@@ -558,7 +545,9 @@ export default {
       "delete_fit_models",
       "set_fit_parameters",
       "delete_fit_parameters",
-      "set_fit_data_parameter"
+      "set_fit_data_parameter",
+      "fit_add_model",
+      "fit_tie_to_data",
     ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
@@ -588,7 +577,7 @@ export default {
       const first_add = Object.keys(this.fit["data"]).length === 0;
       for (let i = 0; i < this.selected_dataset_ids.length; i++) {
         this.set_fit_data({
-          id: data_uuid(),
+          id: misc.data_uuid(),
           value: {
             id: this.selected_dataset_ids[i],
             name: this.selected_dataset_names[i],
@@ -610,40 +599,11 @@ export default {
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
-      const model_id = model_uuid();
 
-      this.set_fit_models({
-        id: model_id,
-        value: {
-          name: this.model_selected,
-          print_name: this.model_selected, // change if model is already in fit.models.
-          show_code: false
-        }
+      this.fit_add_model({
+        model_selected: this.model_selected,
+        apply_to_all: this.apply_to_all
       });
-
-      const model_parameters = {};
-      let mp;
-      for (const p of this.models[this.model_selected].args) {
-        mp = parameter_uuid();
-
-        this.set_fit_parameters({
-          id: mp,
-          value: {
-            name: p.name,
-            value: p.value,
-            const: false,
-            type: "model"
-          }
-        });
-
-        model_parameters[p.name] = mp;
-      }
-
-      if (this.apply_to_all) {
-        for (const d in this.fit.data) {
-          this.apply_model_to_dataset(model_id, d, model_parameters);
-        }
-      }
 
       // Clean up selection:
       this.model_selected = null;
@@ -652,18 +612,9 @@ export default {
         this.set_model_selection_open(false);
       }
     },
-    apply_model_to_dataset(model_id, dataset_id, parameters) {
-      this.set_fit_data({
-        id: dataset_id,
-        value: {
-          model: model_id,
-          parameters: _.cloneDeep(parameters)
-        }
-      });
-    },
     add_detached_parameter() {
       if (this.add_parameter_name !== "") {
-        const p = parameter_uuid();
+        const p = misc.parameter_uuid();
 
         this.set_fit_parameters({
           id: p,
@@ -679,28 +630,10 @@ export default {
       }
     },
     tie_to_data(p_in) {
-      let p, newp, pobj;
-      for (const d in this.fit.data) {
-        for (const pname in this.fit.data[d].parameters) {
-          p = this.fit.data[d].parameters[pname];
-          if (p === p_in) {
-            newp = parameter_uuid();
-            pobj = _.cloneDeep(this.fit.parameters[p_in]);
-            pobj.const = true;
-            pobj.type = "data";
-            this.set_fit_parameters({ id: newp, value: pobj });
-            this.set_fit_data_parameter({
-              data_id: d,
-              parameter_name: pname,
-              parameter_id: newp
-            });
-          }
-        }
-      }
-      this.delete_fit_parameters(p_in);
+      this.fit_tie_to_data(p_in);
     },
     tie_to_model(model_id, parameter_name) {
-      const newp = parameter_uuid();
+      const newp = misc.parameter_uuid();
       const model_name = this.fit.models[model_id].name;
 
       this.set_fit_parameters({
@@ -759,7 +692,7 @@ export default {
       this.delete_fit_parameters(p_id);
     },
     detach_to_data(data_id, parameter_name) {
-      const newp = parameter_uuid();
+      const newp = misc.parameter_uuid();
 
       this.set_fit_parameters({
         id: newp,

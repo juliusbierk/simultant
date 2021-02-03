@@ -1,4 +1,6 @@
 import { createStore } from "vuex";
+import misc from "@/misc.js";
+import _ from "lodash";
 
 export default createStore({
   state: {
@@ -58,7 +60,7 @@ export default createStore({
       }
     },
     set_fit_data_parameter(state, payload) {
-      state.fit.data[payload.data_id][payload.parameter_name] =
+      state.fit.data[payload.data_id].parameters[payload.parameter_name] =
         payload.parameter_id;
     },
     delete_fit_data(state, id) {
@@ -69,6 +71,55 @@ export default createStore({
     },
     delete_fit_parameters(state, id) {
       delete state.fit.parameters[id];
+    },
+    fit_add_model(state, payload) {
+      const model_id = misc.model_uuid();
+
+      state.fit.models[model_id] = {
+        name: payload.model_selected,
+        print_name: payload.model_selected, // change if model is already in fit.models.
+        show_code: false
+      };
+
+      const model_parameters = {};
+      let mp;
+      for (const p of state.models[payload.model_selected].args) {
+        mp = misc.parameter_uuid();
+
+        state.fit.parameters[mp] = {
+          name: p.name,
+          value: p.value,
+          const: false,
+          type: "model"
+        };
+
+        model_parameters[p.name] = mp;
+      }
+
+      if (payload.apply_to_all) {
+        for (const d in state.fit.data) {
+          state.fit.data[d].model = model_id;
+          state.fit.data[d].parameters = _.cloneDeep(model_parameters);
+        }
+      }
+    },
+    fit_tie_to_data(state, p_in) {
+      let p, newp, pobj;
+      for (const d in state.fit.data) {
+        for (const pname in state.fit.data[d].parameters) {
+          p = state.fit.data[d].parameters[pname];
+          if (p === p_in) {
+            newp = misc.parameter_uuid();
+            pobj = _.cloneDeep(state.fit.parameters[p_in]);
+            pobj.const = true;
+            pobj.type = "data";
+
+            state.fit.parameters[newp] = pobj;
+            state.fit.data[d].parameters[pname] = newp;
+          }
+        }
+      }
+      delete state.fit.parameters[p_in];
     }
   },
   getters: {
