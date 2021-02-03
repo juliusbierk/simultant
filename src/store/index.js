@@ -26,6 +26,49 @@ export default createStore({
     },
     set_model_selection_open(state, value) {
       state.ui_specify.model_selection_open = value;
+    },
+    set_fit_data(state, payload) {
+      if (payload.id in state.fit.data) {
+        state.fit.data[payload.id] = {
+          ...state.fit.data[payload.id],
+          ...payload.value
+        };
+      } else {
+        state.fit.data[payload.id] = payload.value;
+      }
+    },
+    set_fit_models(state, payload) {
+      if (payload.id in state.fit.data) {
+        state.fit.models[payload.id] = {
+          ...state.fit.models[payload.id],
+          ...payload.value
+        };
+      } else {
+        state.fit.models[payload.id] = payload.value;
+      }
+    },
+    set_fit_parameters(state, payload) {
+      if (payload.id in state.fit.data) {
+        state.fit.parameters[payload.id] = {
+          ...state.fit.parameters[payload.id],
+          ...payload.value
+        };
+      } else {
+        state.fit.parameters[payload.id] = payload.value;
+      }
+    },
+    set_fit_data_parameter(state, payload) {
+      state.fit.data[payload.data_id][payload.parameter_name] =
+        payload.parameter_id;
+    },
+    delete_fit_data(state, id) {
+      delete state.fit.data[id];
+    },
+    delete_fit_models(state, id) {
+      delete state.fit.models[id];
+    },
+    delete_fit_parameters(state, id) {
+      delete state.fit.parameters[id];
     }
   },
   getters: {

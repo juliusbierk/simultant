@@ -481,13 +481,12 @@
           <br />
           <br />
 
-          {{ fit }}
+          {{ fit.parameters }}
 
           <br />
           <br />
           <br />
 
-          {{ models }}
         </div>
       </div>
     </div>
@@ -545,16 +544,22 @@ export default {
       data_selection_open: state => state.ui_specify.data_selection_open,
       model_selection_open: state => state.ui_specify.model_selection_open
     }),
-    ...mapGetters([
-      "detached_parameters",
-      "model_parameters",
-    ])
+    ...mapGetters(["detached_parameters", "model_parameters"])
   },
   methods: {
-    ...mapMutations(["set_models",
+    ...mapMutations([
+      "set_models",
       "set_choose_fit_open",
       "set_data_selection_open",
-      "set_model_selection_open"]),
+      "set_model_selection_open",
+      "set_fit_data",
+      "delete_fit_data",
+      "set_fit_models",
+      "delete_fit_models",
+      "set_fit_parameters",
+      "delete_fit_parameters",
+      "set_fit_data_parameter"
+    ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
         this.db_data = await result.json();
@@ -582,15 +587,18 @@ export default {
     add_datasets() {
       const first_add = Object.keys(this.fit["data"]).length === 0;
       for (let i = 0; i < this.selected_dataset_ids.length; i++) {
-        this.fit["data"][data_uuid()] = {
-          id: this.selected_dataset_ids[i],
-          name: this.selected_dataset_names[i],
-          parent: this.selected_data_group,
-          in_use: true,
-          weight: "uniform",
-          model: null,
-          parameters: null
-        };
+        this.set_fit_data({
+          id: data_uuid(),
+          value: {
+            id: this.selected_dataset_ids[i],
+            name: this.selected_dataset_names[i],
+            parent: this.selected_data_group,
+            in_use: true,
+            weight: "uniform",
+            model: null,
+            parameters: null
+          }
+        });
       }
 
       // Clean up selection:
@@ -603,22 +611,30 @@ export default {
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;
       const model_id = model_uuid();
-      this.fit["models"][model_id] = {
-        name: this.model_selected,
-        print_name: this.model_selected, // change if model is already in fit.models.
-        show_code: false
-      };
+
+      this.set_fit_models({
+        id: model_id,
+        value: {
+          name: this.model_selected,
+          print_name: this.model_selected, // change if model is already in fit.models.
+          show_code: false
+        }
+      });
 
       const model_parameters = {};
       let mp;
       for (const p of this.models[this.model_selected].args) {
         mp = parameter_uuid();
-        this.fit["parameters"][mp] = {
-          name: p.name,
-          value: p.value,
-          const: false,
-          type: "model"
-        };
+
+        this.set_fit_parameters({
+          id: mp,
+          value: {
+            name: p.name,
+            value: p.value,
+            const: false,
+            type: "model"
+          }
+        });
 
         model_parameters[p.name] = mp;
       }
@@ -637,60 +653,83 @@ export default {
       }
     },
     apply_model_to_dataset(model_id, dataset_id, parameters) {
-      this.fit.data[dataset_id].model = model_id;
-      this.fit.data[dataset_id].parameters = _.cloneDeep(parameters);
+      this.set_fit_data({
+        id: dataset_id,
+        value: {
+          model: model_id,
+          parameters: _.cloneDeep(parameters)
+        }
+      });
     },
     add_detached_parameter() {
       if (this.add_parameter_name !== "") {
         const p = parameter_uuid();
 
-        this.fit.parameters[p] = {
-          name: this.add_parameter_name,
-          value: 1,
-          const: false,
-          type: "detached"
-        };
+        this.set_fit_parameters({
+          id: p,
+          value: {
+            name: this.add_parameter_name,
+            value: 1,
+            const: false,
+            type: "detached"
+          }
+        });
+
         this.add_parameter_name = "";
       }
     },
     tie_to_data(p_in) {
-      let p, newp;
+      let p, newp, pobj;
       for (const d in this.fit.data) {
         for (const pname in this.fit.data[d].parameters) {
           p = this.fit.data[d].parameters[pname];
           if (p === p_in) {
             newp = parameter_uuid();
-            this.fit.parameters[newp] = _.cloneDeep(this.fit.parameters[p_in]);
-            this.fit.parameters[newp].const = true;
-            this.fit.parameters[newp].type = "data";
-            this.fit.data[d].parameters[pname] = newp;
+            pobj = _.cloneDeep(this.fit.parameters[p_in]);
+            pobj.const = true;
+            pobj.type = "data";
+            this.set_fit_parameters({ id: newp, value: pobj });
+            this.set_fit_data_parameter({
+              data_id: d,
+              parameter_name: pname,
+              parameter_id: newp
+            });
           }
         }
       }
-      delete this.fit.parameters[p_in];
+      this.delete_fit_parameters(p_in);
     },
     tie_to_model(model_id, parameter_name) {
       const newp = parameter_uuid();
       const model_name = this.fit.models[model_id].name;
-      this.fit.parameters[newp] = {
-        name: parameter_name,
-        value: this.models[model_name].kwargs[parameter_name],
-        const: false,
-        type: "model"
-      };
+
+      this.set_fit_parameters({
+        id: newp,
+        value: {
+          name: parameter_name,
+          value: this.models[model_name].kwargs[parameter_name],
+          const: false,
+          type: "model"
+        }
+      });
 
       let p;
 
       for (const d in this.fit.data) {
         if (this.fit.data[d].model === model_id) {
           p = this.fit.data[d].parameters[parameter_name];
-          this.fit.data[d].parameters[parameter_name] = newp;
+
+          this.set_fit_data_parameter({
+            data_id: d,
+            parameter_name: parameter_name,
+            parameter_id: newp
+          });
 
           if (
             p in this.fit.parameters &&
             this.fit.parameters[p].type !== "detached"
           ) {
-            delete this.fit.parameters[p];
+            this.delete_fit_parameters(p);
           }
         }
       }
@@ -701,24 +740,44 @@ export default {
         for (const pname in this.fit.data[d].parameters) {
           p = this.fit.data[d].parameters[pname];
           if (p === p_id) {
-            this.fit.data[d].parameters[pname] = detached_id;
+            this.set_fit_data_parameter({
+              data_id: d,
+              parameter_name: pname,
+              parameter_id: detached_id
+            });
           }
         }
       }
-      this.fit.parameters[detached_id].value = this.fit.parameters[p_id].value;
-      delete this.fit.parameters[p_id];
+
+      this.set_fit_parameters({
+        id: detached_id,
+        value: {
+          value: this.fit.parameters[p_id].value
+        }
+      });
+
+      this.delete_fit_parameters(p_id);
     },
     detach_to_data(data_id, parameter_name) {
       const newp = parameter_uuid();
-      this.fit.parameters[newp] = {
-        name: parameter_name,
-        value: this.fit.parameters[
-          this.fit.data[data_id].parameters[parameter_name]
-        ].value,
-        const: true,
-        type: "data"
-      };
-      this.fit.data[data_id].parameters[parameter_name] = newp;
+
+      this.set_fit_parameters({
+        id: newp,
+        value: {
+          name: parameter_name,
+          value: this.fit.parameters[
+            this.fit.data[data_id].parameters[parameter_name]
+          ].value,
+          const: true,
+          type: "data"
+        }
+      });
+
+      this.set_fit_data_parameter({
+        data_id: data_id,
+        parameter_name: parameter_name,
+        parameter_id: newp
+      });
     }
   },
   mounted: function() {
