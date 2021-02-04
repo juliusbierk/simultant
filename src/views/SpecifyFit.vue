@@ -81,27 +81,27 @@
         </div>
       </div>
 
-      <div
-        v-show="!choose_fit_open"
-        :class="{
-          'cell-1': true,
-          'offset-9': model_selection_open && data_selection_open,
-          'offset-6': model_selection_open && !data_selection_open,
-          'offset-2':
-            (!model_selection_open && data_selection_open) ||
-            (!model_selection_open && !data_selection_open)
-        }"
-      >
-        <button
-          style="font-size:30px; margin-right:2px"
-          class="button defaultcursor"
-        >
-          &#9100;
-        </button>
-        <button style="font-size:30px" class="button defaultcursor">
-          <span class="flip">&#9100;</span>
-        </button>
-      </div>
+      <!--      <div-->
+      <!--        v-show="!choose_fit_open"-->
+      <!--        :class="{-->
+      <!--          'cell-1': true,-->
+      <!--          'offset-9': model_selection_open && data_selection_open,-->
+      <!--          'offset-6': model_selection_open && !data_selection_open,-->
+      <!--          'offset-2':-->
+      <!--            (!model_selection_open && data_selection_open) ||-->
+      <!--            (!model_selection_open && !data_selection_open)-->
+      <!--        }"-->
+      <!--      >-->
+      <!--        <button-->
+      <!--          style="font-size:30px; margin-right:2px"-->
+      <!--          class="button defaultcursor"-->
+      <!--        >-->
+      <!--          &#9100;-->
+      <!--        </button>-->
+      <!--        <button style="font-size:30px" class="button defaultcursor">-->
+      <!--          <span class="flip">&#9100;</span>-->
+      <!--        </button>-->
+      <!--      </div>-->
     </div>
 
     <div class="row" v-if="Object.keys(db_data).length">
@@ -363,7 +363,7 @@
 
                         <div class="offset-4">
                           <input
-                            @click="content.show_code = !content.show_code"
+                            v-model="content.show_code"
                             type="checkbox"
                             data-role="switch"
                             data-caption="Code"

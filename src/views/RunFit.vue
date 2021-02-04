@@ -53,16 +53,13 @@
                             v-for="(pid, pname) in content.parameters"
                             :key="pid"
                           >
-                            <!--                            <ParameterType-->
-                            <!--                              :name="pname"-->
-                            <!--                              :id="pid"-->
-                            <!--                              :type="fit.parameters[pid].type"-->
-                            <!--                              @tieToModel="tie_to_model(content.model, pname)"-->
-                            <!--                              view_in="data_section"-->
-                            <!--                              @attach="attach(pid, $event)"-->
-                            <!--                              @detach="detach_to_data(id, pname)"-->
-                            <!--                              :detached_parameters="detached_parameters"-->
-                            <!--                            ></ParameterType>-->
+                            <ParameterFit
+                              :name="pname"
+                              :id="pid"
+                              :type="fit.parameters[pid].type"
+                              view_in="data_section"
+                              :detached_parameters="detached_parameters"
+                            ></ParameterFit>
                           </div>
                         </div>
                       </div>
@@ -100,7 +97,7 @@
 
                         <div class="offset-4">
                           <input
-                            @click="content.show_code = !content.show_code"
+                            v-model="content.show_code"
                             type="checkbox"
                             data-role="switch"
                             data-caption="Code"
@@ -120,21 +117,13 @@
                           class="offset-1"
                           style="margin-bottom:3px; margin-top:3px"
                         >
-                          <!--                          <ParameterType-->
-                          <!--                            :name="pname"-->
-                          <!--                            :type="model_parameters[id][pname].type"-->
-                          <!--                            @tieToData="-->
-                          <!--                              tie_to_data(model_parameters[id][pname].pid)-->
-                          <!--                            "-->
-                          <!--                            @tieToModel="tie_to_model(id, pname)"-->
-                          <!--                            @attach="-->
-                          <!--                              attach(model_parameters[id][pname].pid, $event)-->
-                          <!--                            "-->
-                          <!--                            @detach="tie_to_model(id, pname)"-->
-                          <!--                            :id="model_parameters[id][pname].pid"-->
-                          <!--                            view_in="model_section"-->
-                          <!--                            :detached_parameters="detached_parameters"-->
-                          <!--                          ></ParameterType>-->
+                          <ParameterFit
+                            :name="pname"
+                            :type="model_parameters[id][pname].type"
+                            :id="model_parameters[id][pname].pid"
+                            view_in="model_section"
+                            :detached_parameters="detached_parameters"
+                          ></ParameterFit>
                         </div>
                       </div>
                     </div>
@@ -194,7 +183,7 @@
 
 <script>
 import BasicPlot from "@/components/BasicPlot.vue";
-import ParameterType from "@/components/ParameterType.vue";
+import ParameterFit from "@/components/ParameterFit.vue";
 import ShowCode from "@/components/ShowCode.vue";
 import store from "@/store";
 import misc from "@/misc.js";
@@ -219,7 +208,7 @@ export default {
   },
   components: {
     BasicPlot,
-    ParameterType,
+    ParameterFit,
     ShowCode
   },
   computed: {
