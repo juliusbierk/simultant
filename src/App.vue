@@ -1,19 +1,28 @@
 <template>
   <nav data-role="ribbonmenu">
     <ul class="tabs-holder h-100">
-      <li v-on:click="rpush('/')">
+      <li v-on:click="rpush('/')" :class="{ active: routeName === 'Home' }">
         <a href="#"><p class="topmenuitem">Home</p></a>
       </li>
-      <li v-on:click="rpush('/models')">
+      <li
+        v-on:click="rpush('/models')"
+        :class="{ active: routeName === 'Models' }"
+      >
         <a href="#"><p class="topmenuitem">Models</p></a>
       </li>
-      <li v-on:click="rpush('/data')">
+      <li v-on:click="rpush('/data')" :class="{ active: routeName === 'Data' }">
         <a href="#"><p class="topmenuitem">Data</p></a>
       </li>
-      <li v-on:click="rpush('/specifyfit')">
+      <li
+        v-on:click="rpush('/specifyfit')"
+        :class="{ active: routeName === 'SpecifyFit' }"
+      >
         <a href="#"><p class="topmenuitem">Fit Topology</p></a>
       </li>
-      <li v-on:click="rpush('/runfit')">
+      <li
+        v-on:click="rpush('/runfit')"
+        :class="{ active: routeName === 'RunFit' }"
+      >
         <a href="#"><p class="topmenuitem">Run Fit</p></a>
       </li>
     </ul>
@@ -34,6 +43,11 @@ export default {
   methods: {
     rpush(to) {
       this.$router.push(to);
+    }
+  },
+  computed: {
+    routeName() {
+      return this.$route.name;
     }
   }
 };

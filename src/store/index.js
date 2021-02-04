@@ -129,12 +129,11 @@ export default createStore({
       const model_name = state.fit.models[model_id].name;
 
       state.fit.parameters[newp] = {
-          name: parameter_name,
-          value: state.models[model_name].kwargs[parameter_name],
-          const: false,
-          type: "model"
+        name: parameter_name,
+        value: state.models[model_name].kwargs[parameter_name],
+        const: false,
+        type: "model"
       };
-
 
       let p;
 
@@ -166,7 +165,8 @@ export default createStore({
           }
         }
       }
-      state.fit.parameters[detached_id].value = state.fit.parameters[p_id].value;
+      state.fit.parameters[detached_id].value =
+        state.fit.parameters[p_id].value;
       delete state.fit.parameters[p_id];
     },
     fit_detach_to_data(state, payload) {
@@ -175,12 +175,13 @@ export default createStore({
       const newp = misc.parameter_uuid();
 
       state.fit.parameters[newp] = {
-          name: parameter_name,
-          value: state.fit.parameters[
+        name: parameter_name,
+        value:
+          state.fit.parameters[
             state.fit.data[data_id].parameters[parameter_name]
           ].value,
-          const: true,
-          type: "data"
+        const: true,
+        type: "data"
       };
 
       state.fit.data[data_id].parameters[parameter_name] = newp;

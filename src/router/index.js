@@ -7,6 +7,7 @@ import Home from "../views/Home.vue";
 import Models from "../views/Models.vue";
 import Data from "../views/Data.vue";
 import SpecifyFit from "../views/SpecifyFit";
+import RunFit from "../views/RunFit";
 
 const routes = [
   {
@@ -33,8 +34,13 @@ const routes = [
   },
   {
     path: "/specifyfit",
-    name: "Fit",
+    name: "SpecifyFit",
     component: SpecifyFit
+  },
+  {
+    path: "/runfit",
+    name: "RunFit",
+    component: RunFit
   }
 ];
 

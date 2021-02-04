@@ -478,10 +478,9 @@ import ShowCode from "@/components/ShowCode.vue";
 import store from "@/store";
 import misc from "@/misc.js";
 import { mapState, mapGetters, mapMutations } from "vuex";
-import _ from "lodash";
 
 export default {
-  name: "Data",
+  name: "SpecifyFit",
   store,
   data: function() {
     return {
@@ -529,7 +528,7 @@ export default {
       "fit_tie_to_data",
       "fit_tie_to_model",
       "fit_attach",
-      "fit_detach_to_data",
+      "fit_detach_to_data"
     ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
@@ -615,13 +614,13 @@ export default {
       this.fit_tie_to_data(p_in);
     },
     tie_to_model(model_id, parameter_name) {
-      this.fit_tie_to_model({model_id, parameter_name});
+      this.fit_tie_to_model({ model_id, parameter_name });
     },
     attach(p_id, detached_id) {
-      this.fit_attach({p_id, detached_id});
+      this.fit_attach({ p_id, detached_id });
     },
     detach_to_data(data_id, parameter_name) {
-      this.fit_detach_to_data({data_id, parameter_name});
+      this.fit_detach_to_data({ data_id, parameter_name });
     }
   },
   mounted: function() {
