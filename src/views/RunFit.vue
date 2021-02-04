@@ -1,6 +1,6 @@
 <template>
   <div style="padding:10px" class="grid">
-    <div class="row" v-if="Object.keys(fit.data).length === 0">
+    <div class="row" v-if="loaded && Object.keys(fit.data).length === 0">
       <div class="cell-6 offset-3">
         <div class="remark alert">
           No fit has been loaded. Go to
@@ -21,7 +21,6 @@
           <div class="cell-12" v-show="Object.keys(fit.data).length > 0">
             <div class="window">
               <div class="window-caption">
-                <!--            <span class="icon mif-windows"></span>-->
                 <span class="title">Data</span>
               </div>
 
@@ -77,7 +76,6 @@
           <div class="cell-12" v-show="Object.keys(fit.models).length > 0">
             <div class="window">
               <div class="window-caption">
-                <!--            <span class="icon mif-windows"></span>-->
                 <span class="title">Models</span>
               </div>
 
@@ -150,7 +148,6 @@
               v-show="Object.keys(detached_parameters).length > 0"
             >
               <div class="window-caption">
-                <!--            <span class="icon mif-windows"></span>-->
                 <span class="title">Detached Parameters</span>
               </div>
 
@@ -161,15 +158,13 @@
                   :key="id"
                 >
                   <div class="cell-8 offset-1">
-                    <button
-                      data-role="hint"
-                      data-hint-text="This is a detached parameter, which can be shared between models and/or datasets."
-                      data-hint-hide="0"
-                      data-cls-hint="bg-lightCyan fg-white"
-                      class="button info defaultcursor rounded outline "
-                    >
-                      {{ name }}
-                    </button>
+                    <ParameterFit
+                      :name="name"
+                      type="detached"
+                      :id="id"
+                      view_in="detached_section"
+                      :detached_parameters="detached_parameters"
+                    ></ParameterFit>
                   </div>
                 </div>
               </div>
@@ -195,6 +190,7 @@ export default {
   data: function() {
     return {
       py: "http://127.0.0.1:7555",
+      loaded: false,
       db_data: {},
       selected_data_group: null,
       selected_dataset_ids: null,
@@ -218,7 +214,10 @@ export default {
     }),
     ...mapGetters(["detached_parameters", "model_parameters"])
   },
-  methods: {}
+  methods: {},
+  mounted: function() {
+    this.loaded = true;
+  }
 };
 </script>
 

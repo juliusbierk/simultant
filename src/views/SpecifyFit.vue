@@ -1,6 +1,6 @@
 <template>
   <div style="padding:10px" class="grid">
-    <div class="row" v-if="!Object.keys(db_data).length">
+    <div class="row" v-if="loaded && !Object.keys(db_data).length">
       <div class="cell-6 offset-3">
         <div class="remark alert">
           No data has been imported.
@@ -626,6 +626,7 @@ export default {
   mounted: function() {
     this.update_datasets();
     this.update_model_list();
+    this.loaded = true;
   }
 };
 </script>

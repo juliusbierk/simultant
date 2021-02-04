@@ -18,7 +18,12 @@
   </span>
 
   <span
-    v-if="tie_to_detached || type === 'detached' || type === 'model-detached'"
+    v-if="
+      view_in !== 'detached_section' &&
+        (type === 'detached' ||
+          type === 'model-detached' ||
+          (type === 'data' && view_in === 'model_section'))
+    "
   >
     <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae"
       >&#8620;</span
@@ -40,46 +45,38 @@
 
   <span v-if="type === 'detached' && view_in === 'model_section'">
     <span style="margin-left:5px">
-      <button class="button defaultcursor info">
+      <button class="button defaultcursor rounded">
         Mixed data/detached parameter
       </button>
     </span>
   </span>
 
-  <span v-if="tie_to_detached">
+  <span
+    style="margin-left:5px"
+    v-if="type === 'data' && view_in === 'model_section'"
+  >
     <span
-      style="margin-left:5px"
-      v-for="(name, id) in detached_parameters"
-      :key="id"
+      ><button class="button defaultcursor rounded">
+        Data
+      </button></span
     >
-      <button
-        class="button dark defaultcursor rounded"
-        @click="
-          $emit('attach', id);
-          tie_to_detached = false;
-        "
-      >
-        {{ name }}
-      </button>
-    </span>
-
-    <span style="margin-left:5px">
-      <button class="button defaultcursor" @click="tie_to_detached = false">
-        Cancel
-      </button>
-    </span>
-  </span>
-  <span v-else>
-    <span v-if="type === 'model' && view_in === 'model_section'">
-      Model Parameter
-    </span>
-
-    <span v-if="type === 'data'">
-      Data Parameter
-    </span>
   </span>
 
-  <span v-if="view_in === 'data_section'"> </span>
+  <span v-if="view_in === 'detached_section'">
+    <button
+      data-role="hint"
+      data-hint-text="This is a detached parameter, which can be shared between models and/or datasets."
+      data-hint-hide="0"
+      data-cls-hint="bg-lightCyan fg-white"
+      class="button info defaultcursor rounded outline "
+    >
+      {{ name }}
+    </button>
+  </span>
+
+  <span v-if="is_real_parameter">
+    INPUT
+  </span>
 </template>
 
 <script>
@@ -118,6 +115,18 @@ export default {
     },
     n_detached() {
       return Object.keys(this.detached_parameters).length;
+    },
+    is_real_parameter() {
+      if (this.type === "detached" && this.view_in === "detached_section") {
+        return true;
+      }
+      if (this.type === "data" && this.view_in === "data_section") {
+        return true;
+      }
+      if (this.type === "model" && this.view_in === "model_section") {
+        return true;
+      }
+      return false;
     }
   },
   props: {
