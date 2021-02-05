@@ -484,6 +484,7 @@ export default {
   store,
   data: function() {
     return {
+      loaded: false,
       py: "http://127.0.0.1:7555",
       db_data: {},
       selected_data_group: null,

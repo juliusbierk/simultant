@@ -1,82 +1,110 @@
 <template>
-  <span
-    class="rightmargin"
-    v-if="
-      view_in === 'model_section' ||
-        (view_in === 'data_section' && type !== 'model')
-    "
-  >
-    <button
-      data-role="hint"
-      :data-hint-text="parameter_hint_text"
-      data-hint-hide="0"
-      data-cls-hint="bg-lightCyan fg-white"
-      class="button info defaultcursor rounded outline "
-    >
-      {{ name }}
-    </button>
-  </span>
-
-  <span
-    v-if="
-      view_in !== 'detached_section' &&
-        (type === 'detached' ||
-          type === 'model-detached' ||
-          (type === 'data' && view_in === 'model_section'))
-    "
-  >
-    <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae"
-      >&#8620;</span
-    >
-  </span>
-
-  <span
-    v-if="
-      (type === 'detached' && view_in === 'data_section') ||
-        (type === 'model-detached' && view_in === 'model_section')
-    "
-  >
-    <span style="margin-left:5px">
-      <button class="button info defaultcursor rounded">
-        {{ detached_parameters[id] }}
-      </button>
-    </span>
-  </span>
-
-  <span v-if="type === 'detached' && view_in === 'model_section'">
-    <span style="margin-left:5px">
-      <button class="button defaultcursor rounded">
-        Mixed data/detached parameter
-      </button>
-    </span>
-  </span>
-
-  <span
-    style="margin-left:5px"
-    v-if="type === 'data' && view_in === 'model_section'"
-  >
+  <div class="row">
     <span
-      ><button class="button defaultcursor rounded">
-        Data
-      </button></span
+      class="rightmargin"
+      v-if="
+        view_in === 'model_section' ||
+          (view_in === 'data_section' && type !== 'model')
+      "
     >
-  </span>
+      <button
+        data-role="hint"
+        :data-hint-text="parameter_hint_text"
+        data-hint-hide="0"
+        data-cls-hint="bg-lightCyan fg-white"
+        class="button info defaultcursor rounded outline "
+      >
+        {{ name }}
+      </button>
+    </span>
 
-  <span v-if="view_in === 'detached_section'">
-    <button
-      data-role="hint"
-      data-hint-text="This is a detached parameter, which can be shared between models and/or datasets."
-      data-hint-hide="0"
-      data-cls-hint="bg-lightCyan fg-white"
-      class="button info defaultcursor rounded outline "
+    <span
+      v-if="
+        view_in !== 'detached_section' &&
+          (type === 'detached' ||
+            type === 'model-detached' ||
+            (type === 'data' && view_in === 'model_section'))
+      "
     >
-      {{ name }}
-    </button>
-  </span>
+      <span style="font-size:20px; position: relative; top:3px; color: #8aa2ae"
+        >&#8620;</span
+      >
+    </span>
 
-  <span v-if="is_real_parameter">
-    INPUT
-  </span>
+    <span
+      v-if="
+        (type === 'detached' && view_in === 'data_section') ||
+          (type === 'model-detached' && view_in === 'model_section')
+      "
+    >
+      <span style="margin-left:5px">
+        <button class="button info defaultcursor rounded">
+          {{ detached_parameters[id] }}
+        </button>
+      </span>
+    </span>
+
+    <span v-if="type === 'detached' && view_in === 'model_section'">
+      <span style="margin-left:5px">
+        <button class="button defaultcursor rounded">
+          Mixed data/detached parameter
+        </button>
+      </span>
+    </span>
+
+    <span
+      style="margin-left:5px"
+      v-if="type === 'data' && view_in === 'model_section'"
+    >
+      <span
+        ><button class="button defaultcursor rounded">
+          Data
+        </button></span
+      >
+    </span>
+
+    <span v-if="view_in === 'detached_section'" class="rightmargin">
+      <button
+        data-role="hint"
+        data-hint-text="This is a detached parameter, which can be shared between models and/or datasets."
+        data-hint-hide="0"
+        data-cls-hint="bg-lightCyan fg-white"
+        class="button info defaultcursor rounded outline "
+      >
+        {{ name }}
+      </button>
+    </span>
+
+    <span v-if="is_real_parameter">
+      <form data-role="validator" data-interactive-check="true">
+        <input
+          type="text"
+          :value="initial_value"
+          @input="$emit('initialValueChange', $event.target.value)"
+          data-role="input"
+          data-prepend="Initial value: "
+          data-clear-button="false"
+          data-validate="number"
+        />
+
+        <span class="invalid_feedback">
+          Not a valid initial condition.
+        </span>
+      </form>
+    </span>
+
+    <span v-if="is_real_parameter && fit" style="margin-left:5px">
+      <input
+        type="text"
+        data-role="input"
+        data-prepend="Fit: "
+        data-clear-button="false"
+        :value="fit"
+        readonly
+        style="background-color: #e1ebf2;"
+      />
+    </span>
+  </div>
 </template>
 
 <script>
@@ -134,8 +162,11 @@ export default {
     id: String,
     type: String,
     view_in: String,
-    detached_parameters: Object
-  }
+    detached_parameters: Object,
+    initial_value: Number,
+    fit: Number
+  },
+  emits: ["initialValueChange"]
 };
 </script>
 

@@ -56,8 +56,13 @@
                               :name="pname"
                               :id="pid"
                               :type="fit.parameters[pid].type"
+                              :fit="fit.parameters[pid].fit"
                               view_in="data_section"
                               :detached_parameters="detached_parameters"
+                              @initialValueChange="
+                                initial_value_change(pid, $event)
+                              "
+                              :initial_value="fit.parameters[pid].value"
                             ></ParameterFit>
                           </div>
                         </div>
@@ -118,9 +123,23 @@
                           <ParameterFit
                             :name="pname"
                             :type="model_parameters[id][pname].type"
+                            :fit="model_parameters[id][pname].fit"
                             :id="model_parameters[id][pname].pid"
                             view_in="model_section"
                             :detached_parameters="detached_parameters"
+                            @initialValueChange="
+                              initial_value_change(
+                                model_parameters[id][pname].pid,
+                                $event
+                              )
+                            "
+                            :initial_value="
+                              model_parameters[id][pname].pid
+                                ? fit.parameters[
+                                    model_parameters[id][pname].pid
+                                  ].value
+                                : null
+                            "
                           ></ParameterFit>
                         </div>
                       </div>
@@ -162,8 +181,11 @@
                       :name="name"
                       type="detached"
                       :id="id"
+                      :fit="fit.parameters[id].fit"
                       view_in="detached_section"
                       :detached_parameters="detached_parameters"
+                      @initialValueChange="initial_value_change(id, $event)"
+                      :initial_value="fit.parameters[id].value"
                     ></ParameterFit>
                   </div>
                 </div>
@@ -181,7 +203,6 @@ import BasicPlot from "@/components/BasicPlot.vue";
 import ParameterFit from "@/components/ParameterFit.vue";
 import ShowCode from "@/components/ShowCode.vue";
 import store from "@/store";
-import misc from "@/misc.js";
 import { mapState, mapGetters, mapMutations } from "vuex";
 
 export default {
@@ -214,7 +235,13 @@ export default {
     }),
     ...mapGetters(["detached_parameters", "model_parameters"])
   },
-  methods: {},
+  methods: {
+    ...mapMutations(["fit_set_initial_value"]),
+    initial_value_change(pid, string_value) {
+      const value = parseFloat(string_value);
+      this.fit_set_initial_value({ pid, value });
+    }
+  },
   mounted: function() {
     this.loaded = true;
   }

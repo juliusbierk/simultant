@@ -89,6 +89,7 @@ export default createStore({
         state.fit.parameters[mp] = {
           name: p.name,
           value: p.value,
+          fit: null,
           const: false,
           type: "model"
         };
@@ -132,6 +133,7 @@ export default createStore({
         name: parameter_name,
         value: state.models[model_name].kwargs[parameter_name],
         const: false,
+        fit: null,
         type: "model"
       };
 
@@ -180,11 +182,15 @@ export default createStore({
           state.fit.parameters[
             state.fit.data[data_id].parameters[parameter_name]
           ].value,
+        fit: null,
         const: true,
         type: "data"
       };
 
       state.fit.data[data_id].parameters[parameter_name] = newp;
+    },
+    fit_set_initial_value(state, payload) {
+      console.log(payload.pid, payload.value);
     }
   },
   getters: {
