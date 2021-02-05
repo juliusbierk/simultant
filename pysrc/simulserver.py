@@ -5,10 +5,16 @@ import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-from db import create_model, get_models_names, get_all_models, create_dataset, get_data_names, get_data_content
+from scipy.optimize import minimize
+
+from db import create_model, get_models_names, get_all_models, create_dataset,\
+    get_data_names, get_data_content, get_models_content
 from torchfcts import function_from_code, get_default_args, ode_from_code, check_code_get_args
 import logging
 import csv
+import multiprocessing
+import queue
+import pickle
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -69,17 +75,25 @@ async def plot_code(request):
 def plot_code_py(data):
     content = data['content']
     f_name = content['name_underscore']
-    f = function_from_code(content['code'], f_name)
-    kwargs = get_default_args(f, content['expr_mode'], content.get('ode_dim', None))
-    if not content['expr_mode']:
-        f = ode_from_code(content['code'], f_name, content['ode_dim_select'])
+
+    f = get_f_expr_or_ode(content['code'], content['expr_mode'], f_name, content.get('ode_dim_select'))
+    kwargs = get_default_args(f, content['expr_mode'], content.get('ode_dim'))
+
     if 'xlim' in data:
         x = torch.linspace(data['xlim'][0], data['xlim'][1], 250, dtype=torch.double)
     else:
         x = torch.linspace(0, 10, 250, dtype=torch.double)
-    res = f(x, **kwargs)
+    with torch.no_grad():
+        res = f(x, **kwargs)
     mask = torch.isfinite(res)
     return mask, res, x
+
+
+def get_f_expr_or_ode(code, expr_mode, f_name, ode_dim_select):
+    f = function_from_code(code, f_name)
+    if not expr_mode:
+        f = ode_from_code(code, f_name, ode_dim_select)
+    return f
 
 
 async def plot_data(request):
@@ -188,43 +202,141 @@ async def upload_data(request):
 
 async def shuwdown(request):
     print('Stopping python server')
+    fit_process.terminate()
     raise GracefulExit
 
 
-app = web.Application()
+async def run_fit(request):
+    if request.method == 'POST':
+        run_fit_queue.put(await request.json())
+        return web.json_response({'status': 'started'})
+    return web.json_response({'error': 'must be a POST request'})
 
-cors = aiohttp_cors.setup(app, defaults={
-    "*": aiohttp_cors.ResourceOptions(
-        allow_credentials=True,
-        expose_headers="*",
-        allow_headers="*",
-    )
-})
+async def fit_result(request):
+    try:
+        fit = result_queue.get_nowait()
+    except queue.Empty:
+        return web.json_response({'status': 'no-fit'})
+    return web.json_response({'status': 'success', 'fit': fit})
 
-routes = [('/check_code', check_code),
-          ('/plot_code', plot_code),
-          ('/add_model', add_model),
-          ('/model_exist_check', model_exist_check),
-          ('/model_list', model_list),
-          ('/upload_data', upload_data),
-          ('/data_list', data_list),
-          ('/plot_data', plot_data),
-          ('/exit', shuwdown),
-          ]
+def fitter(input_queue, output_queue):
+    print('Fitting queue running')
+    while True:
+        fit_info = input_queue.get(True)
 
-methods = ['GET', 'POST', 'DELETE']
-for uri, f in routes:
-    resource = cors.add(app.router.add_resource(uri))
-    for m in methods:
-        cors.add(resource.add_route(m, f))
+        # First get all parameters
+        parameter_names = []
+        values = []
+        const_index = 0
+
+        for parameter_id, d in fit_info['parameters'].items():
+            if not d['const']:
+                parameter_names.append(parameter_id)
+                values.append(d['value'])
+                const_index += 1
+
+        for parameter_id, d in fit_info['parameters'].items():
+            if d['const']:
+                parameter_names.append(parameter_id)
+                values.append(d['value'])
+
+        # Get model code
+        models = {}
+        for model_id, d in fit_info['models'].items():
+            m = get_models_content(d['name'])
+            models[model_id] = {'code': m['code'], 'expr_mode': m['expr_mode'], 'name_underscore': m['name_underscore'],
+                                'ode_dim': m.get('ode_dim'), 'ode_dim_select': m.get('ode_dim_select')}
+
+        # Get data
+        data = []
+        for data_id, d in fit_info['data'].items():
+            if d['in_use']:
+                db_data = get_data_content(d['id'])
+                data.append({'x': db_data['x'], 'y': db_data['y'], 'weight': d['weight'], 'model': d['model'],
+                             'parameter_indeces': {k: parameter_names.index(v) for k, v in d['parameters'].items()}})
+
+        # with open('cache.pkl', 'wb') as f:
+        #     pickle.dump((parameter_names, values, const_index, models, data), f)
+        fit = torch_fit(parameter_names, values, const_index, models, data)
+        output_queue.put(fit)
+
+
+def torch_fit(parameter_names, values, const_index, models, data):
+    for d in data:
+        d['x'] = torch.tensor(d['x'], dtype=torch.double)
+        d['y'] = torch.tensor(d['y'], dtype=torch.double)
+        d['weight'] = 1 # for now.
+
+
+    for m, d in models.items():
+        d['f'] = get_f_expr_or_ode(d['code'], d['expr_mode'], d['name_underscore'], d['ode_dim_select'])
+
+    p_np_0 = np.array(values[:const_index], dtype=np.double)
+    p_const = torch.tensor(values[const_index:], dtype=torch.double)
+
+    def eval_f(p):
+        r = torch.tensor(0.0, dtype=torch.float)
+        p = torch.cat((p, p_const))
+        for d in data:
+            f = models[d['model']]['f']
+            k = {k: p[i] for k, i in d['parameter_indeces'].items()}
+            r += d['weight'] * torch.sum((f(d['x'], **k) - d['y']) ** 2)
+        return r
+
+    def loss_grad(p_np):
+        p = torch.from_numpy(p_np).requires_grad_()
+        r = eval_f(p)
+        r.backward()
+        return r.detach().numpy(), p.grad.numpy()
+
+    res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B')
+    p_res = {parameter_names[i]: float(res.x[i]) for i in range(len(parameter_names)) if i < const_index}
+
+    return p_res
+
 
 if __name__ == '__main__':
-    # with open('tester.pickle', 'rb') as f:
-    #     data = pickle.load(f)
-    # for ite in range(10):
-    #     print(ite)
-    #     plot_code_py(data)
+    # with open('cache.pkl', 'rb') as f:
+    #     torch_fit(*pickle.load(f))
     # exit()
+
+    # Fitter
+    multiprocessing.freeze_support()
+    run_fit_queue = multiprocessing.Queue()
+    result_queue = multiprocessing.Queue()
+    fit_process = multiprocessing.Process(target=fitter, args=(run_fit_queue, result_queue))
+    fit_process.start()
+
+    # Web Server
+    app = web.Application()
+
+    cors = aiohttp_cors.setup(app, defaults={
+        "*": aiohttp_cors.ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*",
+        )
+    })
+
+    routes = [('/check_code', check_code),
+              ('/plot_code', plot_code),
+              ('/add_model', add_model),
+              ('/model_exist_check', model_exist_check),
+              ('/model_list', model_list),
+              ('/upload_data', upload_data),
+              ('/data_list', data_list),
+              ('/plot_data', plot_data),
+              ('/run_fit', run_fit),
+              ('/fit_result', fit_result),
+              ('/exit', shuwdown),
+              ]
+
+    methods = ['GET', 'POST', 'DELETE']
+    for uri, f in routes:
+        resource = cors.add(app.router.add_resource(uri))
+        for m in methods:
+            cors.add(resource.add_route(m, f))
 
     print('Python server started')
     web.run_app(app, host=HOST, port=PORT, shutdown_timeout=0.0)
+    fit_process.terminate()

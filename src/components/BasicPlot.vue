@@ -116,7 +116,6 @@ export default {
     }
   },
   mounted: function() {
-    console.log(this.body);
     this.plot_id = "plot" + uuidv4(); // wack method, but it works!
     this.$nextTick(() => {
       this.update();

@@ -16,6 +16,41 @@
     </div>
 
     <div class="row" v-if="Object.keys(fit.data).length > 0">
+      <div class="cell-12">
+        <div class="window">
+          <div class="window-caption">
+            <span class="title">Fit</span>
+          </div>
+
+          <div class="window-content p-2">
+            <div class="row"></div>
+
+            <div class="row">
+              <div class="cell-8 offset-1">
+                <div
+                  v-show="fit_running"
+                  data-role="progress"
+                  data-type="line"
+                  data-small="true"
+                ></div>
+              </div>
+
+              <div class="cell-3">
+                <button
+                  class="button success defaultcursor"
+                  @click="run_fit"
+                  :disabled="fit_running"
+                >
+                  Fit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" v-if="Object.keys(fit.data).length > 0">
       <div class="cell-6">
         <div class="row">
           <div class="cell-12" v-show="Object.keys(fit.data).length > 0">
@@ -123,7 +158,6 @@
                           <ParameterFit
                             :name="pname"
                             :type="model_parameters[id][pname].type"
-                            :fit="model_parameters[id][pname].fit"
                             :id="model_parameters[id][pname].pid"
                             view_in="model_section"
                             :detached_parameters="detached_parameters"
@@ -138,6 +172,13 @@
                                 ? fit.parameters[
                                     model_parameters[id][pname].pid
                                   ].value
+                                : null
+                            "
+                            :fit="
+                              model_parameters[id][pname].pid
+                                ? fit.parameters[
+                                    model_parameters[id][pname].pid
+                                  ].fit
                                 : null
                             "
                           ></ParameterFit>
@@ -212,15 +253,7 @@ export default {
     return {
       py: "http://127.0.0.1:7555",
       loaded: false,
-      db_data: {},
-      selected_data_group: null,
-      selected_dataset_ids: null,
-      selected_dataset_names: null,
-      model_selected: null,
-      data_selection_render_index: 0,
-      model_selection_render_index: 0,
-      apply_to_all: true,
-      add_parameter_name: ""
+      fit_running: false
     };
   },
   components: {
@@ -236,10 +269,38 @@ export default {
     ...mapGetters(["detached_parameters", "model_parameters"])
   },
   methods: {
-    ...mapMutations(["fit_set_initial_value"]),
+    ...mapMutations(["fit_set_initial_value", "fit_set_fit_value"]),
     initial_value_change(pid, string_value) {
       const value = parseFloat(string_value);
       this.fit_set_initial_value({ pid, value });
+    },
+    run_fit() {
+      fetch(this.py + "/run_fit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(this.fit)
+      }).then(async result => {
+        const r = await result.json();
+        if (r["status"] === "started") {
+          this.fit_running = true;
+          this.wait_for_fit();
+        }
+      });
+    },
+    wait_for_fit() {
+      fetch(this.py + "/fit_result").then(async result => {
+        const r = await result.json();
+        if (r["status"] === "success") {
+          this.fit_running = false;
+          for (const pid in r["fit"]) {
+            this.fit_set_fit_value({ pid, value: r["fit"][pid] });
+          }
+        } else {
+          setTimeout(this.wait_for_fit, 100);
+        }
+      });
     }
   },
   mounted: function() {

@@ -190,7 +190,10 @@ export default createStore({
       state.fit.data[data_id].parameters[parameter_name] = newp;
     },
     fit_set_initial_value(state, payload) {
-      console.log(payload.pid, payload.value);
+      state.fit.parameters[payload.pid].value = payload.value;
+    },
+    fit_set_fit_value(state, payload) {
+      state.fit.parameters[payload.pid].fit = payload.value;
     }
   },
   getters: {
