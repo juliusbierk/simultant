@@ -98,6 +98,8 @@
                                 initial_value_change(pid, $event)
                               "
                               :initial_value="fit.parameters[pid].value"
+                              :is_const="fit.parameters[pid].const"
+                              @changeValueType="change_value_type(pid)"
                             ></ParameterFit>
                           </div>
                         </div>
@@ -181,6 +183,14 @@
                                   ].fit
                                 : null
                             "
+                            :is_const="
+                              model_parameters[id][pname].pid
+                                ? fit.parameters[
+                                    model_parameters[id][pname].pid
+                                  ].const
+                                : null
+                            "
+                            @changeValueType="change_value_type(model_parameters[id][pname].pid)"
                           ></ParameterFit>
                         </div>
                       </div>
@@ -227,6 +237,8 @@
                       :detached_parameters="detached_parameters"
                       @initialValueChange="initial_value_change(id, $event)"
                       :initial_value="fit.parameters[id].value"
+                      :is_const="fit.parameters[id].const"
+                      @changeValueType="change_value_type(id)"
                     ></ParameterFit>
                   </div>
                 </div>
@@ -269,10 +281,13 @@ export default {
     ...mapGetters(["detached_parameters", "model_parameters"])
   },
   methods: {
-    ...mapMutations(["fit_set_initial_value", "fit_set_fit_value"]),
+    ...mapMutations(["fit_set_initial_value", "fit_set_fit_value", "fit_toggle_parameter_value_type"]),
     initial_value_change(pid, string_value) {
       const value = parseFloat(string_value);
       this.fit_set_initial_value({ pid, value });
+    },
+    change_value_type(pid) {
+      this.fit_toggle_parameter_value_type(pid);
     },
     run_fit() {
       fetch(this.py + "/run_fit", {
