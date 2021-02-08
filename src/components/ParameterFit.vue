@@ -90,7 +90,7 @@
     <span v-if="is_real_parameter">
       <form data-role="validator" data-interactive-check="true">
         <input
-                :id="input_id"
+          :id="input_id"
           type="text"
           :value="initial_value"
           @change="$emit('initialValueChange', $event.target.value)"
@@ -121,26 +121,30 @@
 </template>
 
 <script>
-  import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 export default {
   name: "ParameterFit",
   data: function() {
     return {
       precision: 5,
-      prepend_const: 'Constant value:',
-      prepend_fit: 'Fit initial guess:',
-      input_id: "a_" + uuidv4().replaceAll('-', ''),
+      prepend_const: "Constant value:",
+      prepend_fit: "Fit initial guess:",
+      input_id: "a_" + uuidv4().replaceAll("-", "")
     };
   },
   methods: {
     update_prepend() {
-      this.$emit('changeValueType');
+      this.$emit("changeValueType");
       this.$nextTick(() => {
-          // m4q manipulation:
-          window.$('#' + this.input_id).siblings().filter('.prepend').html(this.prepend_text);
+        // m4q manipulation:
+        window
+          .$("#" + this.input_id)
+          .siblings()
+          .filter(".prepend")
+          .html(this.prepend_text);
       });
-    },
+    }
   },
   computed: {
     prepend_text() {
@@ -216,7 +220,7 @@ export default {
 .blueSwitch .check::after {
   background: #5ebdec !important;
   cursor: default !important;
-  border: 2px #d9e6f2 solid
+  border: 2px #d9e6f2 solid;
 }
 .blueSwitch input[type="checkbox"]:checked ~ .check {
   background: #5ebdec !important;

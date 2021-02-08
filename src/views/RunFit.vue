@@ -190,7 +190,9 @@
                                   ].const
                                 : null
                             "
-                            @changeValueType="change_value_type(model_parameters[id][pname].pid)"
+                            @changeValueType="
+                              change_value_type(model_parameters[id][pname].pid)
+                            "
                           ></ParameterFit>
                         </div>
                       </div>
@@ -281,7 +283,11 @@ export default {
     ...mapGetters(["detached_parameters", "model_parameters"])
   },
   methods: {
-    ...mapMutations(["fit_set_initial_value", "fit_set_fit_value", "fit_toggle_parameter_value_type"]),
+    ...mapMutations([
+      "fit_set_initial_value",
+      "fit_set_fit_value",
+      "fit_toggle_parameter_value_type"
+    ]),
     initial_value_change(pid, string_value) {
       const value = parseFloat(string_value);
       this.fit_set_initial_value({ pid, value });
