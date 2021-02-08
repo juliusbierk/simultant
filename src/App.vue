@@ -114,7 +114,11 @@ a {
 .remover,
 .switch,
 .check,
-.check::after {
+.check::after,
+.checkbox,
+.scrollbox,
+.legendtoggle,
+.modebar-btn {
   cursor: default !important;
 }
 </style>

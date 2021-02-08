@@ -16,14 +16,22 @@ import queue
 import pickle
 
 
-logging.basicConfig(level=logging.DEBUG)
-logging.root.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.WARN)
+logging.root.setLevel(logging.WARN)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 HOST = '127.0.0.1'
 PORT = 7555
 
 sys_print = print
 
+DEFAULT_PLOTLY_COLORS = ['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
+                       'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
+                       'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
+                       'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
+                       'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
 
 def print(*args):
     sys_print(*args, flush=True)
@@ -218,10 +226,79 @@ async def fit_result(request):
         return web.json_response({'status': 'no-fit'})
     return web.json_response({'status': 'success', 'fit': fit})
 
+
+async def plot_fit(request):
+    data = await request.json()
+
+    plot_data = []
+    max_n = data.get('max_n', 250)
+
+    # Generate functions
+    models = {}
+    for model_id, d in data['models'].items():
+        m = get_models_content(d['name'])
+        models[model_id] = get_f_expr_or_ode(m['code'], m['expr_mode'], m['name_underscore'], m.get('ode_dim_select'))
+
+    # Plot data
+    xmin = float('infinity')
+    xmax = float('-infinity')
+    for d_id in data['data']:
+        d = data['data'][d_id]
+        if d['in_use']:
+            #
+            dataset = get_data_content(d['id'])
+            if len(dataset['x']) > max_n:
+                skip = 1 + int(len(dataset['x']) / max_n)
+            else:
+                skip = 1
+            x = dataset['x'][::skip]
+            y = dataset['y'][::skip]
+
+            if min(x) < xmin:
+                xmin = min(x)
+            if max(x) > xmax:
+                xmax = max(x)
+
+            plot_data.append({'x': x, 'y': y, 'name': dataset['name'], 'mode': 'markers',
+                              'type': 'scattergl', 'legendgroup': d_id})
+
+    # Plot fits
+    x = np.linspace(xmin, xmax, 250)
+    x_list = list(x)
+    x_torch = torch.from_numpy(x)
+
+    for i, d_id in enumerate(data['data']):
+        d = data['data'][d_id]
+        if d['in_use']:
+            f = models[d['model']]
+            is_fitted = True
+            kwargs = {}
+            for p in d['parameters']:
+                p_id = d['parameters'][p]
+
+                parameter = data['parameters'][p_id]
+
+                if parameter['const']:
+                    kwargs[p] = parameter['value']
+                elif parameter['fit'] is None:
+                    kwargs[p] = parameter['value']
+                    is_fitted = False
+                else:
+                    kwargs[p] = parameter['fit']
+
+            y = f(x_torch, **kwargs).numpy()
+            c = DEFAULT_PLOTLY_COLORS[i % len(DEFAULT_PLOTLY_COLORS)]
+            plot_data.append({'x': x_list, 'y': list(y), 'mode': 'lines', 'showlegend': False, 'legendgroup': d_id,
+                              'line': {'color': c} if is_fitted else {'color': c, 'dash': 'dash'}})
+
+    return web.json_response(plot_data)
+
+
 def fitter(input_queue, output_queue):
     print('Fitting queue running')
     while True:
         fit_info = input_queue.get(True)
+        logger.debug('Got fit to be run')
 
         # First get all parameters
         parameter_names = []
@@ -238,6 +315,15 @@ def fitter(input_queue, output_queue):
             if d['const']:
                 parameter_names.append(parameter_id)
                 values.append(d['value'])
+
+        logger.debug(f'#parameters = {len(fit_info["parameters"])}')
+        logger.debug(f'#fit parameters = {const_index}')
+
+
+        if const_index == 0:
+            logger.info('No debug parameters to be fitted')
+            output_queue.put(None)
+            continue
 
         # Get model code
         models = {}
@@ -258,6 +344,8 @@ def fitter(input_queue, output_queue):
         #     pickle.dump((parameter_names, values, const_index, models, data), f)
         fit = torch_fit(parameter_names, values, const_index, models, data)
         output_queue.put(fit)
+
+
 
 
 def torch_fit(parameter_names, values, const_index, models, data):
@@ -326,6 +414,7 @@ if __name__ == '__main__':
               ('/data_list', data_list),
               ('/plot_data', plot_data),
               ('/run_fit', run_fit),
+              ('/plot_fit', plot_fit),
               ('/fit_result', fit_result),
               ('/exit', shuwdown),
               ]

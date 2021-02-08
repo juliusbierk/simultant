@@ -24,11 +24,13 @@
 
           <div class="window-content p-2">
             <div class="row">
-              <div id="plot_div"></div>
+              <div class="cell-10 offset-1">
+                <div id="plot"></div>
+              </div>
             </div>
 
             <div class="row">
-              <div class="cell-8 offset-1">
+              <div class="cell-9 offset-1">
                 <div
                   v-show="fit_running"
                   data-role="progress"
@@ -37,7 +39,23 @@
                 ></div>
               </div>
 
-              <div class="cell-3">
+              <div class="cell-2">
+                <button
+                  class="button defaultcursor"
+                  @click="reset_fit_update_plot"
+                  :disabled="fit_running"
+                >
+                  Reset
+                </button>
+
+                <button
+                  class="button defaultcursor"
+                  @click="update_plot"
+                  :disabled="fit_running"
+                >
+                  Update Plot
+                </button>
+
                 <button
                   class="button success defaultcursor"
                   @click="run_fit"
@@ -67,11 +85,14 @@
                     <div class="card-header">
                       <div class="row">
                         <div class="cell-6">
-                          <a
-                            style="font-size:20px"
-                            class="btn-close defaultcursor"
-                            >&#10005;</a
-                          >
+                          <span style="position: relative; top: 5px">
+                            <input
+                              type="checkbox"
+                              data-role="checkbox"
+                              :checked="content.in_use"
+                              @change="toggle_in_use(id)"
+                            />
+                          </span>
                           {{ content.parent }} : {{ content.name }}
                         </div>
                         <div class="cell-6" v-if="fit.models[content.model]">
@@ -81,7 +102,10 @@
                       </div>
                     </div>
 
-                    <div class="card-content">
+                    <div
+                      class="card-content"
+                      v-if="Object.keys(content.parameters).length > 0"
+                    >
                       <div class="row">
                         <div class="cell-11 offset-1">
                           <div
@@ -261,6 +285,9 @@ import ParameterFit from "@/components/ParameterFit.vue";
 import ShowCode from "@/components/ShowCode.vue";
 import store from "@/store";
 import { mapState, mapGetters, mapMutations } from "vuex";
+import Plotly from "plotly.js-dist";
+import plotlysettings from "@/plotsettings.js";
+import _ from "lodash";
 
 export default {
   name: "SpecifyFit",
@@ -269,7 +296,8 @@ export default {
     return {
       py: "http://127.0.0.1:7555",
       loaded: false,
-      fit_running: false
+      fit_running: false,
+      plot_created: false
     };
   },
   components: {
@@ -297,6 +325,9 @@ export default {
     change_value_type(pid) {
       this.fit_toggle_parameter_value_type(pid);
     },
+    toggle_in_use(pid) {
+      alert(pid);
+    },
     run_fit() {
       fetch(this.py + "/run_fit", {
         method: "POST",
@@ -312,29 +343,66 @@ export default {
         }
       });
     },
+    reset_fit() {
+      for (const pid in this.fit.parameters) {
+        this.fit_set_fit_value({ pid, value: null });
+      }
+    },
+    reset_fit_update_plot() {
+      this.reset_fit();
+      this.update_plot();
+    },
     wait_for_fit() {
       fetch(this.py + "/fit_result").then(async result => {
+        if (result.status !== 200) {
+          alert("Could not run fit, got HTTP code " + result.status.toString());
+        }
+
         const r = await result.json();
+        console.log(r);
         if (r["status"] === "success") {
           this.fit_running = false;
 
           // First null all
-          for (const pid in this.fit.parameters) {
-            this.fit_set_fit_value({ pid, value: null });
-          }
+          this.reset_fit();
 
           // Then fill out the non-consts:
           for (const pid in r["fit"]) {
             this.fit_set_fit_value({ pid, value: r["fit"][pid] });
           }
+
+          this.update_plot();
         } else {
           setTimeout(this.wait_for_fit, 100);
         }
+      });
+    },
+    update_plot() {
+      fetch(this.py + "/plot_fit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(this.fit)
+      }).then(async result => {
+        var res = await result.json();
+        let layout = _.cloneDeep(plotlysettings.layout);
+
+        if (this.plot_created) {
+          Plotly.react("plot", res, layout, plotlysettings.settings);
+        } else {
+          Plotly.newPlot("plot", res, layout, plotlysettings.settings);
+        }
+
+        this.plot_created = true;
       });
     }
   },
   mounted: function() {
     this.loaded = true;
+    if (Object.keys(this.fit.data).length > 0) {
+      this.update_plot();
+    }
   }
 };
 </script>
