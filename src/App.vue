@@ -112,7 +112,9 @@ a {
 .select.input-normal,
 .input-clear-button,
 .remover,
-.checkbox {
+.switch,
+.check,
+.check::after {
   cursor: default !important;
 }
 </style>

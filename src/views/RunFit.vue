@@ -23,7 +23,9 @@
           </div>
 
           <div class="window-content p-2">
-            <div class="row"></div>
+            <div class="row">
+              <div id="plot_div"></div>
+            </div>
 
             <div class="row">
               <div class="cell-8 offset-1">
@@ -315,6 +317,13 @@ export default {
         const r = await result.json();
         if (r["status"] === "success") {
           this.fit_running = false;
+
+          // First null all
+          for (const pid in this.fit.parameters) {
+            this.fit_set_fit_value({ pid, value: null });
+          }
+
+          // Then fill out the non-consts:
           for (const pid in r["fit"]) {
             this.fit_set_fit_value({ pid, value: r["fit"][pid] });
           }
