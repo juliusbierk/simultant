@@ -80,9 +80,9 @@
         <input
           type="text"
           :value="initial_value"
-          @input="$emit('initialValueChange', $event.target.value)"
+          @change="$emit('initialValueChange', $event.target.value)"
           data-role="input"
-          data-prepend="Initial value: "
+          data-prepend="Initial value:"
           data-clear-button="false"
           data-validate="number"
         />
@@ -97,9 +97,9 @@
       <input
         type="text"
         data-role="input"
-        data-prepend="Fit: "
+        data-prepend="Fit:"
         data-clear-button="false"
-        :value="fit"
+        :value="fit.toPrecision(precision)"
         readonly
         style="background-color: #e1ebf2;"
       />
@@ -111,7 +111,9 @@
 export default {
   name: "ParameterFit",
   data: function() {
-    return {};
+    return {
+      precision: 5
+    };
   },
   computed: {
     parameter_hint_text() {

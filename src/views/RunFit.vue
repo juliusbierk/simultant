@@ -217,7 +217,7 @@
                   v-for="(name, id) in detached_parameters"
                   :key="id"
                 >
-                  <div class="cell-8 offset-1">
+                  <div class="offset-1">
                     <ParameterFit
                       :name="name"
                       type="detached"

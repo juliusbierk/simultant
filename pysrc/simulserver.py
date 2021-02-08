@@ -6,7 +6,6 @@ from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 from scipy.optimize import minimize
-
 from db import create_model, get_models_names, get_all_models, create_dataset,\
     get_data_names, get_data_content, get_models_content
 from torchfcts import function_from_code, get_default_args, ode_from_code, check_code_get_args
