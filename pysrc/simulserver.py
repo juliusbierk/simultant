@@ -87,6 +87,9 @@ def plot_code_py(data):
     kwargs = get_default_args(f, content['expr_mode'], content.get('ode_dim'))
     f = get_f_expr_or_ode(content['code'], content['expr_mode'], f_name, content.get('ode_dim_select'))
 
+    if not content['expr_mode']:
+        kwargs['y0'] = torch.tensor(kwargs['y0'], dtype=torch.double)
+
     if 'xlim' in data:
         x = torch.linspace(data['xlim'][0], data['xlim'][1], 250, dtype=torch.double)
     else:
@@ -380,8 +383,11 @@ def fitter(input_queue, output_queue, status_queue):
 class IterationCounter:
     def __init__(self):
         self.iterations = 0
+        self.best_loss = float('infinity')
 
-    def __call__(self):
+    def __call__(self, loss):
+        if loss < self.best_loss:
+            self.best_loss = loss
         self.iterations += 1
 
 
@@ -431,8 +437,8 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
         loss = r.detach().numpy()
 
         if status_queue is not None:
-            ic()
-            status_queue.put({'iteration': ic.iterations, 'loss': float(loss)})
+            ic(float(loss))
+            status_queue.put({'iteration': ic.iterations, 'loss': ic.best_loss})
 
         return loss, p.grad.numpy()
 

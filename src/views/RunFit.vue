@@ -49,8 +49,13 @@
               </div>
 
               <div class="cell-1">
-                <button class="button defaultcursor" v-show="fit_running && loss">
-                  <span class="ml-1">{{ loss ? loss.toPrecision(6) : loss }}</span>
+                <button
+                  class="button defaultcursor"
+                  v-show="fit_running && loss"
+                >
+                  <span class="ml-1">{{
+                    loss ? loss.toPrecision(6) : loss
+                  }}</span>
                   <span class="badge">loss</span>
                 </button>
               </div>
@@ -326,7 +331,7 @@ export default {
       fit_running: false,
       plot_created: false,
       iteration: 0,
-      loss: null,
+      loss: null
     };
   },
   components: {
@@ -466,5 +471,4 @@ li.disabled {
 #progress2.line::before {
   animation-delay: -0.8s;
 }
-
 </style>
