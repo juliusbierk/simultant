@@ -90,6 +90,7 @@ def check_code_get_args(code, f_name, expr_mode, ode_dim, ode_dim_select):
 
 def get_default_args(func, expr, dim=1):
     signature = inspect.signature(func)
+
     kwargs = {
         k: v.default if v.default is not inspect.Parameter.empty else (1 if expr else (1 if k != 'y0' else [1] * dim))
         for k, v in signature.parameters.items()

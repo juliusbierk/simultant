@@ -83,18 +83,19 @@ export default createStore({
 
       const model_parameters = {};
       let mp;
-      for (const p of state.models[payload.model_selected].args) {
+      const kwargs = state.models[payload.model_selected].kwargs;
+      for (const p in kwargs) {
         mp = misc.parameter_uuid();
 
         state.fit.parameters[mp] = {
-          name: p.name,
-          value: p.value,
+          name: p,
+          value: kwargs[p],
           fit: null,
           const: false,
           type: "model"
         };
 
-        model_parameters[p.name] = mp;
+        model_parameters[p] = mp;
       }
 
       if (payload.apply_to_all) {

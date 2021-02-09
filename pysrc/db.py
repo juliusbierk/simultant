@@ -35,13 +35,28 @@ def create_model(name, content):
 def get_models_names():
     return [x[0] for x in c.execute("SELECT name FROM models").fetchall()]
 
+def args_to_kwargs(d):
+    kwargs = {x['name']: x['value'] for x in d['args']}
+    if not d['expr_mode']:
+        y0 = kwargs['y0']
+        del kwargs['y0']
+        for i in range(len(y0)):
+            kwargs[f'y0[{i}]'] = y0[i]
+    return kwargs
+
+
 def get_models_content(name):
     a = c.execute("SELECT content FROM models WHERE name=?", (name, )).fetchone()
     if a is not None:
-        return json.loads(a[0])
+        data = json.loads(a[0])
+        data['kwargs'] = args_to_kwargs(data)
+        return data
 
 def get_all_models():
-    return {x[0]: json.loads(x[1]) for x in c.execute("SELECT name, content FROM models").fetchall()}
+    data = {x[0]: json.loads(x[1]) for x in c.execute("SELECT name, content FROM models").fetchall()}
+    for m in data:
+        data[m]['kwargs'] = args_to_kwargs(data[m])
+    return data
 
 
 

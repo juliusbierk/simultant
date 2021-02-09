@@ -50,9 +50,7 @@ async def add_model(request):
         del data['ode_dim_select']
 
     f = function_from_code(data['code'], data['name_underscore'])
-    kwargs = get_default_args(f, data['expr_mode'], data['ode_dim'] if not data['expr_mode'] else None)
-
-    data['kwargs'] = kwargs
+    kwargs = get_default_args(f, data['expr_mode'], data.get('ode_dim'))
     data['args'] = [{'name': k, 'value': v} for k, v in kwargs.items()]
     create_model(data['name'], data)
 
@@ -83,8 +81,9 @@ def plot_code_py(data):
     content = data['content']
     f_name = content['name_underscore']
 
-    f = get_f_expr_or_ode(content['code'], content['expr_mode'], f_name, content.get('ode_dim_select'))
+    f = function_from_code(content['code'], f_name)
     kwargs = get_default_args(f, content['expr_mode'], content.get('ode_dim'))
+    f = get_f_expr_or_ode(content['code'], content['expr_mode'], f_name, content.get('ode_dim_select'))
 
     if 'xlim' in data:
         x = torch.linspace(data['xlim'][0], data['xlim'][1], 250, dtype=torch.double)
@@ -238,6 +237,8 @@ async def plot_fit(request):
     for model_id, d in data['models'].items():
         m = get_models_content(d['name'])
         models[model_id] = get_f_expr_or_ode(m['code'], m['expr_mode'], m['name_underscore'], m.get('ode_dim_select'))
+        models[model_id].expr_mode = m['expr_mode']
+        models[model_id].ode_dim = m.get('ode_dim')
 
     # Plot data
     xmin = float('infinity')
@@ -280,11 +281,14 @@ async def plot_fit(request):
 
                 if parameter['const']:
                     kwargs[p] = parameter['value']
-                elif parameter['fit'] is None:
+                elif parameter.get('fit') is None:
                     kwargs[p] = parameter['value']
                     is_fitted = False
                 else:
                     kwargs[p] = parameter['fit']
+
+            if not f.expr_mode:
+                kwargs = transform_y0_kwargs_for_ode(kwargs, f.ode_dim)
 
             y = f(x_torch, **kwargs).numpy()
             c = DEFAULT_PLOTLY_COLORS[i % len(DEFAULT_PLOTLY_COLORS)]
@@ -292,6 +296,14 @@ async def plot_fit(request):
                               'line': {'color': c} if is_fitted else {'color': c, 'dash': 'dash'}})
 
     return web.json_response(plot_data)
+
+def transform_y0_kwargs_for_ode(kwargs, dim):
+    y0 = np.ones(dim)
+    for i in range(dim):
+        y0[i] = kwargs[f'y0[{i}]']
+        del kwargs[f'y0[{i}]']
+    kwargs['y0'] = y0
+    return kwargs
 
 
 def fitter(input_queue, output_queue):

@@ -520,7 +520,6 @@ export default {
       "set_model_selection_open",
       "set_fit_data",
       "delete_fit_data",
-      "set_fit_models",
       "delete_fit_models",
       "set_fit_parameters",
       "delete_fit_parameters",
