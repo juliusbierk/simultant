@@ -302,7 +302,7 @@ def transform_y0_kwargs_for_ode(kwargs, dim):
     for i in range(dim):
         y0[i] = kwargs[f'y0[{i}]']
         del kwargs[f'y0[{i}]']
-    kwargs['y0'] = y0
+    kwargs['y0'] = torch.from_numpy(y0)
     return kwargs
 
 
@@ -333,7 +333,7 @@ def fitter(input_queue, output_queue):
 
 
         if const_index == 0:
-            logger.info('No debug parameters to be fitted')
+            logger.info('No parameters to be fitted')
             output_queue.put(None)
             continue
 
@@ -369,6 +369,10 @@ def torch_fit(parameter_names, values, const_index, models, data):
 
     for m, d in models.items():
         d['f'] = get_f_expr_or_ode(d['code'], d['expr_mode'], d['name_underscore'], d['ode_dim_select'])
+        d['f'].expr_mode = d['expr_mode']
+        d['f'].ode_dim = d['ode_dim']
+
+
 
     p_np_0 = np.array(values[:const_index], dtype=np.double)
     p_const = torch.tensor(values[const_index:], dtype=torch.double)
@@ -378,8 +382,13 @@ def torch_fit(parameter_names, values, const_index, models, data):
         p = torch.cat((p, p_const))
         for d in data:
             f = models[d['model']]['f']
-            k = {k: p[i] for k, i in d['parameter_indeces'].items()}
+            if f.expr_mode:
+                k = {k: p[i] for k, i in d['parameter_indeces'].items()}
+            else:
+                k = {k: p[i] for k, i in d['parameter_indeces'].items() if '[' not in k}
+                k['y0'] = torch.stack([p[d['parameter_indeces'][f'y0[{i}]']] for i in range(f.ode_dim)])
             r += d['weight'] * torch.sum((f(d['x'], **k) - d['y']) ** 2)
+        logger.debug(f'Loss = {r}')
         return r
 
     def loss_grad(p_np):

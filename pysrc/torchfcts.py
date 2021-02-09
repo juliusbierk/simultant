@@ -124,7 +124,7 @@ def ode_from_code(code, f_name, ode_dim_select):
         def curied(x, y):
             return torch.hstack(f(x, y, **kwargs))
 
-        sol = sillyode(curied, torch.tensor(kwargs['y0'], dtype=x.dtype), x, atol=5e-7, rtol=1e-5)[:, ode_dim_select]
+        sol = sillyode(curied, kwargs['y0'], x, atol=5e-7, rtol=1e-5)[:, ode_dim_select]
 
         if added_zero:
             sol = sol[1:]
