@@ -59,3 +59,44 @@ def sillyode(func, y0, t, atol=1e-9, rtol=1e-7):
     tt = torch.from_numpy(res.t)
     y = rk4(func, y0, t, tt)
     return y
+
+
+if __name__ == '__main__':
+    import time
+
+    a = torch.tensor([1.0], requires_grad=True)
+    b = torch.tensor([1.0], requires_grad=True)
+
+    def f(t, y):
+        r = torch.empty_like(y)
+        r[0] = a * y[1]
+        r[1] = -b * y[0]
+        return r
+
+    t = torch.linspace(0, 12, 300)
+    y0 = torch.tensor([1.0, 0.2], requires_grad=True)
+
+    t1 = time.time()
+    y = sillyode(f, y0, t, atol=5e-7, rtol=1e-5)[:, 0]
+    r = torch.sum(y**2)
+    print(f'Forward time = {time.time() - t1}')
+    t1 = time.time()
+    r.backward()
+    print(f'Backward time = {time.time() - t1}')
+
+    print()
+    print(r)
+    print(a.grad, b.grad, y0.grad)
+
+    print()
+    t = t.numpy()
+    y0 = y0.detach().numpy()
+    def np_f(t, y):
+        r = np.empty_like(y)
+        r[0] = a * y[1]
+        r[1] = -b * y[0]
+        return r
+
+    t1 = time.time()
+    res = solve_ivp(np_f, (t.min(), t.max()), y0, t_eval=t, atol=5e-7, rtol=1e-5)
+    print(f'solve_ivp time = {time.time() - t1}')

@@ -1,4 +1,5 @@
 import json
+import time
 from collections import Counter
 import numpy as np
 import torch
@@ -393,13 +394,19 @@ def torch_fit(parameter_names, values, const_index, models, data):
 
     def loss_grad(p_np):
         p = torch.from_numpy(p_np).requires_grad_()
+        t1 = time.time()
         r = eval_f(p)
+        logger.debug(f'Forwards calls took {time.time() - t1} s.')
+
+        t1 = time.time()
         r.backward()
+        logger.debug(f'Backwards call took {time.time() - t1} s.')
+
         return r.detach().numpy(), p.grad.numpy()
 
-    res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B')
+    res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B', options={'ftol': 1e-6, 'disp': False})
     p_res = {parameter_names[i]: float(res.x[i]) for i in range(len(parameter_names)) if i < const_index}
-
+    logger.debug('Finished fit')
     return p_res
 
 
