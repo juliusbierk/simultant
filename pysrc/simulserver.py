@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 from collections import Counter
@@ -222,8 +223,25 @@ async def run_fit(request):
 async def fit_result(request):
     try:
         fit = result_queue.get_nowait()
+
+        # Empty iteration queue:
+        await asyncio.sleep(0.01)
+        try:
+            while True:
+                iteration_queue.get_nowait()
+        except queue.Empty:
+            pass
+
     except queue.Empty:
-        return web.json_response({'status': 'no-fit'})
+        # No fit result yet, check if there is a loss update:
+        d = None
+        try:
+            while True:
+                d = iteration_queue.get_nowait()
+        except queue.Empty:
+            pass
+        return web.json_response({'status': 'no-fit', 'info': d})
+
     return web.json_response({'status': 'success', 'fit': fit})
 
 
@@ -307,7 +325,7 @@ def transform_y0_kwargs_for_ode(kwargs, dim):
     return kwargs
 
 
-def fitter(input_queue, output_queue):
+def fitter(input_queue, output_queue, status_queue):
     print('Fitting queue running')
     while True:
         fit_info = input_queue.get(True)
@@ -355,13 +373,19 @@ def fitter(input_queue, output_queue):
 
         with open('cache.pkl', 'wb') as f:
             pickle.dump((parameter_names, values, const_index, models, data), f)
-        fit = torch_fit(parameter_names, values, const_index, models, data)
+        fit = torch_fit(parameter_names, values, const_index, models, data, status_queue)
         output_queue.put(fit)
 
 
+class IterationCounter:
+    def __init__(self):
+        self.iterations = 0
+
+    def __call__(self):
+        self.iterations += 1
 
 
-def torch_fit(parameter_names, values, const_index, models, data):
+def torch_fit(parameter_names, values, const_index, models, data, status_queue=None):
     for d in data:
         d['x'] = torch.tensor(d['x'], dtype=torch.double)
         d['y'] = torch.tensor(d['y'], dtype=torch.double)
@@ -372,8 +396,6 @@ def torch_fit(parameter_names, values, const_index, models, data):
         d['f'] = get_f_expr_or_ode(d['code'], d['expr_mode'], d['name_underscore'], d['ode_dim_select'])
         d['f'].expr_mode = d['expr_mode']
         d['f'].ode_dim = d['ode_dim']
-
-
 
     p_np_0 = np.array(values[:const_index], dtype=np.double)
     p_const = torch.tensor(values[const_index:], dtype=torch.double)
@@ -390,7 +412,11 @@ def torch_fit(parameter_names, values, const_index, models, data):
                 k['y0'] = torch.stack([p[d['parameter_indeces'][f'y0[{i}]']] for i in range(f.ode_dim)])
             r += d['weight'] * torch.sum((f(d['x'], **k) - d['y']) ** 2)
         logger.debug(f'Loss = {r}')
+
+
         return r
+
+    ic = IterationCounter()
 
     def loss_grad(p_np):
         p = torch.from_numpy(p_np).requires_grad_()
@@ -402,7 +428,14 @@ def torch_fit(parameter_names, values, const_index, models, data):
         r.backward()
         logger.debug(f'Backwards call took {time.time() - t1} s.')
 
-        return r.detach().numpy(), p.grad.numpy()
+        loss = r.detach().numpy()
+
+        if status_queue is not None:
+            ic()
+            status_queue.put({'iteration': ic.iterations, 'loss': float(loss)})
+
+        return loss, p.grad.numpy()
+
 
     res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B', options={'ftol': 1e-6, 'disp': False})
     p_res = {parameter_names[i]: float(res.x[i]) for i in range(len(parameter_names)) if i < const_index}
@@ -419,7 +452,8 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     run_fit_queue = multiprocessing.Queue()
     result_queue = multiprocessing.Queue()
-    fit_process = multiprocessing.Process(target=fitter, args=(run_fit_queue, result_queue))
+    iteration_queue = multiprocessing.Queue()
+    fit_process = multiprocessing.Process(target=fitter, args=(run_fit_queue, result_queue, iteration_queue))
     fit_process.start()
 
     # Web Server

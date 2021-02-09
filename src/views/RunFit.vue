@@ -29,13 +29,40 @@
               </div>
             </div>
 
-            <div class="row">
-              <div class="cell-9 offset-1">
+            <div class="row text-center">
+              <div class="cell-1 offset-2">
+                <button class="button defaultcursor" v-show="fit_running">
+                  <span class="ml-1">{{ iteration }}</span>
+                  <span class="badge">iteration</span>
+                </button>
+              </div>
+
+              <div class="cell-3">
                 <div
+                  id="progress1"
                   v-show="fit_running"
                   data-role="progress"
                   data-type="line"
                   data-small="true"
+                  style="position:relative; top:15px"
+                ></div>
+              </div>
+
+              <div class="cell-1">
+                <button class="button defaultcursor" v-show="fit_running && loss">
+                  <span class="ml-1">{{ loss ? loss.toPrecision(6) : loss }}</span>
+                  <span class="badge">loss</span>
+                </button>
+              </div>
+
+              <div class="cell-3">
+                <div
+                  id="progress2"
+                  v-show="fit_running && loss"
+                  data-role="progress"
+                  data-type="line"
+                  data-small="true"
+                  style="position:relative; top:15px"
                 ></div>
               </div>
 
@@ -297,7 +324,9 @@ export default {
       py: "http://127.0.0.1:7555",
       loaded: false,
       fit_running: false,
-      plot_created: false
+      plot_created: false,
+      iteration: 0,
+      loss: null,
     };
   },
   components: {
@@ -329,6 +358,9 @@ export default {
       alert(pid);
     },
     run_fit() {
+      this.iteration = 0;
+      this.loss = null;
+
       fetch(this.py + "/run_fit", {
         method: "POST",
         headers: {
@@ -373,6 +405,12 @@ export default {
 
           this.update_plot();
         } else {
+          if (r.info) {
+            console.log(r.info);
+            this.iteration = r.info.iteration;
+            this.loss = r.info.loss;
+          }
+
           setTimeout(this.wait_for_fit, 100);
         }
       });
@@ -424,4 +462,9 @@ li.disabled {
   -ms-transform: scale(-1, 1);
   transform: scale(-1, 1);
 }
+
+#progress2.line::before {
+  animation-delay: -0.8s;
+}
+
 </style>
