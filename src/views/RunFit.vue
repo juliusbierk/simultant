@@ -60,18 +60,8 @@
                 </button>
               </div>
 
-              <div class="cell-3">
-                <div
-                  id="progress2"
-                  v-show="fit_running && loss"
-                  data-role="progress"
-                  data-type="line"
-                  data-small="true"
-                  style="position:relative; top:15px"
-                ></div>
-              </div>
 
-              <div class="cell-2">
+              <div class="cell-4">
                 <button
                   class="button defaultcursor"
                   @click="reset_fit_update_plot"

@@ -28,7 +28,9 @@
             </div>
           </div>
 
-          <div class="window-content p-2"></div>
+          <div class="window-content p-2">
+            <button class="button alert" @click="clear_fit">Clear Fit</button>
+          </div>
         </div>
       </div>
 
@@ -80,28 +82,6 @@
           </div>
         </div>
       </div>
-
-      <!--      <div-->
-      <!--        v-show="!choose_fit_open"-->
-      <!--        :class="{-->
-      <!--          'cell-1': true,-->
-      <!--          'offset-9': model_selection_open && data_selection_open,-->
-      <!--          'offset-6': model_selection_open && !data_selection_open,-->
-      <!--          'offset-2':-->
-      <!--            (!model_selection_open && data_selection_open) ||-->
-      <!--            (!model_selection_open && !data_selection_open)-->
-      <!--        }"-->
-      <!--      >-->
-      <!--        <button-->
-      <!--          style="font-size:30px; margin-right:2px"-->
-      <!--          class="button defaultcursor"-->
-      <!--        >-->
-      <!--          &#9100;-->
-      <!--        </button>-->
-      <!--        <button style="font-size:30px" class="button defaultcursor">-->
-      <!--          <span class="flip">&#9100;</span>-->
-      <!--        </button>-->
-      <!--      </div>-->
     </div>
 
     <div class="row" v-if="Object.keys(db_data).length">
@@ -528,7 +508,8 @@ export default {
       "fit_tie_to_data",
       "fit_tie_to_model",
       "fit_attach",
-      "fit_detach_to_data"
+      "fit_detach_to_data",
+      "clear_fit"
     ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {

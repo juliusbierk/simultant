@@ -130,7 +130,7 @@ export default {
       precision: 5,
       prepend_const: "Constant value:",
       prepend_fit: "Fit initial guess:",
-      input_id: "a_" + uuidv4().replaceAll("-", "")
+      input_id: "a_" + uuidv4().replace(/-/g,""),
     };
   },
   methods: {

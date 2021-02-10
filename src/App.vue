@@ -113,6 +113,7 @@ a {
 .input-clear-button,
 .remover,
 .switch,
+.button,
 .check,
 .check::after,
 .checkbox,

@@ -125,7 +125,7 @@ export default createStore({
           if (p === p_in) {
             newp = misc.parameter_uuid();
             pobj = _.cloneDeep(state.fit.parameters[p_in]);
-            pobj.const = true;
+            pobj.const = false;
             pobj.type = "data";
 
             state.fit.parameters[newp] = pobj;
