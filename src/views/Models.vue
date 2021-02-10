@@ -33,9 +33,9 @@
                       <div class="cell-5">
                         <button
                           class="defaultcursor button light"
-                          @click="console.log('Edit model.')"
+                          @click="edit_model(name)"
                         >
-                          <span style="font-size: 18px;" class="ml-1">{{
+                          <span style="font-size: 18px;" class="ml-1">&#9998; {{
                             name
                           }}</span>
                           <span v-if="!content.expr_mode" class="badge"
@@ -58,6 +58,7 @@
                           data-role="switch"
                           data-caption="Code"
                         />
+                        <span style="margin-right:50px"></span>
                       </div>
                     </div>
 
@@ -349,6 +350,25 @@ export default {
   },
   methods: {
     ...mapMutations(["clear_fit"]),
+    edit_model(model_name) {
+      this.expr_mode = !this.models[model_name].expr_mode;  // weird, but we change after
+      this.name = this.models[model_name].name;
+
+      if (this.models[model_name].expr_mode) {
+        this.code = this.models[model_name].code;
+        this.change_to_expr();
+      } else {
+        this.ode_code = this.models[model_name].code;
+        this.ode_dim = this.models[model_name].ode_dim;
+        this.ode_dim_select = this.models[model_name].ode_dim_select;
+        this.change_to_ode();
+      }
+
+      this.add_model = true;
+      setTimeout(() => {
+        window.cmcode.refresh();
+      }, 5);
+    },
     update_model_list() {
       fetch(this.py + "/model_list", {}).then(async result => {
         var res = await result.json();
