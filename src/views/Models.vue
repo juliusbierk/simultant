@@ -348,9 +348,7 @@ export default {
     ShowCode
   },
   methods: {
-    ...mapMutations([
-      "clear_fit"
-    ]),
+    ...mapMutations(["clear_fit"]),
     update_model_list() {
       fetch(this.py + "/model_list", {}).then(async result => {
         var res = await result.json();

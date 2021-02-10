@@ -23,7 +23,7 @@ export default createStore({
         models: {},
         parameters: {}
       };
-      state.ui_specify =  {
+      state.ui_specify = {
         choose_fit_open: false,
         data_selection_open: true,
         model_selection_open: true

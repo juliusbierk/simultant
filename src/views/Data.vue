@@ -282,9 +282,7 @@ export default {
     BasicPlot
   },
   methods: {
-    ...mapMutations([
-      "clear_fit"
-    ]),
+    ...mapMutations(["clear_fit"]),
     set_example_data() {
       this.header = ["x", "y_1", "y_2", "y_3"];
       this.data = [
@@ -353,7 +351,7 @@ export default {
             if (this.commit_data) {
               if (data.success) {
                 this.do_reset();
-                tihs.clear_fit();
+                this.clear_fit();
                 this.update_datasets();
               } else {
                 this.commit_data = false;
