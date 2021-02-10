@@ -44,6 +44,7 @@ def _take_step(T, b, func, h, y):
 
 def sillyode(func, y0, t, atol=1e-9, rtol=1e-7):
     assert not t.is_cuda, 'Only works on CPU for now.'
+    t = t + torch.linspace(t.min(), t.max(), len(t)) * (t[-1] - t[0]) * 1e-8  # to ensure different ts
 
     requires_grad = func(t[0], y0).requires_grad
 
@@ -51,13 +52,21 @@ def sillyode(func, y0, t, atol=1e-9, rtol=1e-7):
         def np_f(t, y):
             return func(torch.from_numpy(np.asarray(t)), torch.from_numpy(y)).numpy()
 
-        res = solve_ivp(np_f, (t.min(), t.max()), y0, t_eval=None if requires_grad else t.numpy(),
+        res = solve_ivp(np_f, (t.min(), t.max()), y0, t_eval=None, dense_output=not requires_grad,
                         rtol=rtol, atol=atol)
+
+        if not res.success:
+            raise ArithmeticError("Could not solve ODE")
+
         if not requires_grad:
-            return torch.from_numpy(res.y).t()
+            y = res.sol(t.numpy())
+            y = torch.from_numpy(y).t()
+            assert len(y) == len(t), f'Something went wrong, needed {len(t)} evaluation points but got {len(y)}'
+            return y
 
     tt = torch.from_numpy(res.t)
     y = rk4(func, y0, t, tt)
+    assert len(y) == len(t), f'Something went wrong, needed {len(t)} evaluation points but got {len(y)}'
     return y
 
 

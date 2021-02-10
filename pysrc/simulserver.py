@@ -391,7 +391,8 @@ class IterationCounter:
         self.iterations += 1
 
 
-def torch_fit(parameter_names, values, const_index, models, data, status_queue=None):
+def torch_fit(parameter_names, values, const_index, models, data, status_queue=None, method='nelder-mead'):
+    t1 = time.time()
     for d in data:
         d['x'] = torch.tensor(d['x'], dtype=torch.double)
         d['y'] = torch.tensor(d['y'], dtype=torch.double)
@@ -416,36 +417,66 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
             else:
                 k = {k: p[i] for k, i in d['parameter_indeces'].items() if '[' not in k}
                 k['y0'] = torch.stack([p[d['parameter_indeces'][f'y0[{i}]']] for i in range(f.ode_dim)])
+
             r += d['weight'] * torch.mean((f(d['x'], **k) - d['y']) ** 2)
         logger.debug(f'Loss = {r}')
-
 
         return r
 
     ic = IterationCounter()
 
-    def loss_grad(p_np):
-        p = torch.from_numpy(p_np).requires_grad_()
-        t1 = time.time()
-        r = eval_f(p)
-        logger.debug(f'Forwards calls took {time.time() - t1} s.')
+    if method == 'anagrad':
+        def loss_grad(p_np):
+            try:
+                p = torch.from_numpy(p_np).requires_grad_()
+                t1 = time.time()
+                r = eval_f(p)
+                logger.debug(f'Forwards calls took {time.time() - t1} s.')
 
-        t1 = time.time()
-        r.backward()
-        logger.debug(f'Backwards call took {time.time() - t1} s.')
+                t1 = time.time()
+                r.backward()
+                logger.debug(f'Backwards call took {time.time() - t1} s.')
 
-        loss = r.detach().numpy()
+                loss = r.detach().numpy()
 
-        if status_queue is not None:
-            ic(float(loss))
-            status_queue.put({'iteration': ic.iterations, 'loss': ic.best_loss})
+                if status_queue is not None:
+                    ic(float(loss))
+                    status_queue.put({'iteration': ic.iterations, 'loss': ic.best_loss})
 
-        return loss, p.grad.numpy()
+                return loss, p.grad.numpy()
+            except Exception as e:
+                logger.warning('Evaluation of function failed', exc_info=e)
+                return 1e10, 0 * p_np
+
+        res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B', options={'ftol': 1e-6, 'disp': False})
 
 
-    res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B', options={'ftol': 1e-6, 'disp': False})
+    elif method == 'nelder-mead':
+        def loss(p_np):
+            try:
+                p = torch.from_numpy(p_np)
+                with torch.no_grad():
+                    r = eval_f(p)
+                loss = r.numpy()
+
+                if status_queue is not None:
+                    ic(float(loss))
+                    status_queue.put({'iteration': ic.iterations, 'loss': ic.best_loss})
+
+                return loss
+            except Exception as e:
+                logger.warning('Evaluation of function failed', exc_info=e)
+                return 1e10
+
+        min_method = {'nelder-mead': 'Nelder-Mead'}[method]
+        res = minimize(loss, p_np_0, method=min_method)
+
+    else:
+        raise NotImplementedError
+
+
     p_res = {parameter_names[i]: float(res.x[i]) for i in range(len(parameter_names)) if i < const_index}
-    logger.debug('Finished fit')
+    logger.debug(f'Finished fit in {time.time() - t1} seconds')
     return p_res
 
 
