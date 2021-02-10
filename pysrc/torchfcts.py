@@ -54,7 +54,8 @@ def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
 
                 if not (0 <= ode_dim_select <= len(r) - 1):
                     error = 'Invalid selected output dimension'
-            elif ode_dim_select != 0:
+
+            elif ode_dim == 1 and ode_dim_select != 0:
                 error = 'Selected dimension must be zero for ODE of dimension one. '
 
         except Exception as e:

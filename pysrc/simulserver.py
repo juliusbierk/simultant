@@ -416,7 +416,7 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
             else:
                 k = {k: p[i] for k, i in d['parameter_indeces'].items() if '[' not in k}
                 k['y0'] = torch.stack([p[d['parameter_indeces'][f'y0[{i}]']] for i in range(f.ode_dim)])
-            r += d['weight'] * torch.sum((f(d['x'], **k) - d['y']) ** 2)
+            r += d['weight'] * torch.mean((f(d['x'], **k) - d['y']) ** 2)
         logger.debug(f'Loss = {r}')
 
 
