@@ -425,10 +425,17 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
 
     ic = IterationCounter()
 
+    ### ONLY POSITIVE:
+    p_np_0 = np.log(1e-19 + p_np_0)
+
     if method == 'anagrad':
         def loss_grad(p_np):
             try:
-                p = torch.from_numpy(p_np).requires_grad_()
+                p_in = torch.from_numpy(p_np).requires_grad_()
+
+                ### ONLY POSITIVE
+                p = torch.exp(p_in)
+
                 t1 = time.time()
                 r = eval_f(p)
                 logger.debug(f'Forwards calls took {time.time() - t1} s.')
@@ -443,18 +450,21 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
                     ic(float(loss))
                     status_queue.put({'iteration': ic.iterations, 'loss': ic.best_loss})
 
-                return loss, p.grad.numpy()
+                return loss, p_in.grad.numpy()
             except Exception as e:
                 logger.warning('Evaluation of function failed', exc_info=e)
                 return 1e10, 0 * p_np
 
         res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B', options={'ftol': 1e-6, 'disp': False})
 
-
     elif method == 'nelder-mead':
         def loss(p_np):
             try:
-                p = torch.from_numpy(p_np)
+                p_in = torch.from_numpy(p_np)
+
+                ### ONLY POSITIVE
+                p = torch.exp(p_in)
+
                 with torch.no_grad():
                     r = eval_f(p)
                 loss = r.numpy()
@@ -474,8 +484,12 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
     else:
         raise NotImplementedError
 
+    p_opt = res.x
 
-    p_res = {parameter_names[i]: float(res.x[i]) for i in range(len(parameter_names)) if i < const_index}
+    ### ONLY POSITIVE
+    p_opt = np.exp(p_opt)
+
+    p_res = {parameter_names[i]: float(p_opt[i]) for i in range(len(parameter_names)) if i < const_index}
     logger.debug(f'Finished fit in {time.time() - t1} seconds')
     return p_res
 

@@ -311,6 +311,7 @@ import ShowCode from "@/components/ShowCode.vue";
 import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
 import _ from "lodash";
+import { mapMutations } from "vuex";
 
 export default {
   name: "Models",
@@ -347,6 +348,9 @@ export default {
     ShowCode
   },
   methods: {
+    ...mapMutations([
+      "clear_fit"
+    ]),
     update_model_list() {
       fetch(this.py + "/model_list", {}).then(async result => {
         var res = await result.json();
@@ -405,6 +409,9 @@ export default {
             alert("Could not add model");
             return;
           }
+
+          this.clear_fit();
+          this.toggle_add_model();
           this.update_model_list();
         });
       });

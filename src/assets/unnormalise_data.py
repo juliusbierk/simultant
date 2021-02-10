@@ -16,10 +16,18 @@ def f(t, y, m0, kn, kp, km, k2, nc, n2):
 
 nc = 2
 n2 = 2
-kp = 1.0
-kn = 0.596
-k2 = 341
+
+ms = 1e-6
+
+kp = 5e6 * ms
+kn = 5.96e9 / kp * ms**nc
+k2 = 3.41e17 / kp * ms**(n2 + 1)
 km = 0.0
+
+print('kp', kp)
+print('kn', kn)
+print('k2', k2)
+print('km', km)
 
 
 def load_data():
@@ -62,18 +70,17 @@ keys = list(data.keys())
 
 new_data = []
 
-plt.subplot(1, 2, 1)
-t = np.linspace(0, 5, 2500)
-for i, m0 in enumerate([0.5, 0.4, 0.35, 0.3, 0.25, 0.2, 0.175, 0.15, 0.135, 0.12]):
+t = np.linspace(0, 50, 2500)
+for i, m0 in enumerate([5, 4, 3.5, 3, 2.5, 2.0, 1.75, 1.5, 1.35, 1.2]):
     d = data[keys[i]]
     print(m0, keys[i])
 
     y = solve_ivp(f, (t.min(), t.max()), [0, 0], t_eval=t, args=(m0, kn, kp, km, k2, nc, n2)).y[1, :]
     plt.plot(t, y)
 
-    new_data.append({'name': keys[i], 'x': d['x'], 'y': list(y[-1] * np.array(d['y']))})
 
-plt.subplot(1, 2, 2)
+    new_data.append({'name': keys[i], 'x': list(1.0 * np.array(d['x'])), 'y': list(y[-1] * np.array(d['y']))})
+
 for d in new_data:
     plt.scatter(d['x'], d['y'], s=1.5)
 

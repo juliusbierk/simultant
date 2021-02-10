@@ -17,6 +17,18 @@ export default createStore({
     }
   },
   mutations: {
+    clear_fit(state) {
+      state.fit = {
+        data: {},
+        models: {},
+        parameters: {}
+      };
+      state.ui_specify =  {
+        choose_fit_open: false,
+        data_selection_open: true,
+        model_selection_open: true
+      };
+    },
     set_models(state, value) {
       state.models = value;
     },
@@ -113,7 +125,7 @@ export default createStore({
           if (p === p_in) {
             newp = misc.parameter_uuid();
             pobj = _.cloneDeep(state.fit.parameters[p_in]);
-            pobj.const = false;
+            pobj.const = true;
             pobj.type = "data";
 
             state.fit.parameters[newp] = pobj;

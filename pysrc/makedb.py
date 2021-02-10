@@ -14,7 +14,7 @@ except sqlite3.OperationalError:
 conn.commit()
 
 c.execute('CREATE TABLE data (id text, name text, parent text, info text, content text, PRIMARY KEY (id))')
-c.execute('CREATE TABLE models (name text, content text PRIMARY KEY (name))')
+c.execute('CREATE TABLE models (name text, content text, PRIMARY KEY (name))')
 c.execute('CREATE TABLE fits (name text, content text, PRIMARY KEY (name))')
 
 conn.commit()
