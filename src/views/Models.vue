@@ -35,9 +35,9 @@
                           class="defaultcursor button light"
                           @click="edit_model(name)"
                         >
-                          <span style="font-size: 18px;" class="ml-1">&#9998; {{
-                            name
-                          }}</span>
+                          <span style="font-size: 18px;" class="ml-1"
+                            >&#9998; {{ name }}</span
+                          >
                           <span v-if="!content.expr_mode" class="badge"
                             >ODE</span
                           >
@@ -166,6 +166,7 @@
                 </div>
 
                 <div
+                  v-show="!has_transform_function"
                   class="cell-6"
                   data-role="hint"
                   data-hint-text="The index of y containing the fit function"
@@ -184,12 +185,69 @@
                     Select a dimension index (0 - {{ ode_dim - 1 }}).
                   </span>
                 </div>
+
+                <div
+                  v-show="has_transform_function"
+                  class="cell-6"
+                  data-role="hint"
+                  data-hint-text="This is not needed as you are using a _transform function."
+                  data-hint-hide="0"
+                  data-cls-hint="bg-lightCyan fg-white"
+                >
+                  <input
+                    type="text"
+                    data-role="input"
+                    data-prepend="Function index (y):"
+                    v-model="ode_dim_select"
+                    disabled
+                  />
+                  <span class="invalid_feedback">
+                    Select a dimension index (0 - {{ ode_dim - 1 }}).
+                  </span>
+                </div>
               </div>
             </form>
 
             <p></p>
 
             <div id="code"></div>
+
+            <div class="row" v-if="!expr_mode">
+              <div class="offset-1 cell-10">
+                <span v-show="!show_advanced_options">
+                  <button
+                    class="button small light"
+                    @click="show_advanced_options = true"
+                  >
+                    Advanced options
+                  </button>
+                </span>
+
+                <span v-show="show_advanced_options">
+                  <button
+                    style="margin-right:3px"
+                    class="button small light"
+                    @click="show_advanced_options = false"
+                  >
+                    Hide advanced options
+                  </button>
+                  <button
+                    style="margin-right:3px"
+                    class="button small"
+                    @click="add_transform_ode_code"
+                  >
+                    Add transform code
+                  </button>
+                  <button
+                    style="margin-right:3px"
+                    class="button small"
+                    @click="add_event_transform_ode_code"
+                  >
+                    Add transform code with event-state
+                  </button>
+                </span>
+              </div>
+            </div>
 
             <p></p>
 
@@ -326,6 +384,25 @@ export default {
       orig_code: "def New_Model(x, *, a=1, b=1):\n    return a * tanh(b * x)\n",
       orig_ode_code:
         "def New_Model(x, y, *, y0=[1, 1], a=1, b=1):\n    return a * y[1], -b * y[0]\n",
+      transform_code:
+        "\n\ndef _transform(x, y, **kwargs):\n" +
+        "    # This function is called after the ODE is solved\n" +
+        "    # and should transform to the fit function.\n" +
+        "    # `kwargs` will contain all parameters.\n" +
+        "    return y[]\n",
+      event_code:
+        "\n\ndef _transform(x, y, x_event, y_event, **kwargs):\n" +
+        "    # This function is called after the ODE is solved\n" +
+        "    # and should transform to the fit function.\n" +
+        "    # `kwargs` will contain all parameters.\n" +
+        "    # x_event and y_event are the (first) values when the\n" +
+        "    # `event` function evaluates to zero.\n" +
+        "    return y[]\n\n" +
+        "def _event(x, y, **kwargs):\n" +
+        "    # Defines an event time. This can be used to define e.g.\n" +
+        "    # a specific value-crossing or a steady state\n" +
+        "    return y[0]\n\n" +
+        "_event.direction = 0   # -1 = pos -> neg, 1 = neg -> pos, 0 = any zero-crossing \n",
       cmcode: null,
       marker: null,
       add_model: false,
@@ -336,12 +413,20 @@ export default {
       ode_dim_select: 0,
       show_plot: false,
       plot_body: null,
-      models: {}
+      models: {},
+      show_advanced_options: false
     };
   },
   computed: {
     name_underscore: function() {
       return this.name.split(" ").join("_");
+    },
+    has_transform_function: function() {
+      if (this.ode_code) {
+        return this.ode_code.includes("def _transform");
+      } else {
+        return true;
+      }
     }
   },
   components: {
@@ -350,8 +435,28 @@ export default {
   },
   methods: {
     ...mapMutations(["clear_fit"]),
+    add_transform_ode_code() {
+      this.ode_code =
+        this.ode_code +
+        this.transform_code.replace(
+          "[]",
+          "[" + this.ode_dim_select.toString() + "]"
+        );
+      window.cmcode.setValue(this.ode_code);
+      this.show_advanced_options = false;
+    },
+    add_event_transform_ode_code() {
+      this.ode_code =
+        this.ode_code +
+        this.event_code.replace(
+          "[]",
+          "[" + this.ode_dim_select.toString() + "]"
+        );
+      window.cmcode.setValue(this.ode_code);
+      this.show_advanced_options = false;
+    },
     edit_model(model_name) {
-      this.expr_mode = !this.models[model_name].expr_mode;  // weird, but we change after
+      this.expr_mode = !this.models[model_name].expr_mode; // weird, but we change after
       this.name = this.models[model_name].name;
 
       if (this.models[model_name].expr_mode) {

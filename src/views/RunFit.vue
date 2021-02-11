@@ -60,7 +60,6 @@
                 </button>
               </div>
 
-
               <div class="cell-4">
                 <button
                   class="button defaultcursor"

@@ -33,10 +33,14 @@ torchfcts = {"sin": sin, "cos": cos, "exp": exp, "tensor": tensor, "sqrt": sqrt,
 
 
 def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
+    tensor_kwargs = {}
+    for k in kwargs:
+        tensor_kwargs[k] = torch.tensor(kwargs[k], dtype=torch.double)
+
     error = None
     if expr:
         try:
-            r = f(x=torch.tensor([1.0]), **kwargs)
+            r = f(x=torch.tensor([1.0]), **tensor_kwargs)
             if hasattr(r, '__len__') and len(r) != 1:
                 error = 'Output is not one-dimensional.'
         except Exception as e:
@@ -47,7 +51,7 @@ def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
         try:
             r = f(x=torch.tensor([1.0], dtype=torch.double),
                   y=torch.tensor(kwargs['y0'], dtype=torch.double),
-                               **kwargs)
+                               **tensor_kwargs)
 
             if ode_dim > 1 and len(r) != ode_dim:
                 error = f'Output of function does not have required dimension ({ode_dim})'
@@ -106,6 +110,8 @@ def function_from_code(code, f_name):
     d = {}
     exec(code, torchfcts, d)
     f = d[f_name]
+    f._transform = d.get('_transform')
+    f._event = d.get('_event')
 
     return f
 
@@ -125,7 +131,12 @@ def ode_from_code(code, f_name, ode_dim_select):
         def curied(x, y):
             return torch.hstack(f(x, y, **kwargs))
 
-        sol = sillyode(curied, kwargs['y0'], x, atol=5e-7, rtol=1e-5)[:, ode_dim_select]
+        sol = sillyode(curied, kwargs['y0'], x, atol=5e-7, rtol=1e-5)
+        if f._transform is None:
+            sol = sol[:, ode_dim_select]
+        else:
+            print('here')
+            sol = f._transform(x, sol.t(), **kwargs)
 
         if added_zero:
             sol = sol[1:]

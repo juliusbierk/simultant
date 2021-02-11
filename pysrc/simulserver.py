@@ -87,8 +87,11 @@ def plot_code_py(data):
     kwargs = get_default_args(f, content['expr_mode'], content.get('ode_dim'))
     f = get_f_expr_or_ode(content['code'], content['expr_mode'], f_name, content.get('ode_dim_select'))
 
-    if not content['expr_mode']:
-        kwargs['y0'] = torch.tensor(kwargs['y0'], dtype=torch.double)
+    # if not content['expr_mode']:
+    #     kwargs['y0'] = torch.tensor(kwargs['y0'], dtype=torch.double)
+
+    for k in kwargs:
+        kwargs[k] = torch.tensor(kwargs[k], dtype=torch.double)
 
     if 'xlim' in data:
         x = torch.linspace(data['xlim'][0], data['xlim'][1], 250, dtype=torch.double)
