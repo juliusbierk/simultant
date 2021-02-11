@@ -135,7 +135,6 @@ def ode_from_code(code, f_name, ode_dim_select):
         if f._transform is None:
             sol = sol[:, ode_dim_select]
         else:
-            print('here')
             sol = f._transform(x, sol.t(), **kwargs)
 
         if added_zero:
