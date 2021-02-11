@@ -1,5 +1,7 @@
 <template>
-  <div>
-    <h1>This is home</h1>
+  <div class="row">
+    <div class="cell-6 offset-1">
+       <h1>Simultant</h1>
+    </div>
   </div>
 </template>
