@@ -69,6 +69,10 @@
                           data-caption="Code"
                         />
                         <span style="margin-right:50px"></span>
+                        <button style="position:relative; bottom:5px"
+                                class="button light"
+                                @click="delete_model(name)"
+                        >&#9587;</button>
                       </div>
                     </div>
 
@@ -601,6 +605,19 @@ export default {
           this.toggle_add_model();
         }
       });
+    },
+    delete_model(name) {
+        fetch(this.py + "/delete_model", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({name})
+        }).then(async result => {
+          await result.json();
+          this.clear_fit();
+          this.update_model_list();
+        });
     },
     submit_model() {
       var c = this.expr_mode ? this.code : this.ode_code;

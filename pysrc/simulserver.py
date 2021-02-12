@@ -7,6 +7,7 @@ from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
 from db import create_model, get_models_names, get_all_models, create_dataset,\
     get_data_names, get_data_content, get_models_content
+import db
 from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
 import logging
 import csv
@@ -53,6 +54,11 @@ async def add_model(request):
     data['args'] = [{'name': k, 'value': v} for k, v in kwargs.items()]
     create_model(data['name'], data)
 
+    return web.json_response({'success': True})
+
+async def delete_model(request):
+    data = await request.json()
+    db.delete_model(data['name'])
     return web.json_response({'success': True})
 
 
@@ -401,6 +407,7 @@ if __name__ == '__main__':
     routes = [('/check_code', check_code),
               ('/plot_code', plot_code),
               ('/add_model', add_model),
+              ('/delete_model', delete_model),
               ('/model_exist_check', model_exist_check),
               ('/model_list', model_list),
               ('/upload_data', upload_data),

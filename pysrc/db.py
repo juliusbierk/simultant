@@ -34,6 +34,10 @@ def create_model(name, content):
     c.execute("REPLACE INTO models VALUES (?, ?)", (name, json.dumps(content)))
     conn.commit()
 
+def delete_model(name):
+    c.execute("DELETE FROM models WHERE name=?", (name, ))
+    conn.commit()
+
 def get_models_names():
     return [x[0] for x in c.execute("SELECT name FROM models").fetchall()]
 
