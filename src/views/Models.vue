@@ -131,7 +131,7 @@
                 data-prepend="Name: "
                 v-model="name"
                 @change="update_name"
-                v-on:keyup="update_name"
+                v-on:keyup="update_name_not_edit"
                 data-validate="pattern=(^[a-zA-Z_][\sa-zA-Z0-9_]*$)"
               />
               <span class="invalid_feedback">
@@ -524,7 +524,7 @@ export default {
         body: JSON.stringify(body)
       }).then(async result => {
         var res = await result.json();
-        if (res["exists"]) {
+        if (res["exists"] && !this.is_editing_model) {
           if (!confirm("Model exists. Overwrite?")) {
             return;
           }
@@ -598,6 +598,10 @@ export default {
         window.cmcode.setValue(this.ode_code);
         this.update_name();
       }
+    },
+    update_name_not_edit() {
+      this.is_editing_model = false;
+      this.update_name();
     },
     update_name() {
       this.marker.clear();

@@ -13,8 +13,8 @@ import typing
 import inspect
 
 
-logging.basicConfig(level=logging.DEBUG)
-logging.root.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 torchfcts = {"sin": sin, "cos": cos, "exp": exp, "tensor": tensor, "sqrt": sqrt, "asin": asin,
              "acos": acos, "ones": ones, "zeros": zeros, "linspace": linspace, "logspace": logspace, "arange": arange,
@@ -43,11 +43,11 @@ class RangeType:
         return typing.NewType(f'{i}', typing.Any)
 
     def __getitem__(self, sli):
-        i = sli.start
-        j = sli.stop
-        t = typing.NewType(f'{i}-{j}', typing.Any)
-        t.i = i
-        t.j = j
+        start = sli.start
+        stop = sli.stop
+        t = typing.NewType(f'{start}-{stop}', typing.Any)
+        t.start = start
+        t.stop = stop
         return t
 
 
@@ -65,7 +65,7 @@ def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
             if hasattr(r, '__len__') and len(r) != 1:
                 error = 'Output is not one-dimensional.'
         except Exception as e:
-            logging.debug('Could not get arguments', exc_info=e)
+            logger.debug('Could not get arguments', exc_info=e)
             error = str(e).replace('<string>, ', '')
 
     else:
@@ -84,7 +84,7 @@ def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
                 error = 'Selected dimension must be zero for ODE of dimension one. '
 
         except Exception as e:
-            logging.debug('Could not run function', exc_info=e)
+            logger.debug('Could not run function', exc_info=e)
             error = str(e).replace('<string>, ', '')
 
     return error
@@ -94,14 +94,14 @@ def check_code_get_args(code, f_name, expr_mode, ode_dim, ode_dim_select):
     try:
         f = function_from_code(code, f_name)
     except Exception as e:
-        logging.debug('Could not form function', exc_info=e)
+        logger.debug('Could not form function', exc_info=e)
         error = str(e).replace('<string>, ', '')
         return {'error': error}
 
     try:
         kwargs = get_default_args(f, expr_mode, ode_dim)
     except Exception as e:
-        logging.debug('Could not get arguments', exc_info=e)
+        logger.debug('Could not get arguments', exc_info=e)
         error = 'Could not extract arguments:\n' + str(e)
         return {'error': error}
 
@@ -127,25 +127,23 @@ def get_default_args(func, expr, dim=1):
     return kwargs
 
 
-def get_bounds(func, expr, dim=1):
+def get_bounds(func):
     signature = inspect.signature(func)
-
-    annotations = {
-        k: v.default if v.default is not inspect.Parameter.empty else (1 if expr else (1 if k != 'y0' else [1] * dim))
+    bounds = {
+        k: [0, None] if v.annotation is inspect.Parameter.empty else [v.annotation.start, v.annotation.stop]
         for k, v in signature.parameters.items()
     }
-    del kwargs['x']
-    if not expr:
-        del kwargs['y']
-    return kwargs
+    return bounds
+
 
 
 def function_from_code(code, f_name):
-    d = {}
+    d = {'R': R}
     exec(code, torchfcts, d)
-    f = d[f_name]
+    f: typing.Callable = d[f_name]
     f._transform = d.get('_transform')
     f._event = d.get('_event')
+    f._bounds = get_bounds(f)
 
     return f
 
@@ -190,5 +188,7 @@ def ode_from_code(code, f_name, ode_dim_select):
         res[mask] = sol
 
         return res
+
+    ode_f._bounds = f._bounds
 
     return ode_f
