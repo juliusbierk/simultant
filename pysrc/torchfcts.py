@@ -117,6 +117,9 @@ def function_from_code(code, f_name):
 
 
 def ode_from_code(code, f_name, ode_dim_select):
+    atol = 5e-7
+    rtol = 1e-5
+
     f = function_from_code(code, f_name)
 
     def ode_f(x, **kwargs):
@@ -131,11 +134,20 @@ def ode_from_code(code, f_name, ode_dim_select):
         def curied(x, y):
             return torch.hstack(f(x, y, **kwargs))
 
-        sol = sillyode(curied, kwargs['y0'], x, atol=5e-7, rtol=1e-5)
-        if f._transform is None:
-            sol = sol[:, ode_dim_select]
+        if f._event is None:
+            sol = sillyode(curied, kwargs['y0'], x, atol=atol, rtol=rtol)
+            if f._transform is None:
+                sol = sol[:, ode_dim_select]
+            else:
+                sol = f._transform(x, sol.t(), **kwargs)
         else:
-            sol = f._transform(x, sol.t(), **kwargs)
+            def curied_event(x, y):
+                return f._event(x, y, **kwargs)
+            curied_event.direction = f._event.direction if hasattr(f._event, 'direction') else 0
+            curied_event.X_factor = f._event.X_factor if hasattr(f._event, 'X_factor') else 1
+
+            sol, event_x, event_y = sillyode(curied, kwargs['y0'], x, atol=atol, rtol=rtol, event=curied_event)
+            sol = f._transform(x, sol.t(), event_x, event_y, **kwargs)
 
         if added_zero:
             sol = sol[1:]

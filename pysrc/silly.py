@@ -42,7 +42,7 @@ def _take_step(T, b, func, h, y):
     return y + h * (b[0] * k0 + b[1] * k1 + b[2] * k2 + b[3] * k3)
 
 
-def sillyode(func, y0, t, atol=1e-9, rtol=1e-7):
+def sillyode(func, y0, t, atol=1e-9, rtol=1e-7, event=None):
     assert not t.is_cuda, 'Only works on CPU for now.'
     t = t + torch.linspace(t.min(), t.max(), len(t)) * (t[-1] - t[0]) * 1e-8  # to ensure different ts
 
@@ -52,8 +52,24 @@ def sillyode(func, y0, t, atol=1e-9, rtol=1e-7):
         def np_f(t, y):
             return func(torch.from_numpy(np.asarray(t)), torch.from_numpy(y)).numpy()
 
-        res = solve_ivp(np_f, (t.min(), t.max()), y0, t_eval=None, dense_output=not requires_grad,
-                        rtol=rtol, atol=atol)
+        if event is None:
+            res = solve_ivp(np_f, (t.min(), t.max()), y0, t_eval=None, dense_output=not requires_grad,
+                            rtol=rtol, atol=atol, events=event)
+        else:
+            event.terminal = True
+            res = solve_ivp(np_f, (t.min(), event.X_factor * t.max()), y0, t_eval=None, dense_output=not requires_grad,
+                            rtol=rtol, atol=atol, events=event)
+
+            if len(res.t_events):
+                t_event = res.t_events[0][0]
+
+                if t_event < t.max():
+                    # Silly to solve for parts of the ODE twice, but this is just too easy to not do:
+                    res = solve_ivp(np_f, (t.min(), t.max()), y0, t_eval=None,
+                                    dense_output=not requires_grad,
+                                    rtol=rtol, atol=atol)
+            else:
+                t_event = t.max() + atol
 
         if not res.success:
             raise ArithmeticError("Could not solve ODE")
@@ -62,7 +78,11 @@ def sillyode(func, y0, t, atol=1e-9, rtol=1e-7):
             y = res.sol(t.numpy())
             y = torch.from_numpy(y).t()
             assert len(y) == len(t), f'Something went wrong, needed {len(t)} evaluation points but got {len(y)}'
-            return y
+
+            if event is None:
+                return y
+            else:
+                return y, t_event, res.sol(t_event)
 
     tt = torch.from_numpy(res.t)
     y = rk4(func, y0, t, tt)

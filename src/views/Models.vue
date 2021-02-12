@@ -190,7 +190,7 @@
                   v-show="has_transform_function"
                   class="cell-6"
                   data-role="hint"
-                  data-hint-text="This is not needed as you are using a _transform function."
+                  data-hint-text="This is not needed when using a _transform function."
                   data-hint-hide="0"
                   data-cls-hint="bg-lightCyan fg-white"
                 >
@@ -385,16 +385,16 @@ export default {
       orig_ode_code:
         "def New_Model(x, y, *, y0=[1, 1], a=1, b=1):\n    return a * y[1], -b * y[0]\n",
       transform_code:
-        "\n\ndef _transform(x, y, **kwargs):\n" +
+        "\n\ndef _transform(x, y, **kw):\n" +
         "    # This function is called after the ODE is solved\n" +
         "    # and should transform to the fit function.\n" +
-        "    # `kwargs` will contain all parameters.\n" +
+        "    # `kw` will contain all parameters.\n" +
         "    return y[]\n",
       event_code:
-        "\n\ndef _transform(x, y, x_event, y_event, **kwargs):\n" +
+        "\n\ndef _transform(x, y, x_event, y_event, **kw):\n" +
         "    # This function is called after the ODE is solved\n" +
         "    # and should transform to the fit function.\n" +
-        "    # `kwargs` will contain all parameters.\n" +
+        "    # `kw` will contain all parameters.\n" +
         "    # x_event and y_event are the (first) values when the\n" +
         "    # `event` function evaluates to zero.\n" +
         "    return y[]\n\n" +
@@ -402,7 +402,8 @@ export default {
         "    # Defines an event time. This can be used to define e.g.\n" +
         "    # a specific value-crossing or a steady state\n" +
         "    return y[0]\n\n" +
-        "_event.direction = 0   # -1 = pos -> neg, 1 = neg -> pos, 0 = any zero-crossing \n",
+        "_event.direction = 0   # -1 = pos -> neg, 1 = neg -> pos, 0 = any zero-crossing \n" +
+        "_event.X_factor = 25   # how much longer than the largest x to wait for event to happen \n",
       cmcode: null,
       marker: null,
       add_model: false,
