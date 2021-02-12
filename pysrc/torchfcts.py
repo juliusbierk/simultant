@@ -192,3 +192,10 @@ def ode_from_code(code, f_name, ode_dim_select):
     ode_f._bounds = f._bounds
 
     return ode_f
+
+
+def get_f_expr_or_ode(code, expr_mode, f_name, ode_dim_select):
+    f = function_from_code(code, f_name)
+    if not expr_mode:
+        f = ode_from_code(code, f_name, ode_dim_select)
+    return f

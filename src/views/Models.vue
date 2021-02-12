@@ -295,11 +295,13 @@
                     e.g. <kbd>a: R[lower:upper]</kbd> to bound parameter
                     <kbd>a</kbd> in the function definition. To bound with just
                     one limit use e.g. <kbd>a: R[0:]</kbd> to bound between 0
-                    and &infin;. Warning: if you use multiple functions that
-                    share parameters, it is your responsibility to ensure that
-                    the bounds match across functions.
+                    and &infin;. And use <kbd>a: R[:]</kbd> to make a parameter unbounded.
+                    (If you use multiple models in a fit that share detached parameters,
+                    the bounds will be taken from an arbitrary function.)
                     <button class="button light small" @click="bounds_example">
                       Add Example Code.
+                    </button> <button class="button light small" @click="show_bound_info = false">
+                      Hide bounds information
                     </button>
                   </div>
                 </div>
@@ -445,12 +447,12 @@ export default {
         "_event.direction = 0   # -1 = pos -> neg, 1 = neg -> pos, 0 = any zero-crossing \n" +
         "_event.X_factor = 25   # how much longer than the largest x to wait for event to happen \n",
       bounds_example_code:
-        "\n\ndef bounds_example(x, *, a: R[0:]=1, \n" +
+        "\n\ndef bounds_example(x, *, a: R[:]=0, \n" +
         "                         b: R[1:2], \n" +
         "                         c):\n" +
         "    return a * x**b + c\n",
       bounds_example_ode_code:
-        "\n\ndef bounds_example(x, y, *, y0: R[0:], \n" +
+        "\n\ndef bounds_example(x, y, *, y0: R[:], \n" +
         "                            a: R[0:10]=1, \n" +
         "                            b: R[1:2], \n" +
         "                            c):\n" +
