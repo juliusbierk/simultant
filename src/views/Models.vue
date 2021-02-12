@@ -13,6 +13,16 @@
                   v-show="!add_model"
                   style="margin-right:20px"
                   class="button secondary small defaultcursor"
+                >
+                  Import Model
+                </button></span
+              >
+
+              <span
+                ><button
+                  v-show="!add_model"
+                  style="margin-right:20px"
+                  class="button secondary small defaultcursor"
                   @click="toggle_add_model"
                 >
                   + Create New Model

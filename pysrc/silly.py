@@ -60,7 +60,7 @@ def sillyode(func, y0, t, atol=1e-9, rtol=1e-7, event=None):
             res = solve_ivp(np_f, (t.min(), event.X_factor * t.max()), y0, t_eval=None, dense_output=not requires_grad,
                             rtol=rtol, atol=atol, events=event)
 
-            if len(res.t_events):
+            if len(res.t_events) and len(res.t_events[0]):
                 t_event = res.t_events[0][0]
 
                 if t_event < t.max():
@@ -84,6 +84,8 @@ def sillyode(func, y0, t, atol=1e-9, rtol=1e-7, event=None):
             else:
                 return y, t_event, res.sol(t_event)
 
+    if event is not None:
+        raise NotImplementedError("Still need to add t_event to tt, etc.....")
     tt = torch.from_numpy(res.t)
     y = rk4(func, y0, t, tt)
     assert len(y) == len(t), f'Something went wrong, needed {len(t)} evaluation points but got {len(y)}'
