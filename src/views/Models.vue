@@ -82,7 +82,9 @@
                             style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                             data-role="hint"
                             data-hint-hide="0"
-                            :data-hint-text="'Default value: ' + p.value.toString()"
+                            :data-hint-text="
+                              'Default value: ' + p.value.toString()
+                            "
                             data-cls-hint="bg-lightCyan fg-white"
                             class="defaultcursor button secondary small rounded outline"
                           >
@@ -293,12 +295,17 @@
                     e.g. <kbd>a: R[lower:upper]</kbd> to bound parameter
                     <kbd>a</kbd> in the function definition. To bound with just
                     one limit use e.g. <kbd>a: R[0:]</kbd> to bound between 0
-                    and &infin;. And use <kbd>a: R[:]</kbd> to make a parameter unbounded.
-                    (If you use multiple models in a fit that share detached parameters,
-                    the bounds will be taken from an arbitrary function.)
+                    and &infin;. And use <kbd>a: R[:]</kbd> to make a parameter
+                    unbounded. (If you use multiple models in a fit that share
+                    detached parameters, the bounds will be taken from an
+                    arbitrary function.)
                     <button class="button light small" @click="bounds_example">
                       Add Example Code.
-                    </button> <button class="button light small" @click="show_bound_info = false">
+                    </button>
+                    <button
+                      class="button light small"
+                      @click="show_bound_info = false"
+                    >
                       Hide bounds information
                     </button>
                   </div>
@@ -507,15 +514,24 @@ export default {
   methods: {
     ...mapMutations(["clear_fit"]),
     parameter_info_text(p) {
-      let r = 'Default value: ' + p.value.toString();
+      let r = "Default = " + p.value.toString();
       if (p.lower == null && p.upper == null) {
-        r += ', unbounded';
+        r += ", unbounded";
       } else if (p.lower == null) {
-        r += ', smaller than ' + p.upper.toString();
+        r += ", smaller than " + p.upper.toString();
       } else if (p.upper == null) {
-        r += ', larger than ' + p.lower.toString();
+        if (p.lower === 0) {
+          r += ", positive parameter";
+        } else {
+          r += ", larger than " + p.lower.toString();
+        }
       } else {
-        r += ', in interval [' + p.lower.toString() + ', ' + p.upper.toString() + ']';
+        r +=
+          ", in interval [" +
+          p.lower.toString() +
+          ", " +
+          p.upper.toString() +
+          "]";
       }
       return r;
     },
