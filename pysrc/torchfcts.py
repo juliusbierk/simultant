@@ -9,6 +9,9 @@ from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace
     isfinite, fft, rfft, ifft, cross, cumsum, cumprod, diag, flatten, roll, dot, det, solve, trapz, empty, \
     empty_like
 import logging
+import typing
+import inspect
+
 
 logging.basicConfig(level=logging.DEBUG)
 logging.root.setLevel(logging.DEBUG)
@@ -31,6 +34,24 @@ torchfcts = {"sin": sin, "cos": cos, "exp": exp, "tensor": tensor, "sqrt": sqrt,
              "cumprod": cumprod, "diag": diag, "flatten": flatten, "roll": roll, "dot": dot, "det": det, "solve": solve,
              "trapz": trapz, "empty": empty, "empty_like": empty_like}
 
+
+class RangeType:
+    def __init__(self):
+        pass
+
+    def __call__(self, i):
+        return typing.NewType(f'{i}', typing.Any)
+
+    def __getitem__(self, sli):
+        i = sli.start
+        j = sli.stop
+        t = typing.NewType(f'{i}-{j}', typing.Any)
+        t.i = i
+        t.j = j
+        return t
+
+
+R = RangeType()
 
 def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
     tensor_kwargs = {}
@@ -97,6 +118,19 @@ def get_default_args(func, expr, dim=1):
     signature = inspect.signature(func)
 
     kwargs = {
+        k: v.default if v.default is not inspect.Parameter.empty else (1 if expr else (1 if k != 'y0' else [1] * dim))
+        for k, v in signature.parameters.items()
+    }
+    del kwargs['x']
+    if not expr:
+        del kwargs['y']
+    return kwargs
+
+
+def get_bounds(func, expr, dim=1):
+    signature = inspect.signature(func)
+
+    annotations = {
         k: v.default if v.default is not inspect.Parameter.empty else (1 if expr else (1 if k != 'y0' else [1] * dim))
         for k, v in signature.parameters.items()
     }
