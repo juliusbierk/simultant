@@ -61,6 +61,12 @@ async def delete_model(request):
     return web.json_response({'success': True})
 
 
+async def delete_data(request):
+    data = await request.json()
+    db.delete_data(data['parent'])
+    return web.json_response({'success': True})
+
+
 async def model_exist_check(request):
     data = await request.json()
     print(data['name'], db.get_models_names())
@@ -407,6 +413,7 @@ if __name__ == '__main__':
               ('/plot_code', plot_code),
               ('/add_model', add_model),
               ('/delete_model', delete_model),
+              ('/delete_data', delete_data),
               ('/model_exist_check', model_exist_check),
               ('/model_list', model_list),
               ('/upload_data', upload_data),

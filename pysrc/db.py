@@ -27,6 +27,10 @@ def get_data_content(ID):
     if a is not None:
         return json.loads(a[0])
 
+def delete_data(parent):
+    c.execute("DELETE FROM data WHERE parent=?", (parent, ))
+    conn.commit()
+
 
 ### MODELS ###
 

@@ -69,10 +69,13 @@
                           data-caption="Code"
                         />
                         <span style="margin-right:50px"></span>
-                        <button style="position:relative; bottom:5px"
-                                class="button light"
-                                @click="delete_model(name)"
-                        >&#9587;</button>
+                        <button
+                          style="position:relative; bottom:5px"
+                          class="button light"
+                          @click="delete_model(name)"
+                        >
+                          &#9587;
+                        </button>
                       </div>
                     </div>
 
@@ -303,7 +306,11 @@
                     unbounded. (If you use multiple models in a fit that share
                     detached parameters, the bounds will be taken from an
                     arbitrary function.)
-                    <button style="margin-right: 3px" class="button light small" @click="bounds_example">
+                    <button
+                      style="margin-right: 3px"
+                      class="button light small"
+                      @click="bounds_example"
+                    >
                       Add Example Code
                     </button>
                     <button
@@ -608,19 +615,19 @@ export default {
     },
     delete_model(name) {
       if (!confirm("Delete model?")) {
-            return;
-          }
-        fetch(this.py + "/delete_model", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({name})
-        }).then(async result => {
-          await result.json();
-          this.clear_fit();
-          this.update_model_list();
-        });
+        return;
+      }
+      fetch(this.py + "/delete_model", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name })
+      }).then(async result => {
+        await result.json();
+        this.clear_fit();
+        this.update_model_list();
+      });
     },
     submit_model() {
       var c = this.expr_mode ? this.code : this.ode_code;

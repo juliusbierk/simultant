@@ -51,9 +51,15 @@
 
             <div v-if="filename || show_example" class="row">
               <div class="cell-8 offset-2">
-                <small v-show="filename && filenames.length === 1"
-                  >{{ filename }}:</small
-                >
+                <span v-show="filename && filenames.length === 1">
+                  <input
+                    type="text"
+                    data-role="input"
+                    data-prepend="Dataset name: "
+                    v-model="upload_dataset_name"
+                  />
+                </span>
+
                 <small v-show="filename && filenames.length !== 1"
                   >Processing {{ filenames }}, showing "{{ filename }}":</small
                 >
@@ -209,6 +215,13 @@
                           data-caption="Plot"
                         />
                         <span style="margin-right:50px"></span>
+                        <button
+                          style="position:relative; bottom:5px"
+                          class="button light"
+                          @click="delete_data(parent)"
+                        >
+                          &#9587;
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -265,7 +278,8 @@ function get_upload_defaults() {
     target_files: null,
     commit_data: false,
     upload_error: null,
-    interweaving_example: false
+    interweaving_example: false,
+    upload_dataset_name: null
   };
 }
 
@@ -307,6 +321,23 @@ export default {
       this.multiple_x_axes = true;
       this.interweaving_example = true;
     },
+    delete_data(parent) {
+      if (!confirm("Delete dataset?")) {
+        return;
+      }
+      fetch(this.py + "/delete_data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ parent })
+      }).then(async result => {
+        await result.json();
+        this.do_reset();
+        this.clear_fit();
+        this.update_datasets();
+      });
+    },
     submit_data() {
       this.commit_data = true;
       this.upload();
@@ -332,8 +363,14 @@ export default {
       if (files) {
         // For now just do one file:
         const formData = new FormData();
+        let i = 0;
         for (const file of files) {
-          formData.append("file_" + file.name, file);
+          if (i === 0 && this.commit_data) {
+            formData.append("file_" + this.upload_dataset_name, file);
+          } else {
+            formData.append("file_" + file.name, file);
+          }
+          i++;
         }
 
         formData.append("has_header", this.has_header);
@@ -368,6 +405,7 @@ export default {
               this.data = data.example.data;
               this.has_header = data.example.has_header;
               this.filename = data.example.fname;
+              this.upload_dataset_name = this.filename;
               this.filenames = data.filenames;
             }
           })
