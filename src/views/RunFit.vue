@@ -40,7 +40,7 @@
               <div class="cell-3">
                 <div
                   id="progress1"
-                  v-show="fit_running"
+                  v-show="fit_running || plot_running"
                   data-role="progress"
                   data-type="line"
                   data-small="true"
@@ -64,7 +64,7 @@
                 <button
                   class="button defaultcursor"
                   @click="reset_fit_update_plot"
-                  :disabled="fit_running"
+                  :disabled="fit_running || plot_running"
                 >
                   Reset
                 </button>
@@ -72,7 +72,7 @@
                 <button
                   class="button defaultcursor"
                   @click="update_plot"
-                  :disabled="fit_running"
+                  :disabled="fit_running || plot_running"
                 >
                   Update Plot
                 </button>
@@ -80,7 +80,7 @@
                 <button
                   class="button success defaultcursor"
                   @click="run_fit"
-                  :disabled="fit_running"
+                  :disabled="fit_running || plot_running"
                 >
                   Fit
                 </button>
@@ -318,6 +318,7 @@ export default {
       py: "http://127.0.0.1:7555",
       loaded: false,
       fit_running: false,
+      plot_running: true,
       plot_created: false,
       iteration: 0,
       loss: null
@@ -410,6 +411,7 @@ export default {
       });
     },
     update_plot() {
+      this.plot_running = true;
       fetch(this.py + "/plot_fit", {
         method: "POST",
         headers: {
@@ -427,6 +429,7 @@ export default {
         }
 
         this.plot_created = true;
+        this.plot_running = false;
       });
     }
   },

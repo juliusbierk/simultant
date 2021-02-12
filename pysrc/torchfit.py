@@ -88,11 +88,16 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
     for d in data:
         f = models[d['model']]['f']
         for parameter_name, parameter_index in d['parameter_indeces'].items():
+            if 'y0[' in parameter_name:
+                bound = f._bounds['y0']
+            else:
+                bound = f._bounds[parameter_name]
+
             if parameter_index < const_index:
-                if not(f._bounds[parameter_name][1] is None and f._bounds[parameter_name][0] == 0):
+                if not(bound[1] is None and bound[0] == 0):
                     all_positive = False
-                parameter_lower_bounds[parameter_index] = f._bounds[parameter_name][0]
-                parameter_upper_bounds[parameter_index] = f._bounds[parameter_name][1]
+                parameter_lower_bounds[parameter_index] = bound[0]
+                parameter_upper_bounds[parameter_index] = bound[1]
 
     # Now ensure that initial values lie within bounds:
     fix_initial_values(const_index, parameter_lower_bounds, parameter_upper_bounds, values)
