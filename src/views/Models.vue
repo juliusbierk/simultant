@@ -283,6 +283,20 @@
                 </div>
               </div>
 
+              <div v-if="using_bounds" class="row">
+                <div class="offset-1 cell-10">
+                  <div
+                    class="remark warning"
+                    style="margin-top:0; margin-bottom:0"
+                  >
+                    <b>Bounds:</b> Use <kbd>a: R[lower:upper]</kbd> to bound parameter <var>a</var>.
+                    To bound with just one limit use e.g. <kbd>a: R[0:]</kbd> to bound between 0 and &infin;.
+                    Warning: if you use multiple functions that share parameters, it is your responsibility to ensure
+                    that the bounds match across functions.
+                  </div>
+                </div>
+              </div>
+
               <div v-if="parameters" class="row">
                 <div class="offset-1 cell-10">
                   <div
@@ -438,6 +452,15 @@ export default {
         return this.ode_code.includes("def _transform");
       } else {
         return true;
+      }
+    },
+    using_bounds: function() {
+      if (!this.expr_mode && this.ode_code) {
+        return this.ode_code.includes(":R[") || this.ode_code.includes(": R[") || this.ode_code.includes(":  R[");
+      } else if (this.expr_mode && this.code) {
+          return this.code.includes(":R[") || this.code.includes(": R[") || this.code.includes(":  R[");
+      } else {
+        return false;
       }
     }
   },
