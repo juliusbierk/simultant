@@ -1,4 +1,5 @@
 import asyncio
+import concurrent
 import json
 import numpy as np
 import torch
@@ -252,6 +253,15 @@ async def fit_result(request):
     return web.json_response({'status': 'success', 'fit': fit})
 
 
+class PickleableF:
+    def __init__(self, m):
+        self.m = m
+
+    def __call__(self, *args, **kwargs):
+        m = self.m
+        f = get_f_expr_or_ode(m['code'], m['expr_mode'], m['name_underscore'], m.get('ode_dim_select'))
+        return list(f(*args, **kwargs).numpy())
+
 async def plot_fit(request):
     data = await request.json()
 
@@ -262,7 +272,8 @@ async def plot_fit(request):
     models = {}
     for model_id, d in data['models'].items():
         m = db.get_models_content(d['name'])
-        models[model_id] = get_f_expr_or_ode(m['code'], m['expr_mode'], m['name_underscore'], m.get('ode_dim_select'))
+
+        models[model_id] = PickleableF(m)
         models[model_id].expr_mode = m['expr_mode']
         models[model_id].ode_dim = m.get('ode_dim')
 
@@ -294,32 +305,40 @@ async def plot_fit(request):
     x_list = list(x)
     x_torch = torch.from_numpy(x)
 
-    for i, d_id in enumerate(data['data']):
-        d = data['data'][d_id]
-        if d['in_use']:
-            f = models[d['model']]
-            is_fitted = True
-            kwargs = {}
-            for p in d['parameters']:
-                p_id = d['parameters'][p]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
+        for i, d_id in enumerate(data['data']):
+            d = data['data'][d_id]
+            if d['in_use']:
+                f = models[d['model']]
+                is_fitted = True
+                kwargs = {}
+                for p in d['parameters']:
+                    p_id = d['parameters'][p]
 
-                parameter = data['parameters'][p_id]
+                    parameter = data['parameters'][p_id]
 
-                if parameter['const']:
-                    kwargs[p] = parameter['value']
-                elif parameter.get('fit') is None:
-                    kwargs[p] = parameter['value']
-                    is_fitted = False
-                else:
-                    kwargs[p] = parameter['fit']
+                    if parameter['const']:
+                        kwargs[p] = parameter['value']
+                    elif parameter.get('fit') is None:
+                        kwargs[p] = parameter['value']
+                        is_fitted = False
+                    else:
+                        kwargs[p] = parameter['fit']
 
-            if not f.expr_mode:
-                kwargs = transform_y0_kwargs_for_ode(kwargs, f.ode_dim)
+                if not f.expr_mode:
+                    kwargs = transform_y0_kwargs_for_ode(kwargs, f.ode_dim)
 
-            y = f(x_torch, **kwargs).numpy()
-            c = DEFAULT_PLOTLY_COLORS[i % len(DEFAULT_PLOTLY_COLORS)]
-            plot_data.append({'x': x_list, 'y': list(y), 'mode': 'lines', 'showlegend': False, 'legendgroup': d_id,
-                              'line': {'color': c} if is_fitted else {'color': c, 'dash': 'dash'}})
+                # Run function evaluation in parallel, without interrupting server loop:
+                future = asyncio.wrap_future(executor.submit(f, x_torch, **kwargs))
+
+                c = DEFAULT_PLOTLY_COLORS[i % len(DEFAULT_PLOTLY_COLORS)]
+                plot_data.append({'x': x_list, 'future': future, 'mode': 'lines', 'showlegend': False, 'legendgroup': d_id,
+                                  'line': {'color': c} if is_fitted else {'color': c, 'dash': 'dash'}})
+
+        for d in plot_data:
+            if 'future' in d:
+                d['y'] = await d['future']
+                del d['future']
 
     return web.json_response(plot_data)
 
