@@ -27,6 +27,9 @@ class ParameterRange:
         self.torch_lower = None if lower is None else torch.tensor(lower, dtype=torch.double)
         self.torch_upper = None if upper is None else torch.tensor(upper, dtype=torch.double)
 
+    def __repr__(self):
+        return f'R<{self.lower} : {self.upper}>'
+
     def np_forward(self, x):
         if self.lower is None and self.upper is None:
             return x
@@ -91,29 +94,13 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
                 parameter_lower_bounds[parameter_index] = f._bounds[parameter_name][0]
                 parameter_upper_bounds[parameter_index] = f._bounds[parameter_name][1]
 
-    # Check initial values:
+    # Now ensure that initial values lie within bounds:
+    fix_initial_values(const_index, parameter_lower_bounds, parameter_upper_bounds, values)
+
+    # Make ParameterRange instances:
+    parameter_ranges = []
     for i in range(const_index):
-        if parameter_lower_bounds[i] is None and parameter_upper_bounds[i] is None:
-            continue
-
-        if parameter_lower_bounds[i] is not None and values[i] == parameter_lower_bounds[i]:
-            values[i] += 1e-10
-
-        if parameter_upper_bounds[i] is not None and values[i] == parameter_upper_bounds[i]:
-            values[i] -= 1e-10
-
-        if parameter_lower_bounds[i] is None and parameter_upper_bounds[i] < values[i]:
-            values[i] = parameter_upper_bounds[i] - 1e-10
-
-        if parameter_upper_bounds[i] is None and values[i] < parameter_lower_bounds[i]:
-            values[i] = parameter_lower_bounds[i] + 1e-10
-
-        if parameter_lower_bounds[i] is None or parameter_upper_bounds[i] is None:
-            continue
-
-        if not (parameter_lower_bounds[i] < values[i] < parameter_upper_bounds[i]):
-            values[i] = 0.5 * (parameter_lower_bounds[i] + parameter_upper_bounds[i])
-
+        parameter_ranges.append(ParameterRange(parameter_lower_bounds[i], parameter_upper_bounds[i]))
 
     p_np_0 = np.array(values[:const_index], dtype=np.double)
     p_const = torch.tensor(values[const_index:], dtype=torch.double)
@@ -136,16 +123,19 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
 
     ic = IterationCounter()
 
-    ### ONLY POSITIVE:
-    p_np_0 = np.log(1e-19 + p_np_0)
+    # Transform initial guess:
+    for i, r in enumerate(parameter_ranges):
+        p_np_0[i] = r.np_forward(p_np_0[i])
 
     if method == 'anagrad':
         def loss_grad(p_np):
             try:
                 p_in = torch.from_numpy(p_np).requires_grad_()
 
-                ### ONLY POSITIVE
-                p = torch.exp(p_in)
+                if all_positive:
+                    p = torch.exp(p_in)
+                else:
+                    p = torch.stack([r.torch_backward(p_in[i]) for i, r in enumerate(parameter_ranges)])
 
                 t1 = time.time()
                 r = eval_f(p)
@@ -173,8 +163,10 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
             try:
                 p_in = torch.from_numpy(p_np)
 
-                ### ONLY POSITIVE
-                p = torch.exp(p_in)
+                if all_positive:
+                    p = torch.exp(p_in)
+                else:
+                    p = torch.stack([r.torch_backward(p_in[i]) for i, r in enumerate(parameter_ranges)])
 
                 with torch.no_grad():
                     r = eval_f(p)
@@ -197,9 +189,34 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
 
     p_opt = res.x
 
-    ### ONLY POSITIVE
-    p_opt = np.exp(p_opt)
+    # Transform final fit:
+    for i, r in enumerate(parameter_ranges):
+        p_opt[i] = r.np_backward(p_opt[i])
 
     p_res = {parameter_names[i]: float(p_opt[i]) for i in range(len(parameter_names)) if i < const_index}
     logger.debug(f'Finished fit in {time.time() - t1} seconds')
     return p_res
+
+
+def fix_initial_values(const_index, parameter_lower_bounds, parameter_upper_bounds, values):
+    for i in range(const_index):
+        if parameter_lower_bounds[i] is None and parameter_upper_bounds[i] is None:
+            continue
+
+        if parameter_lower_bounds[i] is not None and values[i] == parameter_lower_bounds[i]:
+            values[i] += 1e-10
+
+        if parameter_upper_bounds[i] is not None and values[i] == parameter_upper_bounds[i]:
+            values[i] -= 1e-10
+
+        if parameter_lower_bounds[i] is None and parameter_upper_bounds[i] < values[i]:
+            values[i] = parameter_upper_bounds[i] - 1e-10
+
+        if parameter_upper_bounds[i] is None and values[i] < parameter_lower_bounds[i]:
+            values[i] = parameter_lower_bounds[i] + 1e-10
+
+        if parameter_lower_bounds[i] is None or parameter_upper_bounds[i] is None:
+            continue
+
+        if not (parameter_lower_bounds[i] < values[i] < parameter_upper_bounds[i]):
+            values[i] = 0.5 * (parameter_lower_bounds[i] + parameter_upper_bounds[i])

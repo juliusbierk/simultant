@@ -82,9 +82,7 @@
                             style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                             data-role="hint"
                             data-hint-hide="0"
-                            :data-hint-text="
-                              'Default value: ' + p.value.toString()
-                            "
+                            :data-hint-text="parameter_info_text(p)"
                             data-cls-hint="bg-lightCyan fg-white"
                             class="defaultcursor button secondary small rounded outline"
                           >
@@ -320,7 +318,7 @@
                       style="margin-left:5px; margin-top:3px; margin-bottom:3px"
                       data-role="hint"
                       data-hint-hide="0"
-                      :data-hint-text="'Default value: ' + p.value.toString()"
+                      :data-hint-text="parameter_info_text(p)"
                       data-cls-hint="bg-lightCyan fg-white"
                       class="defaultcursor button secondary small rounded outline"
                     >
@@ -508,6 +506,9 @@ export default {
   },
   methods: {
     ...mapMutations(["clear_fit"]),
+    parameter_info_text(p) {
+      return 'Default value: ' + p.value.toString();
+    },
     add_transform_ode_code() {
       this.ode_code =
         this.ode_code +
