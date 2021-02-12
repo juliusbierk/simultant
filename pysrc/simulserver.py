@@ -5,14 +5,15 @@ import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-import db
-from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
 import logging
 import csv
 import multiprocessing
 import queue
 import pickle
+# Local imports:
+from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
 from torchfit import torch_fit
+import db
 
 logging.basicConfig(level=logging.WARN)
 logging.root.setLevel(logging.WARN)
