@@ -299,8 +299,8 @@
                     unbounded. (If you use multiple models in a fit that share
                     detached parameters, the bounds will be taken from an
                     arbitrary function.)
-                    <button class="button light small" @click="bounds_example">
-                      Add Example Code.
+                    <button style="margin-right: 3px" class="button light small" @click="bounds_example">
+                      Add Example Code
                     </button>
                     <button
                       class="button light small"
