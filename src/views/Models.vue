@@ -607,6 +607,9 @@ export default {
       });
     },
     delete_model(name) {
+      if (!confirm("Delete model?")) {
+            return;
+          }
         fetch(this.py + "/delete_model", {
           method: "POST",
           headers: {

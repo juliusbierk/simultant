@@ -5,8 +5,6 @@ import torch
 from aiohttp import web
 from aiohttp.web_runner import GracefulExit
 import aiohttp_cors
-from db import create_model, get_models_names, get_all_models, create_dataset,\
-    get_data_names, get_data_content, get_models_content
 import db
 from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
 import logging
@@ -52,7 +50,7 @@ async def add_model(request):
     f = function_from_code(data['code'], data['name_underscore'])
     kwargs = get_default_args(f, data['expr_mode'], data.get('ode_dim'))
     data['args'] = [{'name': k, 'value': v} for k, v in kwargs.items()]
-    create_model(data['name'], data)
+    db.create_model(data['name'], data)
 
     return web.json_response({'success': True})
 
@@ -64,16 +62,16 @@ async def delete_model(request):
 
 async def model_exist_check(request):
     data = await request.json()
-    print(data['name'], get_models_names())
-    return web.json_response({'exists': data['name'] in get_models_names()})
+    print(data['name'], db.get_models_names())
+    return web.json_response({'exists': data['name'] in db.get_models_names()})
 
 
 async def model_list(request):
-    return web.json_response(get_all_models())
+    return web.json_response(db.get_all_models())
 
 
 async def data_list(request):
-    return web.json_response(get_data_names())
+    return web.json_response(db.get_data_names())
 
 
 async def plot_code(request):
@@ -112,7 +110,7 @@ async def plot_data(request):
     plot_data = []
     max_n = data.get('max_n', 250)
     for content in data['content']:
-        dataset = get_data_content(content['id'])
+        dataset = db.get_data_content(content['id'])
         if len(dataset['x']) > max_n:
             skip = 1 + int(len(dataset['x']) / max_n)
         else:
@@ -173,7 +171,7 @@ async def upload_data(request):
                         return web.json_response({'success': False, 'error': 'x-axis not defined for all y-values.'})
                     dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
                                'orig_x': list(x[mask]), 'orig_y': list(y[mask])}
-                    create_dataset(header[i + 1], fname, dataset)
+                    db.create_dataset(header[i + 1], fname, dataset)
             else:
                 x = num_rows[:, 0]
                 for i in range(1, num_rows.shape[1]):
@@ -183,7 +181,7 @@ async def upload_data(request):
                         return web.json_response({'success': False, 'error': 'x-axis not defined for all y-values.'})
                     dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
                                'orig_x': list(x[mask]), 'orig_y': list(y[mask])}
-                    create_dataset(header[i], fname, dataset)
+                    db.create_dataset(header[i], fname, dataset)
 
         else:
             cut_horizontal = False
@@ -256,7 +254,7 @@ async def plot_fit(request):
     # Generate functions
     models = {}
     for model_id, d in data['models'].items():
-        m = get_models_content(d['name'])
+        m = db.get_models_content(d['name'])
         models[model_id] = get_f_expr_or_ode(m['code'], m['expr_mode'], m['name_underscore'], m.get('ode_dim_select'))
         models[model_id].expr_mode = m['expr_mode']
         models[model_id].ode_dim = m.get('ode_dim')
@@ -268,7 +266,7 @@ async def plot_fit(request):
         d = data['data'][d_id]
         if d['in_use']:
             #
-            dataset = get_data_content(d['id'])
+            dataset = db.get_data_content(d['id'])
             if len(dataset['x']) > max_n:
                 skip = 1 + int(len(dataset['x']) / max_n)
             else:
@@ -360,7 +358,7 @@ def fitter(input_queue, output_queue, status_queue):
         # Get model code
         models = {}
         for model_id, d in fit_info['models'].items():
-            m = get_models_content(d['name'])
+            m = db.get_models_content(d['name'])
             models[model_id] = {'code': m['code'], 'expr_mode': m['expr_mode'], 'name_underscore': m['name_underscore'],
                                 'ode_dim': m.get('ode_dim'), 'ode_dim_select': m.get('ode_dim_select')}
 
@@ -368,7 +366,7 @@ def fitter(input_queue, output_queue, status_queue):
         data = []
         for data_id, d in fit_info['data'].items():
             if d['in_use']:
-                db_data = get_data_content(d['id'])
+                db_data = db.get_data_content(d['id'])
                 data.append({'x': db_data['x'], 'y': db_data['y'], 'weight': d['weight'], 'model': d['model'],
                              'parameter_indeces': {k: parameter_names.index(v) for k, v in d['parameters'].items()}})
 
