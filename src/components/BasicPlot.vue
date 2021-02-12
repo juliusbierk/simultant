@@ -89,12 +89,13 @@ export default {
         var res = await result.json();
         this.update_ylim(res);
 
-        let layout = {
-          ...plotlysettings.layout
-        };
-        layout.xaxis.range = this.xlim;
-        if (this.ylim) {
-          layout.yaxis.range = this.ylim;
+        let layout = _.cloneDeep(plotlysettings.layout);
+
+        if (!this.dataplot) {
+          layout.xaxis.range = this.xlim;
+          if (this.ylim) {
+            layout.yaxis.range = this.ylim;
+            }
         }
 
         Plotly.react(this.plot_id, [res], layout);
