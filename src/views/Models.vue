@@ -115,7 +115,7 @@
         <div class="window">
           <div class="window-caption">
             <!--            <span class="icon mif-windows"></span>-->
-            <span class="title">Create New Model</span>
+            <span class="title">{{is_editing_model ? 'Edit Model' : 'Create New Model'}}</span>
             <div class="buttons">
               <span
                 class="btn-close defaultcursor"
@@ -337,7 +337,7 @@
                       style="margin-right:10px"
                       @click="submit_model"
                     >
-                      Add Model
+                      {{is_editing_model ? 'Commit Model' : 'Add Model'}}
                     </button>
 
                     <button
@@ -425,7 +425,8 @@ export default {
       show_plot: false,
       plot_body: null,
       models: {},
-      show_advanced_options: false
+      show_advanced_options: false,
+      is_editing_model: false,
     };
   },
   computed: {
@@ -467,6 +468,7 @@ export default {
       this.show_advanced_options = false;
     },
     edit_model(model_name) {
+      this.is_editing_model = true;
       this.expr_mode = !this.models[model_name].expr_mode; // weird, but we change after
       this.name = this.models[model_name].name;
 
@@ -581,6 +583,7 @@ export default {
       setTimeout(() => {
         window.cmcode.refresh();
       }, 5);
+      this.is_editing_model = false;
     },
     change_to_expr() {
       if (!this.expr_mode) {
