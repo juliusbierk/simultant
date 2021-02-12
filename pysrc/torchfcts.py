@@ -111,7 +111,10 @@ def check_code_get_args(code, f_name, expr_mode, ode_dim, ode_dim_select):
     error_on_run = check_function_run(f, kwargs, expr=expr_mode, ode_dim=ode_dim,
                                       ode_dim_select=ode_dim_select)
 
-    return {'error': error_on_run, 'args': [{'name': k, 'value': v} for k, v in kwargs.items()]}
+    bounds = get_bounds(f)
+    args = [{'name': k, 'value': v, 'lower': bounds[k][0], 'upper': bounds[k][1]} for k, v in kwargs.items()]
+
+    return {'error': error_on_run, 'args': args}
 
 
 def get_default_args(func, expr, dim=1):
