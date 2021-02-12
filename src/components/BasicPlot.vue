@@ -95,7 +95,7 @@ export default {
           layout.xaxis.range = this.xlim;
           if (this.ylim) {
             layout.yaxis.range = this.ylim;
-            }
+          }
         }
 
         Plotly.react(this.plot_id, [res], layout);

@@ -115,7 +115,9 @@
         <div class="window">
           <div class="window-caption">
             <!--            <span class="icon mif-windows"></span>-->
-            <span class="title">{{is_editing_model ? 'Edit Model' : 'Create New Model'}}</span>
+            <span class="title">{{
+              is_editing_model ? "Edit Model" : "Create New Model"
+            }}</span>
             <div class="buttons">
               <span
                 class="btn-close defaultcursor"
@@ -283,16 +285,22 @@
                 </div>
               </div>
 
-              <div v-if="using_bounds" class="row">
+              <div v-if="show_bound_info" class="row">
                 <div class="offset-1 cell-10">
                   <div
                     class="remark warning"
                     style="margin-top:0; margin-bottom:0"
                   >
-                    <b>Bounds:</b> Use <kbd>a: R[lower:upper]</kbd> to bound parameter <var>a</var>.
-                    To bound with just one limit use e.g. <kbd>a: R[0:]</kbd> to bound between 0 and &infin;.
-                    Warning: if you use multiple functions that share parameters, it is your responsibility to ensure
-                    that the bounds match across functions.
+                    <b>Bounds:</b> Parameters default to being positive. Write
+                    e.g. <kbd>a: R[lower:upper]</kbd> to bound parameter
+                    <kbd>a</kbd> in the function definition. To bound with just
+                    one limit use e.g. <kbd>a: R[0:]</kbd> to bound between 0
+                    and &infin;. Warning: if you use multiple functions that
+                    share parameters, it is your responsibility to ensure that
+                    the bounds match across functions.
+                    <button class="button light small" @click="bounds_example">
+                      Add Example Code.
+                    </button>
                   </div>
                 </div>
               </div>
@@ -341,6 +349,14 @@
                   >
                     Reset
                   </button>
+
+                  <button
+                    class="defaultcursor button"
+                    style="margin-right:10px"
+                    @click="show_bound_info = !show_bound_info"
+                  >
+                    {{ show_bound_info ? "Hide bounds information" : "Bounds" }}
+                  </button>
                 </div>
 
                 <div class="cell-4 offset-1">
@@ -351,7 +367,7 @@
                       style="margin-right:10px"
                       @click="submit_model"
                     >
-                      {{is_editing_model ? 'Commit Model' : 'Add Model'}}
+                      {{ is_editing_model ? "Commit Model" : "Add Model" }}
                     </button>
 
                     <button
@@ -428,6 +444,17 @@ export default {
         "    return y[0]\n\n" +
         "_event.direction = 0   # -1 = pos -> neg, 1 = neg -> pos, 0 = any zero-crossing \n" +
         "_event.X_factor = 25   # how much longer than the largest x to wait for event to happen \n",
+      bounds_example_code:
+        "\n\ndef bounds_example(x, *, a: R[0:]=1, \n" +
+        "                         b: R[1:2], \n" +
+        "                         c):\n" +
+        "    return a * x**b + c\n",
+      bounds_example_ode_code:
+        "\n\ndef bounds_example(x, y, *, y0: R[0:], \n" +
+        "                            a: R[0:10]=1, \n" +
+        "                            b: R[1:2], \n" +
+        "                            c):\n" +
+        "    return a * y**b + c\n",
       cmcode: null,
       marker: null,
       add_model: false,
@@ -441,6 +468,7 @@ export default {
       models: {},
       show_advanced_options: false,
       is_editing_model: false,
+      show_bound_info: false
     };
   },
   computed: {
@@ -456,9 +484,17 @@ export default {
     },
     using_bounds: function() {
       if (!this.expr_mode && this.ode_code) {
-        return this.ode_code.includes(":R[") || this.ode_code.includes(": R[") || this.ode_code.includes(":  R[");
+        return (
+          this.ode_code.includes(":R[") ||
+          this.ode_code.includes(": R[") ||
+          this.ode_code.includes(":  R[")
+        );
       } else if (this.expr_mode && this.code) {
-          return this.code.includes(":R[") || this.code.includes(": R[") || this.code.includes(":  R[");
+        return (
+          this.code.includes(":R[") ||
+          this.code.includes(": R[") ||
+          this.code.includes(":  R[")
+        );
       } else {
         return false;
       }
@@ -489,6 +525,15 @@ export default {
         );
       window.cmcode.setValue(this.ode_code);
       this.show_advanced_options = false;
+    },
+    bounds_example() {
+      if (this.expr_mode) {
+        this.code = this.code + this.bounds_example_code;
+        window.cmcode.setValue(this.code);
+      } else {
+        this.ode_code = this.ode_code + this.bounds_example_ode_code;
+        window.cmcode.setValue(this.ode_code);
+      }
     },
     edit_model(model_name) {
       this.is_editing_model = true;

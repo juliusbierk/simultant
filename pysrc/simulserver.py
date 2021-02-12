@@ -353,9 +353,11 @@ def fitter(input_queue, output_queue, status_queue):
                 parameter_names.append(parameter_id)
                 values.append(d['value'])
 
+        parameter_lower_bounds = [0] * len(parameter_names)
+        parameter_upper_bounds = [None]
+
         logger.debug(f'#parameters = {len(fit_info["parameters"])}')
         logger.debug(f'#fit parameters = {const_index}')
-
 
         if const_index == 0:
             logger.info('No parameters to be fitted')
