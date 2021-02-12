@@ -353,9 +353,6 @@ def fitter(input_queue, output_queue, status_queue):
                 parameter_names.append(parameter_id)
                 values.append(d['value'])
 
-        parameter_lower_bounds = [0] * len(parameter_names)
-        parameter_upper_bounds = [None]
-
         logger.debug(f'#parameters = {len(fit_info["parameters"])}')
         logger.debug(f'#fit parameters = {const_index}')
 
@@ -398,6 +395,54 @@ class IterationCounter:
         self.iterations += 1
 
 
+class ParameterRange:
+    def __init__(self, lower, upper):
+        self.lower = lower
+        self.upper = upper
+        self.torch_lower = None if lower is None else torch.tensor(lower, dtype=torch.double)
+        self.torch_upper = None if upper is None else torch.tensor(upper, dtype=torch.double)
+
+    def np_forward(self, x):
+        if self.lower is None and self.upper is None:
+            return x
+
+        if self.upper is None:
+            return np.log(x - self.lower)
+
+        if self.lower is None:
+            return np.log(self.upper - x)
+
+        return np.log(x - self.lower) - np.log(self.upper - x)
+
+    def np_backward(self, x):
+        if self.lower is None and self.upper is None:
+            return x
+
+        if self.upper is None:
+            return np.exp(x) + self.lower
+
+        if self.lower is None:
+            return self.upper - np.exp(x)
+
+        exp_x = np.exp(x)
+        return (self.lower + self.upper * exp_x) / (1 + exp_x)
+
+    def torch_backward(self, x):
+        if self.lower is None and self.upper is None:
+            return x
+
+        if self.upper is None:
+            return np.exp(x) + self.torch_lower
+
+        if self.lower is None:
+            return self.torch_upper - np.exp(x)
+
+        exp_x = np.exp(x)
+        return (self.torch_lower + self.torch_upper * exp_x) / (1 + exp_x)
+
+
+
+
 def torch_fit(parameter_names, values, const_index, models, data, status_queue=None, method='nelder-mead'):
     t1 = time.time()
     for d in data:
@@ -405,11 +450,40 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
         d['y'] = torch.tensor(d['y'], dtype=torch.double)
         d['weight'] = 1 # for now.
 
-
     for m, d in models.items():
         d['f'] = get_f_expr_or_ode(d['code'], d['expr_mode'], d['name_underscore'], d['ode_dim_select'])
         d['f'].expr_mode = d['expr_mode']
         d['f'].ode_dim = d['ode_dim']
+
+    # Bounds:
+    parameter_lower_bounds = [0] * len(parameter_names)
+    parameter_upper_bounds = [None] * len(parameter_names)
+    for d in data:
+        f = models[d['model']]['f']
+        for parameter_name, parameter_index in d['parameter_indeces'].items():
+            parameter_lower_bounds[parameter_index] = f._bounds[parameter_name][0]
+            parameter_upper_bounds[parameter_index] = f._bounds[parameter_name][1]
+
+    # Check initial values:
+    for i in range(len(parameter_names)):
+        if parameter_lower_bounds[i] is None and parameter_upper_bounds[i] is None:
+            continue
+
+        if parameter_lower_bounds[i] is not None and values[i] == parameter_lower_bounds[i]:
+            values[i] += 1e-10
+
+        if parameter_upper_bounds[i] is not None and values[i] == parameter_upper_bounds[i]:
+            values[i] -= 1e-10
+
+        if parameter_lower_bounds[i] is None and parameter_upper_bounds[i] < values[i]:
+            values[i] = parameter_upper_bounds[i] - 1e-10
+
+        if parameter_upper_bounds[i] is None and values[i] < parameter_lower_bounds[i]:
+            values[i] = parameter_lower_bounds[i] + 1e-10
+
+        if not (parameter_lower_bounds[i] < values[i] < parameter_upper_bounds[i]):
+            values[i] = 0.5 * (parameter_lower_bounds[i] + parameter_upper_bounds[i])
+
 
     p_np_0 = np.array(values[:const_index], dtype=np.double)
     p_const = torch.tensor(values[const_index:], dtype=torch.double)
