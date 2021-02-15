@@ -84,7 +84,12 @@ async def data_list(request):
 
 async def plot_code(request):
     data = await request.json()
-    mask, res, x = plot_code_py(data)
+    if data['content']['expr_mode']:
+        mask, res, x = plot_code_py(data)
+    else: # ODEs can be slow to solve, so we spin up a new process to not block the async loop
+        with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
+            future = asyncio.wrap_future(executor.submit(plot_code_py, data))
+            mask, res, x = await future
     return web.json_response({'x': x[mask].numpy().tolist(), 'y': res[mask].numpy().tolist()})
 
 
@@ -328,7 +333,7 @@ async def plot_fit(request):
                 if not f.expr_mode:
                     kwargs = transform_y0_kwargs_for_ode(kwargs, f.ode_dim)
 
-                # Run function evaluation in parallel, without interrupting server loop:
+                # Run function evaluation in parallel, without blocking the server loop:
                 future = asyncio.wrap_future(executor.submit(f, x_torch, **kwargs))
 
                 c = DEFAULT_PLOTLY_COLORS[i % len(DEFAULT_PLOTLY_COLORS)]

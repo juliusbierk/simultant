@@ -1,4 +1,12 @@
 <template>
+  <div
+    v-show="loading"
+    data-role="progress"
+    data-type="line"
+    data-small="true"
+    style="position:relative; top:15px"
+  ></div>
+
   <div :id="plot_id"></div>
 </template>
 
@@ -14,7 +22,8 @@ export default {
     return {
       xlim: [0, 5],
       ylim: null,
-      plot_id: null
+      plot_id: null,
+      loading: true
     };
   },
   methods: {
@@ -56,6 +65,8 @@ export default {
           layout,
           plotlysettings.settings
         );
+
+        this.loading = false;
 
         if (!this.dataplot) {
           var plot = document.getElementById(this.plot_id);
