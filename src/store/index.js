@@ -1,6 +1,17 @@
 import { createStore } from "vuex";
 import misc from "@/misc.js";
+import config from "@/config.js";
 import _ from "lodash";
+
+function stop_running_fit(state) {
+  state.fit_running = false;
+  fetch(config.py + "/interrupt_fit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+}
 
 export default createStore({
   state: {
@@ -14,7 +25,8 @@ export default createStore({
       choose_fit_open: false,
       data_selection_open: true,
       model_selection_open: true
-    }
+    },
+    fit_running: false
   },
   mutations: {
     clear_fit(state) {
@@ -28,6 +40,10 @@ export default createStore({
         data_selection_open: true,
         model_selection_open: true
       };
+      stop_running_fit(state);
+    },
+    set_fit_running(state, value) {
+      state.fit_running = value;
     },
     set_models(state, value) {
       state.models = value;
@@ -50,6 +66,7 @@ export default createStore({
       } else {
         state.fit.data[payload.id] = payload.value;
       }
+      stop_running_fit(state);
     },
     set_fit_models(state, payload) {
       if (payload.id in state.fit.models) {
@@ -60,6 +77,7 @@ export default createStore({
       } else {
         state.fit.models[payload.id] = payload.value;
       }
+      stop_running_fit(state);
     },
     set_fit_parameters(state, payload) {
       if (payload.id in state.fit.parameters) {
@@ -70,19 +88,24 @@ export default createStore({
       } else {
         state.fit.parameters[payload.id] = payload.value;
       }
+      stop_running_fit(state);
     },
     set_fit_data_parameter(state, payload) {
       state.fit.data[payload.data_id].parameters[payload.parameter_name] =
         payload.parameter_id;
+      stop_running_fit(state);
     },
     delete_fit_data(state, id) {
       delete state.fit.data[id];
+      stop_running_fit(state);
     },
     delete_fit_models(state, id) {
       delete state.fit.models[id];
+      stop_running_fit(state);
     },
     delete_fit_parameters(state, id) {
       delete state.fit.parameters[id];
+      stop_running_fit(state);
     },
     fit_add_model(state, payload) {
       const model_id = misc.model_uuid();
@@ -116,6 +139,8 @@ export default createStore({
           state.fit.data[d].parameters = _.cloneDeep(model_parameters);
         }
       }
+
+      stop_running_fit(state);
     },
     fit_tie_to_data(state, p_in) {
       let p, newp, pobj;
@@ -134,6 +159,7 @@ export default createStore({
         }
       }
       delete state.fit.parameters[p_in];
+      stop_running_fit(state);
     },
     fit_tie_to_model(state, payload) {
       const model_id = payload.model_id;
@@ -166,6 +192,7 @@ export default createStore({
           }
         }
       }
+      stop_running_fit(state);
     },
     fit_attach(state, payload) {
       const p_id = payload.p_id;
@@ -183,6 +210,7 @@ export default createStore({
       state.fit.parameters[detached_id].value =
         state.fit.parameters[p_id].value;
       delete state.fit.parameters[p_id];
+      stop_running_fit(state);
     },
     fit_detach_to_data(state, payload) {
       const data_id = payload.data_id;
@@ -201,6 +229,7 @@ export default createStore({
       };
 
       state.fit.data[data_id].parameters[parameter_name] = newp;
+      stop_running_fit(state);
     },
     fit_set_initial_value(state, payload) {
       state.fit.parameters[payload.pid].value = payload.value;

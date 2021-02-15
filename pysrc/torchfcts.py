@@ -1,4 +1,6 @@
 import inspect
+import time
+
 import torch
 from silly import sillyode
 from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace, logspace, arange, \
@@ -151,7 +153,10 @@ def function_from_code(code, f_name):
     return f
 
 
-def ode_from_code(code, f_name, ode_dim_select):
+class TimeoutError(Exception):
+    pass
+
+def ode_from_code(code, f_name, ode_dim_select, timeout=30):
     atol = 5e-7
     rtol = 1e-5
 
@@ -166,7 +171,13 @@ def ode_from_code(code, f_name, ode_dim_select):
             added_zero = True
             x = torch.hstack((torch.tensor(0, dtype=x.dtype), x))
 
+        start_time = time.time()
+
         def curied(x, y):
+            if time.time() - start_time > timeout:
+                logger.warning('ODE Solving timed out')
+                raise TimeoutError
+
             return torch.hstack(f(x, y, **kwargs))
 
         if f._event is None:

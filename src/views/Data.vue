@@ -264,6 +264,7 @@
 <script>
 import BasicPlot from "@/components/BasicPlot.vue";
 import { mapMutations } from "vuex";
+import config from "@/config.js";
 
 function get_upload_defaults() {
   return {
@@ -287,7 +288,7 @@ export default {
   name: "Data",
   data: function() {
     return {
-      py: "http://127.0.0.1:7555",
+      py: config.py,
       db_data: {},
       ...get_upload_defaults()
     };

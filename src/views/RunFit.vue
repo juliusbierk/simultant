@@ -334,20 +334,21 @@ import { mapState, mapGetters, mapMutations } from "vuex";
 import Plotly from "plotly.js-dist";
 import plotlysettings from "@/plotsettings.js";
 import _ from "lodash";
+import config from "@/config.js";
 
 export default {
   name: "SpecifyFit",
   store,
   data: function() {
     return {
-      py: "http://127.0.0.1:7555",
+      py: config.py,
       loaded: false,
-      fit_running: false,
       plot_running: true,
       plot_created: false,
       interrupting_fit: false,
       iteration: 0,
-      loss: null
+      loss: null,
+      is_mounted: true
     };
   },
   components: {
@@ -360,13 +361,15 @@ export default {
       fit: "fit",
       models: "models"
     }),
+    ...mapState(["fit_running"]),
     ...mapGetters(["detached_parameters", "model_parameters"])
   },
   methods: {
     ...mapMutations([
       "fit_set_initial_value",
       "fit_set_fit_value",
-      "fit_toggle_parameter_value_type"
+      "fit_toggle_parameter_value_type",
+      "set_fit_running"
     ]),
     initial_value_change(pid, string_value) {
       const value = parseFloat(string_value);
@@ -392,7 +395,7 @@ export default {
       }).then(async result => {
         const r = await result.json();
         if (r["status"] === "started") {
-          this.fit_running = true;
+          this.set_fit_running(true);
           this.wait_for_fit();
         }
       });
@@ -423,7 +426,7 @@ export default {
 
         const r = await result.json();
         if (r["status"] === "success") {
-          this.fit_running = false;
+          this.set_fit_running(false);
           this.interrupting_fit = false;
 
           // First null all
@@ -442,7 +445,9 @@ export default {
             this.loss = r.info.loss;
           }
 
-          setTimeout(this.wait_for_fit, 100);
+          if (this.loaded) {
+            setTimeout(this.wait_for_fit, 100);
+          }
         }
       });
     },
@@ -474,6 +479,12 @@ export default {
     if (Object.keys(this.fit.data).length > 0) {
       this.update_plot();
     }
+    if (this.fit_running) {
+      this.wait_for_fit();
+    }
+  },
+  beforeUnmount: function() {
+    this.loaded = false;
   }
 };
 </script>

@@ -429,12 +429,13 @@ import CodeMirror from "codemirror";
 import "codemirror/mode/python/python.js";
 import _ from "lodash";
 import { mapMutations } from "vuex";
+import config from "@/config.js";
 
 export default {
   name: "Models",
   data: function() {
     return {
-      py: "http://127.0.0.1:7555",
+      py: config.py,
       name: "New Model",
       expr_mode: true,
       code: null,

@@ -458,6 +458,7 @@ import ShowCode from "@/components/ShowCode.vue";
 import store from "@/store";
 import misc from "@/misc.js";
 import { mapState, mapGetters, mapMutations } from "vuex";
+import config from "@/config.js";
 
 export default {
   name: "SpecifyFit",
@@ -465,7 +466,7 @@ export default {
   data: function() {
     return {
       loaded: false,
-      py: "http://127.0.0.1:7555",
+      py: config.py,
       db_data: {},
       selected_data_group: null,
       selected_dataset_ids: null,

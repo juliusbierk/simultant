@@ -3,7 +3,7 @@ import time
 import numpy as np
 import torch
 from scipy.optimize import minimize
-from torchfcts import get_f_expr_or_ode
+from torchfcts import get_f_expr_or_ode, TimeoutError
 import logging
 
 
