@@ -227,11 +227,31 @@ async def shuwdown(request):
     raise GracefulExit
 
 
+async def stop_spurious_running_fits_and_empty_stop_queue(n_max=5):
+    # stop any fits that might be running (not that any should be...)
+    for _ in range(n_max):
+        interrupt_queue.put(True)
+    await asyncio.sleep(0.01)
+    while True:
+        try:
+            interrupt_queue.get_nowait()
+        except queue.Empty:
+            break
+
 async def run_fit(request):
     if request.method == 'POST':
+        await stop_spurious_running_fits_and_empty_stop_queue()
         run_fit_queue.put(await request.json())
         return web.json_response({'status': 'started'})
     return web.json_response({'error': 'must be a POST request'})
+
+
+async def interrupt_fit(request):
+    if request.method == 'POST':
+        interrupt_queue.put(True)
+        return web.json_response({'status': 'interrupting'})
+    return web.json_response({'error': 'must be a POST request'})
+
 
 async def fit_result(request):
     try:
@@ -241,7 +261,7 @@ async def fit_result(request):
         await asyncio.sleep(0.01)
         try:
             while True:
-                iteration_queue.get_nowait()
+                status_queue.get_nowait()
         except queue.Empty:
             pass
 
@@ -250,7 +270,7 @@ async def fit_result(request):
         d = None
         try:
             while True:
-                d = iteration_queue.get_nowait()
+                d = status_queue.get_nowait()
         except queue.Empty:
             pass
         return web.json_response({'status': 'no-fit', 'info': d})
@@ -356,7 +376,7 @@ def transform_y0_kwargs_for_ode(kwargs, dim):
     return kwargs
 
 
-def fitter(input_queue, output_queue, status_queue):
+def fitter(input_queue, output_queue, status_queue, interrupt_queue):
     print('Fitting queue running')
     while True:
         fit_info = input_queue.get(True)
@@ -404,7 +424,7 @@ def fitter(input_queue, output_queue, status_queue):
         with open('cache.pkl', 'wb') as f:
             pickle.dump((parameter_names, values, const_index, models, data), f)
 
-        fit = torch_fit(parameter_names, values, const_index, models, data, status_queue)
+        fit = torch_fit(parameter_names, values, const_index, models, data, status_queue, interrupt_queue)
 
         output_queue.put(fit)
 
@@ -418,8 +438,10 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     run_fit_queue = multiprocessing.Queue()
     result_queue = multiprocessing.Queue()
-    iteration_queue = multiprocessing.Queue()
-    fit_process = multiprocessing.Process(target=fitter, args=(run_fit_queue, result_queue, iteration_queue))
+    status_queue = multiprocessing.Queue()
+    interrupt_queue = multiprocessing.Queue()
+    fit_process = multiprocessing.Process(target=fitter,
+                                          args=(run_fit_queue, result_queue, status_queue, interrupt_queue))
     fit_process.start()
 
     # Web Server
@@ -444,6 +466,7 @@ if __name__ == '__main__':
               ('/data_list', data_list),
               ('/plot_data', plot_data),
               ('/run_fit', run_fit),
+              ('/interrupt_fit', interrupt_fit),
               ('/plot_fit', plot_fit),
               ('/fit_result', fit_result),
               ('/exit', shuwdown),

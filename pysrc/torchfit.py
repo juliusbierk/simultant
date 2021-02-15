@@ -1,3 +1,4 @@
+import queue
 import time
 import numpy as np
 import torch
@@ -69,7 +70,27 @@ class ParameterRange:
         return (self.torch_lower + self.torch_upper * exp_x) / (1 + exp_x)
 
 
-def torch_fit(parameter_names, values, const_index, models, data, status_queue=None, method='nelder-mead'):
+class FitInterrupt(Exception):
+    pass
+
+class Callback:
+    def __init__(self, interrupt_queue):
+        self.last_seen = None
+        self.interrupt_queue = interrupt_queue
+
+    def __call__(self, x):
+        self.last_seen = x
+
+        if self.interrupt_queue is not None:
+            try:
+                self.interrupt_queue.get_nowait()
+                raise FitInterrupt
+            except queue.Empty:
+                pass
+
+
+def torch_fit(parameter_names, values, const_index, models, data,
+              status_queue=None, interrupt_queue=None, method='nelder-mead'):
     t1 = time.time()
     for d in data:
         d['x'] = torch.tensor(d['x'], dtype=torch.double)
@@ -126,73 +147,80 @@ def torch_fit(parameter_names, values, const_index, models, data, status_queue=N
 
         return r
 
-    ic = IterationCounter()
+    iteration_counter = IterationCounter()
+    callback = Callback(interrupt_queue)
 
     # Transform initial guess:
     for i, r in enumerate(parameter_ranges):
         p_np_0[i] = r.np_forward(p_np_0[i])
 
-    if method == 'anagrad':
-        def loss_grad(p_np):
-            try:
-                p_in = torch.from_numpy(p_np).requires_grad_()
+    try:
+        if method == 'anagrad':
+            def loss_grad(p_np):
+                try:
+                    p_in = torch.from_numpy(p_np).requires_grad_()
 
-                if all_positive:
-                    p = torch.exp(p_in)
-                else:
-                    p = torch.stack([r.torch_backward(p_in[i]) for i, r in enumerate(parameter_ranges)])
+                    if all_positive:
+                        p = torch.exp(p_in)
+                    else:
+                        p = torch.stack([r.torch_backward(p_in[i]) for i, r in enumerate(parameter_ranges)])
 
-                t1 = time.time()
-                r = eval_f(p)
-                logger.debug(f'Forwards calls took {time.time() - t1} s.')
-
-                t1 = time.time()
-                r.backward()
-                logger.debug(f'Backwards call took {time.time() - t1} s.')
-
-                loss = r.detach().numpy()
-
-                if status_queue is not None:
-                    ic(float(loss))
-                    status_queue.put({'iteration': ic.iterations, 'loss': ic.best_loss})
-
-                return loss, p_in.grad.numpy()
-            except Exception as e:
-                logger.warning('Evaluation of function failed', exc_info=e)
-                return 1e10, 0 * p_np
-
-        res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B', options={'ftol': 1e-6, 'disp': False})
-
-    elif method == 'nelder-mead':
-        def loss(p_np):
-            try:
-                p_in = torch.from_numpy(p_np)
-
-                if all_positive:
-                    p = torch.exp(p_in)
-                else:
-                    p = torch.stack([r.torch_backward(p_in[i]) for i, r in enumerate(parameter_ranges)])
-
-                with torch.no_grad():
+                    t1 = time.time()
                     r = eval_f(p)
-                loss = r.numpy()
+                    logger.debug(f'Forwards calls took {time.time() - t1} s.')
 
-                if status_queue is not None:
-                    ic(float(loss))
-                    status_queue.put({'iteration': ic.iterations, 'loss': ic.best_loss})
+                    t1 = time.time()
+                    r.backward()
+                    logger.debug(f'Backwards call took {time.time() - t1} s.')
 
-                return loss
-            except Exception as e:
-                logger.warning('Evaluation of function failed', exc_info=e)
-                return 1e10
+                    loss = r.detach().numpy()
 
-        min_method = {'nelder-mead': 'Nelder-Mead'}[method]
-        res = minimize(loss, p_np_0, method=min_method)
+                    if status_queue is not None:
+                        iteration_counter(float(loss))
+                        status_queue.put({'iteration': iteration_counter.iterations, 'loss': iteration_counter.best_loss})
 
-    else:
-        raise NotImplementedError
+                    return loss, p_in.grad.numpy()
+                except Exception as e:
+                    logger.warning('Evaluation of function failed', exc_info=e)
+                    return 1e10, 0 * p_np
 
-    p_opt = res.x
+            res = minimize(loss_grad, p_np_0, jac=True, method='L-BFGS-B',
+                           options={'ftol': 1e-6, 'disp': False}, callback=callback)
+
+        elif method == 'nelder-mead':
+            def loss(p_np):
+                try:
+                    p_in = torch.from_numpy(p_np)
+
+                    if all_positive:
+                        p = torch.exp(p_in)
+                    else:
+                        p = torch.stack([r.torch_backward(p_in[i]) for i, r in enumerate(parameter_ranges)])
+
+                    with torch.no_grad():
+                        r = eval_f(p)
+                    loss = r.numpy()
+
+                    if status_queue is not None:
+                        iteration_counter(float(loss))
+                        status_queue.put({'iteration': iteration_counter.iterations, 'loss': iteration_counter.best_loss})
+
+                    return loss
+                except Exception as e:
+                    logger.warning('Evaluation of function failed', exc_info=e)
+                    return 1e10
+
+            min_method = {'nelder-mead': 'Nelder-Mead'}[method]
+            res = minimize(loss, p_np_0, method=min_method, callback=callback)
+
+        else:
+            raise NotImplementedError
+
+        p_opt = res.x
+
+    except FitInterrupt:
+        logger.info(f'Fit was interrupted!')
+        p_opt = callback.last_seen
 
     # Transform final fit:
     for i, r in enumerate(parameter_ranges):

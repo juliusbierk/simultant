@@ -30,11 +30,19 @@
             </div>
 
             <div class="row text-center">
-              <div class="cell-1 offset-2">
+              <div class="cell-1 offset-2" v-if="!plot_running">
                 <button class="button defaultcursor" v-show="fit_running">
                   <span class="ml-1">{{ iteration }}</span>
                   <span class="badge">iteration</span>
                 </button>
+              </div>
+
+              <div
+                class="cell-1 offset-2"
+                style="position: relative; top:5px"
+                v-if="plot_running"
+              >
+                <small>Plotting</small>
               </div>
 
               <div class="cell-3">
@@ -44,7 +52,13 @@
                   data-role="progress"
                   data-type="line"
                   data-small="true"
-                  style="position:relative; top:15px"
+                  :style="{
+                    position: 'relative',
+                    top: '15px',
+                    'background-color': interrupting_fit
+                      ? '#ff7615 !important'
+                      : undefined
+                  }"
                 ></div>
               </div>
 
@@ -57,6 +71,17 @@
                     loss ? loss.toPrecision(6) : loss
                   }}</span>
                   <span class="badge">loss</span>
+                </button>
+              </div>
+
+              <div class="cell-1">
+                <button
+                  class="button warning"
+                  v-show="fit_running"
+                  @click="interrupt_fit"
+                  :disabled="interrupting_fit"
+                >
+                  Stop fit
                 </button>
               </div>
 
@@ -320,6 +345,7 @@ export default {
       fit_running: false,
       plot_running: true,
       plot_created: false,
+      interrupting_fit: false,
       iteration: 0,
       loss: null
     };
@@ -355,6 +381,7 @@ export default {
     run_fit() {
       this.iteration = 0;
       this.loss = null;
+      this.interrupting_fit = false;
 
       fetch(this.py + "/run_fit", {
         method: "POST",
@@ -367,6 +394,15 @@ export default {
         if (r["status"] === "started") {
           this.fit_running = true;
           this.wait_for_fit();
+        }
+      });
+    },
+    interrupt_fit() {
+      this.interrupting_fit = true;
+      fetch(this.py + "/interrupt_fit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         }
       });
     },
@@ -386,9 +422,9 @@ export default {
         }
 
         const r = await result.json();
-        console.log(r);
         if (r["status"] === "success") {
           this.fit_running = false;
+          this.interrupting_fit = false;
 
           // First null all
           this.reset_fit();
