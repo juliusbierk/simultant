@@ -157,8 +157,7 @@ export default createStore({
           for (const p in kwargs) {
             pid = state.fit.data[d].parameters[p];
 
-            if (state.fit.parameters[pid].type === 'data') {
-
+            if (state.fit.parameters[pid].type === "data") {
               mp = misc.parameter_uuid();
               state.fit.parameters[mp] = {
                 name: p,
@@ -192,7 +191,6 @@ export default createStore({
 
           model_parameters[p] = mp;
         }
-
       }
 
       state.fit.data[data_id].parameters = model_parameters;
