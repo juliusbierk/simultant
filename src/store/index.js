@@ -142,6 +142,62 @@ export default createStore({
 
       stop_running_fit(state);
     },
+    fit_apply_model(state, payload) {
+      const data_id = payload.data_id;
+      const model_id = payload.model_id;
+      const model_name = state.fit.models[model_id].name;
+      const kwargs = state.models[model_name].kwargs;
+
+      let first_use = true;
+      let model_parameters = {};
+      let mp, pid;
+
+      for (const d in state.fit.data) {
+        if (state.fit.data[d].model === model_id) {
+          for (const p in kwargs) {
+            pid = state.fit.data[d].parameters[p];
+
+            if (state.fit.parameters[pid].type === 'data') {
+
+              mp = misc.parameter_uuid();
+              state.fit.parameters[mp] = {
+                name: p,
+                value: kwargs[p],
+                fit: null,
+                const: false,
+                type: "data"
+              };
+
+              model_parameters[p] = mp;
+            } else {
+              model_parameters[p] = pid;
+            }
+          }
+          first_use = false;
+          break;
+        }
+      }
+
+      if (first_use) {
+        for (const p in kwargs) {
+          mp = misc.parameter_uuid();
+
+          state.fit.parameters[mp] = {
+            name: p,
+            value: kwargs[p],
+            fit: null,
+            const: false,
+            type: "model"
+          };
+
+          model_parameters[p] = mp;
+        }
+
+      }
+
+      state.fit.data[data_id].parameters = model_parameters;
+      state.fit.data[data_id].model = model_id;
+    },
     fit_tie_to_data(state, p_in) {
       let p, newp, pobj;
       for (const d in state.fit.data) {
@@ -284,7 +340,7 @@ export default createStore({
           key = [m, pname];
 
           if (models[key] === undefined) {
-            parameters[m][pname] = {type: 'unused', pid: null}
+            parameters[m][pname] = { type: "unused", pid: null };
           } else if (models[key].length === 0) {
             console.log("assertion error!");
           } else if (models[key].length === 1) {

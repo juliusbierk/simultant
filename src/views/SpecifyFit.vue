@@ -199,13 +199,17 @@
                           {{ content.parent }} : {{ content.name }}
                         </div>
                         <div class="cell-6">
-
-                          {{ content.model }}
-
-                          <select class="jselect">
-                            <option v-for="(m, id) in fit.models" :key="id">{{
-                              m.print_name
-                            }}</option>
+                          <select
+                            class="jselect"
+                            :value="content.model"
+                            @input="change_model(id, $event.target.value)"
+                          >
+                            <option
+                              v-for="(m, id) in fit.models"
+                              :key="id"
+                              :value="id"
+                              >{{ m.print_name }}</option
+                            >
                           </select>
                         </div>
                       </div>
@@ -298,8 +302,7 @@
                   <div
                     class="cell-5 offset-1"
                     v-show="Object.keys(fit.data).length > 0"
-                  >
-                  </div>
+                  ></div>
 
                   <div class="cell-3 offset-1">
                     <button
@@ -503,7 +506,8 @@ export default {
       "fit_tie_to_model",
       "fit_attach",
       "fit_detach_to_data",
-      "clear_fit"
+      "clear_fit",
+      "fit_apply_model"
     ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
@@ -595,6 +599,9 @@ export default {
     },
     detach_to_data(data_id, parameter_name) {
       this.fit_detach_to_data({ data_id, parameter_name });
+    },
+    change_model(data_id, model_id) {
+      this.fit_apply_model({ data_id, model_id });
     }
   },
   mounted: function() {
