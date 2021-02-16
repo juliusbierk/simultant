@@ -198,7 +198,7 @@
                           >
                           {{ content.parent }} : {{ content.name }}
                         </div>
-                        <div class="cell-6">
+                        <div class="cell-6" v-show="Object.keys(fit.models).length > 0">
                           <select
                             class="jselect"
                             :value="content.model"
@@ -535,9 +535,17 @@ export default {
     },
     add_datasets() {
       const first_add = Object.keys(this.fit["data"]).length === 0;
+
+      let model_id = null;
+      for (const m in this.fit.models) {
+        model_id = m;
+      }
+
+      let data_id;
       for (let i = 0; i < this.selected_dataset_ids.length; i++) {
+        data_id = misc.data_uuid()
         this.set_fit_data({
-          id: misc.data_uuid(),
+          id: data_id,
           value: {
             id: this.selected_dataset_ids[i],
             name: this.selected_dataset_names[i],
@@ -548,6 +556,9 @@ export default {
             parameters: null
           }
         });
+        if (model_id) {
+          this.fit_apply_model({data_id, model_id});
+        }
       }
 
       // Clean up selection:
@@ -556,6 +567,8 @@ export default {
       if (first_add) {
         this.set_data_selection_open(false);
       }
+
+
     },
     add_model() {
       const first_add = Object.keys(this.fit["models"]).length === 0;

@@ -164,6 +164,9 @@ export default {
         if (this.type === "model-detached") {
           return "All instances of this parameter has been tied to a single detached parameter.";
         }
+        if (this.type === "unused") {
+          return "Model is unused.";
+        }
       }
 
       if (this.view_in === "data_section") {
