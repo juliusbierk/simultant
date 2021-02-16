@@ -133,8 +133,8 @@ export default createStore({
         model_parameters[p] = mp;
       }
 
-      if (payload.apply_to_all) {
-        for (const d in state.fit.data) {
+      for (const d in state.fit.data) {
+        if (!state.fit.data[d].model) {
           state.fit.data[d].model = model_id;
           state.fit.data[d].parameters = _.cloneDeep(model_parameters);
         }
@@ -282,7 +282,10 @@ export default createStore({
         parameters[m] = {};
         for (const pname in state.models[state.fit.models[m].name].kwargs) {
           key = [m, pname];
-          if (models[key].length === 0) {
+
+          if (models[key] === undefined) {
+            parameters[m][pname] = {type: 'unused', pid: null}
+          } else if (models[key].length === 0) {
             console.log("assertion error!");
           } else if (models[key].length === 1) {
             parameter_id = models[key][0];

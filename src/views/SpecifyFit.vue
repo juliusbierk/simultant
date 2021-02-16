@@ -299,18 +299,6 @@
                     class="cell-5 offset-1"
                     v-show="Object.keys(fit.data).length > 0"
                   >
-                    <input
-                      id="apply_to_all_checkbox"
-                      v-model="apply_to_all"
-                      type="checkbox"
-                      data-role="checkbox"
-                      checked
-                    />
-                    <label
-                      style="position: relative; bottom:5px"
-                      for="apply_to_all_checkbox"
-                      ><small>Apply to all datasets</small></label
-                    >
                   </div>
 
                   <div class="cell-3 offset-1">
@@ -480,7 +468,6 @@ export default {
       model_selected: null,
       data_selection_render_index: 0,
       model_selection_render_index: 0,
-      apply_to_all: true,
       add_parameter_name: ""
     };
   },
@@ -570,8 +557,7 @@ export default {
       const first_add = Object.keys(this.fit["models"]).length === 0;
 
       this.fit_add_model({
-        model_selected: this.model_selected,
-        apply_to_all: this.apply_to_all
+        model_selected: this.model_selected
       });
 
       // Clean up selection:
