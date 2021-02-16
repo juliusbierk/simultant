@@ -1,6 +1,11 @@
 const StringReplacePlugin = require("string-replace-webpack-plugin");
 
 module.exports = {
+  pluginOptions: {
+    electronBuilder: {
+      outputDir: 'dist'
+    }
+  },
   chainWebpack: config => {
     config.module
       .rule('plotly')

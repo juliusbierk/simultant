@@ -24,14 +24,14 @@ function start_python_server() {
     });
   } else {
     console.log('started exe server');
-    server = spawn("_simulserver.exe");
+    server = spawn("../simulserver/simulserver.exe");
   }
 }
 
 function stop_python_server() {
   server.kill("SIGINT");
   if (!isDevelopment) {
-    exec("taskkill.exe /f /im _simulserver.exe");
+    exec("taskkill.exe /f /im simulserver.exe");
   }
 }
 
@@ -62,7 +62,7 @@ async function createWindow() {
     createProtocol("app");
     // Load the index.html when not in development
     win.loadURL("app://./index.html");
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
   }
 
   win.once("ready-to-show", () => {
