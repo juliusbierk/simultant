@@ -8,6 +8,8 @@
     "lint": "vue-cli-service lint",
     "build": "vue-cli-service electron:build && pyinstaller --noconfirm --add-data pysrc/db.sqlite;. --onefile pysrc/simulserver.py && cp dist/simulserver.exe dist_electron/win-unpacked/_simulserver.exe",
     "serve": "vue-cli-service electron:serve",
+    "build-np": "vue-cli-service electron:build && cp dist/simulserver.exe dist_electron/win-unpacked/_simulserver.exe",
+    "build-dev": "vue-cli-service electron:build --mode development && cp dist/simulserver.exe dist_electron/win-unpacked/_simulserver.exe",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
   },

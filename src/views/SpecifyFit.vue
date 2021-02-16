@@ -198,9 +198,15 @@
                           >
                           {{ content.parent }} : {{ content.name }}
                         </div>
-                        <div class="cell-6" v-if="fit.models[content.model]">
-                          Applied Model:
-                          {{ fit.models[content.model].print_name }}
+                        <div class="cell-6">
+
+                          {{ content.model }}
+
+                          <select class="jselect">
+                            <option v-for="(m, id) in fit.models" :key="id">{{
+                              m.print_name
+                            }}</option>
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -452,12 +458,12 @@
 </template>
 
 <script>
+import { mapState, mapGetters, mapMutations } from "vuex";
 import BasicPlot from "@/components/BasicPlot.vue";
 import ParameterType from "@/components/ParameterType.vue";
 import ShowCode from "@/components/ShowCode.vue";
 import store from "@/store";
 import misc from "@/misc.js";
-import { mapState, mapGetters, mapMutations } from "vuex";
 import config from "@/config.js";
 
 export default {
@@ -629,5 +635,11 @@ li.disabled {
   -o-transform: scale(-1, 1);
   -ms-transform: scale(-1, 1);
   transform: scale(-1, 1);
+}
+
+.jselect {
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  padding: 6px;
 }
 </style>
