@@ -23,6 +23,7 @@ function start_python_server() {
       console.log("server err: " + data.toString());
     });
   } else {
+    console.log('started exe server');
     server = spawn("_simulserver.exe");
   }
 }
