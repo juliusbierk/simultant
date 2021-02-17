@@ -445,6 +445,7 @@ if __name__ == '__main__':
     interrupt_queue = multiprocessing.Queue()
     fit_process = multiprocessing.Process(target=fitter,
                                           args=(run_fit_queue, result_queue, status_queue, interrupt_queue))
+    fit_process.daemon = True
     fit_process.start()
 
     # Web Server
@@ -483,5 +484,7 @@ if __name__ == '__main__':
             cors.add(resource.add_route(m, f))
 
     print('Python server started')
-    web.run_app(app, host=HOST, port=PORT, shutdown_timeout=0.0)
-    fit_process.terminate()
+    try:
+        web.run_app(app, host=HOST, port=PORT, shutdown_timeout=0.0)
+    finally:
+        fit_process.terminate()
