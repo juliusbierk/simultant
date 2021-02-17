@@ -51,9 +51,7 @@ export default {
   },
   methods: {
     rpush(to) {
-      if (this.$store.state.backend_running) {
-        this.$router.push(to);
-      }
+      this.$router.push(to);
     }
   },
   computed: {
