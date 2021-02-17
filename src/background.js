@@ -32,6 +32,7 @@ function start_python_server() {
 function stop_python_server() {
   server.kill("SIGINT");
   if (!isDevelopment) {
+    // Hackish solution for now.
     exec("taskkill.exe /f /im simulserver.exe");
   }
 }
