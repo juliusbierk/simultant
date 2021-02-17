@@ -513,6 +513,7 @@ export default {
       fetch(this.py + "/data_list", {}).then(async result => {
         this.db_data = await result.json();
         this.data_selection_render_index += 1;
+        this.loaded = true;
       });
     },
     update_model_list() {
@@ -620,7 +621,6 @@ export default {
   mounted: function() {
     this.update_datasets();
     this.update_model_list();
-    this.loaded = true;
   }
 };
 </script>

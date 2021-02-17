@@ -452,6 +452,11 @@ export default {
       });
     },
     update_plot() {
+      if (!this.plot_created) {  // fixing caching issue
+        console.log('clearing plot');
+        document.getElementById("plot").innerHTML = "";
+      }
+
       this.plot_running = true;
       fetch(this.py + "/plot_fit", {
         method: "POST",
@@ -464,10 +469,14 @@ export default {
         let layout = _.cloneDeep(plotlysettings.layout);
 
         if (this.plot_created) {
+          console.log('updating plot');
           Plotly.react("plot", res, layout, plotlysettings.settings);
         } else {
+          console.log('creating plot');
+
           Plotly.newPlot("plot", res, layout, plotlysettings.settings);
         }
+        console.log('plotting done');
 
         this.plot_created = true;
         this.plot_running = false;
