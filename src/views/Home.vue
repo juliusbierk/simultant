@@ -2,7 +2,7 @@
   <div style="margin:10px"></div>
 
   <div class="row">
-    <div class="cell-5 offset-1">
+    <div class="cell-11 offset-1">
       <h1>Simultant</h1>
       <h2>: Simultaneous Curve Fitting</h2>
     </div>
