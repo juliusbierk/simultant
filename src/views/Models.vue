@@ -799,6 +799,7 @@ export default {
     this.ode_code = this.orig_ode_code;
 
     // For some reason assigning CodeMirror to vue data breaks codemirror, so we assign to window:
+    document.getElementById("code").innerHTML = "";
     window.cmcode = CodeMirror(document.querySelector("#code"), {
       lineNumbers: true,
       mode: "python",
