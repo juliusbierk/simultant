@@ -37,6 +37,9 @@ def print(*args):
     sys_print(*args, flush=True)
 
 
+async def index(request):
+    return web.json_response({'running': True})
+
 async def check_code(request):
     data = await request.json()
     d = check_code_get_args(data['code'], data['name_underscore'], data['expr_mode'], data['ode_dim'], data['ode_dim_select'])
@@ -455,7 +458,8 @@ if __name__ == '__main__':
         )
     })
 
-    routes = [('/check_code', check_code),
+    routes = [('/', index),
+        ('/check_code', check_code),
               ('/plot_code', plot_code),
               ('/add_model', add_model),
               ('/delete_model', delete_model),

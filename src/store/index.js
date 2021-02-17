@@ -26,9 +26,13 @@ export default createStore({
       data_selection_open: true,
       model_selection_open: true
     },
-    fit_running: false
+    fit_running: false,
+    backend_running: false
   },
   mutations: {
+    set_backend_running(state) {
+      state.backend_running = true;
+    },
     clear_fit(state) {
       state.fit = {
         data: {},

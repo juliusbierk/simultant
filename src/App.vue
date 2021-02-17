@@ -5,21 +5,28 @@
         <a href="#"><p class="topmenuitem">Home</p></a>
       </li>
       <li
+        :disabled="!$store.state.backend_running ? true : undefined"
         v-on:click="rpush('/models')"
         :class="{ active: routeName === 'Models' }"
       >
         <a href="#"><p class="topmenuitem">Models</p></a>
       </li>
-      <li v-on:click="rpush('/data')" :class="{ active: routeName === 'Data' }">
+      <li
+        :disabled="!$store.state.backend_running ? true : undefined"
+        v-on:click="rpush('/data')"
+        :class="{ active: routeName === 'Data' }"
+      >
         <a href="#"><p class="topmenuitem">Data</p></a>
       </li>
       <li
+        :disabled="!$store.state.backend_running ? true : undefined"
         v-on:click="rpush('/specifyfit')"
         :class="{ active: routeName === 'SpecifyFit' }"
       >
         <a href="#"><p class="topmenuitem">Fit Topology</p></a>
       </li>
       <li
+        :disabled="!$store.state.backend_running ? true : undefined"
         v-on:click="rpush('/runfit')"
         :class="{ active: routeName === 'RunFit' }"
       >
@@ -31,18 +38,22 @@
   <!--  <div id="nav">-->
 
   <!--  </div>-->
-
   <router-view />
 </template>
 
 <script>
+import store from "@/store";
+
 export default {
+  store,
   data() {
     return {};
   },
   methods: {
     rpush(to) {
-      this.$router.push(to);
+      if (this.$store.state.backend_running) {
+        this.$router.push(to);
+      }
     }
   },
   computed: {

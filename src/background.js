@@ -23,9 +23,9 @@ function start_python_server() {
       console.log("server err: " + data.toString());
     });
   } else {
-    console.log('started exe server');
+    console.log("started exe server");
     // Need to start detached otherwise there are problems with multiprocessing
-    server = spawn("../simulserver/simulserver.exe", {detached: true});
+    server = spawn("../simulserver/simulserver.exe", { detached: true });
   }
 }
 
