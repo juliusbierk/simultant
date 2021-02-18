@@ -1,6 +1,9 @@
 import sqlite3
+import os
 
-conn = sqlite3.connect('db.sqlite')
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+conn = sqlite3.connect(dir_path + '/db.sqlite')
 c = conn.cursor()
 
 try:

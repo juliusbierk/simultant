@@ -5,7 +5,7 @@ from uuid import uuid4
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-conn = sqlite3.connect(dir_path + '/db.sqlite')  # Use absolute paths!
+conn = sqlite3.connect(dir_path + '/db.sqlite') 
 c = conn.cursor()
 
 ### DATA ###

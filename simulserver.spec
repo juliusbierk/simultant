@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['pysrc\\simulserver.py'],
+a = Analysis(['pysrc/simulserver.py'],
              pathex=['.'],
              binaries=[],
              datas=[('pysrc/db.sqlite', '.')],

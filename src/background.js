@@ -5,6 +5,9 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 import { exec, spawn } from "child_process";
+import os from "os"
+
+const is_windows = (os.type() === 'Windows_NT');
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -15,7 +18,7 @@ var server = null;
 
 function start_python_server() {
   if (isDevelopment) {
-    server = spawn("python", ["pysrc/simulserver.py", "--start"]);
+    server = spawn("python", [__dirname + "/../pysrc/simulserver.py", "--start"]);
     server.stdout.on("data", function(data) {
       console.log(data.toString());
     });
@@ -23,9 +26,12 @@ function start_python_server() {
       console.log("server err: " + data.toString());
     });
   } else {
-    console.log("started exe server");
     // Need to start detached otherwise there are problems with multiprocessing
-    server = spawn("../simulserver/simulserver.exe", { detached: true });
+    if (is_windows) {
+      console.log("GET ABSOLUTE PATH!");
+      server = spawn(__dirname + "/../../../simulserver/simulserver.exe", {detached: true});
+      console.log("started server");
+    }
   }
 }
 
@@ -33,7 +39,11 @@ function stop_python_server() {
   server.kill("SIGINT");
   if (!isDevelopment) {
     // Hackish solution for now.
-    exec("taskkill.exe /f /im simulserver.exe");
+    if (is_windows) {
+      exec("taskkill.exe /f /im simulserver.exe");
+    } else {
+      exec("killall simulserver");
+    }
   }
 }
 

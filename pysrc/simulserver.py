@@ -433,12 +433,14 @@ def fitter(input_queue, output_queue, status_queue, interrupt_queue):
 
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    multiprocessing.set_start_method('spawn')
+
     # with open('cache.pkl', 'rb') as f:
     #     torch_fit(*pickle.load(f))
     # exit()
 
     # Fitter
-    multiprocessing.freeze_support()
     run_fit_queue = multiprocessing.Queue()
     result_queue = multiprocessing.Queue()
     status_queue = multiprocessing.Queue()
