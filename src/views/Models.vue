@@ -475,6 +475,7 @@ export default {
         "                            c):\n" +
         "    return a * y**b + c\n",
       cmcode: null,
+      last_code_check: null,
       marker: null,
       add_model: false,
       parameters: null,
@@ -654,6 +655,7 @@ export default {
             return;
           }
         }
+
         fetch(this.py + "/add_model", {
           method: "POST",
           headers: {
@@ -821,8 +823,17 @@ export default {
     window.cmcode.on("change", cm => {
       if (this.expr_mode) {
         this.code = cm.getValue();
+        if (this.last_code_check === this.code) {
+          return;
+        }
+        this.last_code_check = this.code;
       } else {
         this.ode_code = cm.getValue();
+        if (this.last_code_check === this.ode_code) {
+          return;
+        }
+        this.last_code_check = this.ode_code;
+
       }
       this.running_code = true;
       throttled_check_model();

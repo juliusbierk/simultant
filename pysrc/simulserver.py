@@ -424,8 +424,8 @@ def fitter(input_queue, output_queue, status_queue, interrupt_queue):
                 data.append({'x': db_data['x'], 'y': db_data['y'], 'weight': d['weight'], 'model': d['model'],
                              'parameter_indeces': {k: parameter_names.index(v) for k, v in d['parameters'].items()}})
 
-        with open('cache.pkl', 'wb') as f:
-            pickle.dump((parameter_names, values, const_index, models, data), f)
+        # with open('cache.pkl', 'wb') as f:
+        #     pickle.dump((parameter_names, values, const_index, models, data), f)
 
         fit = torch_fit(parameter_names, values, const_index, models, data, status_queue, interrupt_queue)
 
@@ -434,7 +434,6 @@ def fitter(input_queue, output_queue, status_queue, interrupt_queue):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    multiprocessing.set_start_method('spawn')
 
     # with open('cache.pkl', 'rb') as f:
     #     torch_fit(*pickle.load(f))
