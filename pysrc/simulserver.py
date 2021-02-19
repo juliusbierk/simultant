@@ -14,6 +14,7 @@ import pickle
 # Local imports:
 from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
 from torchfit import torch_fit
+
 if __name__ == '__main__':
     import dbfcts as db  # we do not need a database connection for spawned processes
 
@@ -27,10 +28,10 @@ HOST = '127.0.0.1'
 PORT = 7555
 
 DEFAULT_PLOTLY_COLORS = ['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
-                       'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
-                       'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
-                       'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
-                       'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
+                         'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
+                         'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
+                         'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
+                         'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
 
 sys_print = print
 
@@ -45,7 +46,8 @@ async def index(request):
 
 async def check_code(request):
     data = await request.json()
-    d = check_code_get_args(data['code'], data['name_underscore'], data['expr_mode'], data['ode_dim'], data['ode_dim_select'])
+    d = check_code_get_args(data['code'], data['name_underscore'], data['expr_mode'], data['ode_dim'],
+                            data['ode_dim_select'])
     return web.json_response(d)
 
 
@@ -245,10 +247,30 @@ async def stop_spurious_running_fits_and_empty_stop_queue(n_max=5):
         except queue.Empty:
             break
 
+
+async def load_fit_models_data(fit_info):
+    # Get model code
+    models = {}
+    for model_id, d in fit_info['models'].items():
+        m = await db.get_models_content(d['name'])
+        models[model_id] = {'code': m['code'], 'expr_mode': m['expr_mode'], 'name_underscore': m['name_underscore'],
+                            'ode_dim': m.get('ode_dim'), 'ode_dim_select': m.get('ode_dim_select')}
+
+    # Get data
+    data = []
+    for data_id, d in fit_info['data'].items():
+        if d['in_use']:
+            db_data = await db.get_data_content(d['id'])
+            data.append({'x': db_data['x'], 'y': db_data['y'], 'weight': d['weight'], 'model': d['model'],
+                         'parameters': d['parameters']})
+
+    return fit_info, data, models
+
+
 async def run_fit(request):
     if request.method == 'POST':
         await stop_spurious_running_fits_and_empty_stop_queue()
-        run_fit_queue.put(await request.json())
+        run_fit_queue.put(await load_fit_models_data(await request.json()))
         return web.json_response({'status': 'started'})
     return web.json_response({'error': 'must be a POST request'})
 
@@ -365,8 +387,9 @@ async def plot_fit(request):
                 future = asyncio.wrap_future(executor.submit(f, x_torch, **kwargs))
 
                 c = DEFAULT_PLOTLY_COLORS[i % len(DEFAULT_PLOTLY_COLORS)]
-                plot_data.append({'x': x_list, 'future': future, 'mode': 'lines', 'showlegend': False, 'legendgroup': d_id,
-                                  'line': {'color': c} if is_fitted else {'color': c, 'dash': 'dash'}})
+                plot_data.append(
+                    {'x': x_list, 'future': future, 'mode': 'lines', 'showlegend': False, 'legendgroup': d_id,
+                     'line': {'color': c} if is_fitted else {'color': c, 'dash': 'dash'}})
 
         for d in plot_data:
             if 'future' in d:
@@ -374,6 +397,7 @@ async def plot_fit(request):
                 del d['future']
 
     return web.json_response(plot_data)
+
 
 def transform_y0_kwargs_for_ode(kwargs, dim):
     y0 = np.ones(dim)
@@ -387,7 +411,7 @@ def transform_y0_kwargs_for_ode(kwargs, dim):
 def fitter(input_queue, output_queue, status_queue, interrupt_queue):
     print('Fitting queue running')
     while True:
-        fit_info = input_queue.get(True)
+        fit_info, data, models = input_queue.get(True)
         logger.debug('Got fit to be run')
 
         # First get all parameters
@@ -409,25 +433,13 @@ def fitter(input_queue, output_queue, status_queue, interrupt_queue):
         logger.debug(f'#parameters = {len(fit_info["parameters"])}')
         logger.debug(f'#fit parameters = {const_index}')
 
+        for d in data:
+            d['parameter_indeces'] = {k: parameter_names.index(v) for k, v in d['parameters'].items()}
+
         if const_index == 0:
             logger.info('No parameters to be fitted')
             output_queue.put(None)
             continue
-
-        # # Get model code
-        # models = {}
-        # for model_id, d in fit_info['models'].items():
-        #     m = await db.get_models_content(d['name'])
-        #     models[model_id] = {'code': m['code'], 'expr_mode': m['expr_mode'], 'name_underscore': m['name_underscore'],
-        #                         'ode_dim': m.get('ode_dim'), 'ode_dim_select': m.get('ode_dim_select')}
-        #
-        # # Get data
-        # data = []
-        # for data_id, d in fit_info['data'].items():
-        #     if d['in_use']:
-        #         db_data = await db.get_data_content(d['id'])
-        #         data.append({'x': db_data['x'], 'y': db_data['y'], 'weight': d['weight'], 'model': d['model'],
-        #                      'parameter_indeces': {k: parameter_names.index(v) for k, v in d['parameters'].items()}})
 
         # with open('cache.pkl', 'wb') as f:
         #     pickle.dump((parameter_names, values, const_index, models, data), f)
@@ -466,7 +478,7 @@ if __name__ == '__main__':
     })
 
     routes = [('/', index),
-        ('/check_code', check_code),
+              ('/check_code', check_code),
               ('/plot_code', plot_code),
               ('/add_model', add_model),
               ('/delete_model', delete_model),
