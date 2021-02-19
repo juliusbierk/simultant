@@ -60,6 +60,7 @@ class RangeType:
 R = RangeType()
 C = RangeType(const=True)
 
+
 def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
     tensor_kwargs = {}
     for k in kwargs:
@@ -144,6 +145,15 @@ def get_bounds(func):
         for k, v in signature.parameters.items()
     }
     return bounds
+
+
+def get_const_bools(func):
+    signature = inspect.signature(func)
+    consts = {
+        k: False if v.annotation is inspect.Parameter.empty else v.annotation.const
+        for k, v in signature.parameters.items()
+    }
+    return consts
 
 
 def function_from_code(code, f_name):
