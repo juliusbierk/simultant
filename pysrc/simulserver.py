@@ -15,7 +15,7 @@ import pickle
 from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
 from torchfit import torch_fit
 if __name__ == '__main__':
-    import db  # we do not need a database connection for spawned processes
+    import dbfcts as db  # we do not need a database connection for spawned processes
 
 logging.basicConfig(level=logging.WARN)
 logging.root.setLevel(logging.WARN)
@@ -33,6 +33,7 @@ DEFAULT_PLOTLY_COLORS = ['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
                        'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
 
 sys_print = print
+
 
 def print(*args):
     sys_print(*args, flush=True)
@@ -57,42 +58,42 @@ async def add_model(request):
     f = function_from_code(data['code'], data['name_underscore'])
     kwargs = get_default_args(f, data['expr_mode'], data.get('ode_dim'))
     data['args'] = [{'name': k, 'value': v} for k, v in kwargs.items()]
-    db.create_model(data['name'], data)
+    await db.create_model(data['name'], data)
 
     return web.json_response({'success': True})
 
 
 async def delete_model(request):
     data = await request.json()
-    db.delete_model(data['name'])
+    await db.delete_model(data['name'])
     return web.json_response({'success': True})
 
 
 async def delete_data(request):
     data = await request.json()
-    db.delete_data(data['parent'])
+    await db.delete_data(data['parent'])
     return web.json_response({'success': True})
 
 
 async def model_exist_check(request):
     data = await request.json()
-    print(data['name'], db.get_models_names())
-    return web.json_response({'exists': data['name'] in db.get_models_names()})
+    print(data['name'], await db.get_models_names())
+    return web.json_response({'exists': data['name'] in await db.get_models_names()})
 
 
 async def model_list(request):
-    return web.json_response(db.get_all_models())
+    return web.json_response(await db.get_all_models())
 
 
 async def data_list(request):
-    return web.json_response(db.get_data_names())
+    return web.json_response(await db.get_data_names())
 
 
 async def plot_code(request):
     data = await request.json()
     if data['content']['expr_mode']:
         mask, res, x = plot_code_py(data)
-    else: # ODEs can be slow to solve, so we spin up a new process to not block the async loop
+    else:  # ODEs can be slow to solve, so we spin up a new process to not block the async loop
         with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
             future = asyncio.wrap_future(executor.submit(plot_code_py, data))
             mask, res, x = await future
@@ -129,7 +130,7 @@ async def plot_data(request):
     plot_data = []
     max_n = data.get('max_n', 250)
     for content in data['content']:
-        dataset = db.get_data_content(content['id'])
+        dataset = await db.get_data_content(content['id'])
         if len(dataset['x']) > max_n:
             skip = 1 + int(len(dataset['x']) / max_n)
         else:
@@ -190,7 +191,7 @@ async def upload_data(request):
                         return web.json_response({'success': False, 'error': 'x-axis not defined for all y-values.'})
                     dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
                                'orig_x': list(x[mask]), 'orig_y': list(y[mask])}
-                    db.create_dataset(header[i + 1], fname, dataset)
+                    await db.create_dataset(header[i + 1], fname, dataset)
             else:
                 x = num_rows[:, 0]
                 for i in range(1, num_rows.shape[1]):
@@ -200,7 +201,7 @@ async def upload_data(request):
                         return web.json_response({'success': False, 'error': 'x-axis not defined for all y-values.'})
                     dataset = {'parent_name': fname, 'name': header[i], 'x': list(x[mask]), 'y': list(y[mask]),
                                'orig_x': list(x[mask]), 'orig_y': list(y[mask])}
-                    db.create_dataset(header[i], fname, dataset)
+                    await db.create_dataset(header[i], fname, dataset)
 
         else:
             cut_horizontal = False
@@ -303,7 +304,7 @@ async def plot_fit(request):
     # Generate functions
     models = {}
     for model_id, d in data['models'].items():
-        m = db.get_models_content(d['name'])
+        m = await db.get_models_content(d['name'])
 
         models[model_id] = PickleableF(m)
         models[model_id].expr_mode = m['expr_mode']
@@ -316,7 +317,7 @@ async def plot_fit(request):
         d = data['data'][d_id]
         if d['in_use']:
             #
-            dataset = db.get_data_content(d['id'])
+            dataset = await db.get_data_content(d['id'])
             if len(dataset['x']) > max_n:
                 skip = 1 + int(len(dataset['x']) / max_n)
             else:
@@ -413,20 +414,20 @@ def fitter(input_queue, output_queue, status_queue, interrupt_queue):
             output_queue.put(None)
             continue
 
-        # Get model code
-        models = {}
-        for model_id, d in fit_info['models'].items():
-            m = db.get_models_content(d['name'])
-            models[model_id] = {'code': m['code'], 'expr_mode': m['expr_mode'], 'name_underscore': m['name_underscore'],
-                                'ode_dim': m.get('ode_dim'), 'ode_dim_select': m.get('ode_dim_select')}
-
-        # Get data
-        data = []
-        for data_id, d in fit_info['data'].items():
-            if d['in_use']:
-                db_data = db.get_data_content(d['id'])
-                data.append({'x': db_data['x'], 'y': db_data['y'], 'weight': d['weight'], 'model': d['model'],
-                             'parameter_indeces': {k: parameter_names.index(v) for k, v in d['parameters'].items()}})
+        # # Get model code
+        # models = {}
+        # for model_id, d in fit_info['models'].items():
+        #     m = await db.get_models_content(d['name'])
+        #     models[model_id] = {'code': m['code'], 'expr_mode': m['expr_mode'], 'name_underscore': m['name_underscore'],
+        #                         'ode_dim': m.get('ode_dim'), 'ode_dim_select': m.get('ode_dim_select')}
+        #
+        # # Get data
+        # data = []
+        # for data_id, d in fit_info['data'].items():
+        #     if d['in_use']:
+        #         db_data = await db.get_data_content(d['id'])
+        #         data.append({'x': db_data['x'], 'y': db_data['y'], 'weight': d['weight'], 'model': d['model'],
+        #                      'parameter_indeces': {k: parameter_names.index(v) for k, v in d['parameters'].items()}})
 
         # with open('cache.pkl', 'wb') as f:
         #     pickle.dump((parameter_names, values, const_index, models, data), f)
