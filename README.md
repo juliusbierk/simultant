@@ -34,8 +34,8 @@ dist\win-unpacked\simultant.exe
 ```
 On *nix you need to separately run
 ```
-./dist./linux-unpacked/simultant
-./dist./simulserver/simulserver
+./dist/linux-unpacked/simultant
+./dist/simulserver/simulserver
 ```
 
 
