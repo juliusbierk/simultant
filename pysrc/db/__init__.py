@@ -1,19 +1,13 @@
 import os
-from uuid import uuid4
+dir_path = os.path.dirname(os.path.realpath(__file__))
+os.sys.path.append(dir_path)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 from django.core.wsgi import get_wsgi_application
 get_wsgi_application()
-from db.models import Dataset
-
-__all__ = ['Dataset']
+from .db.models import Dataset, Model, Fit
 
 
-def main():
-    print(Dataset.objects.all())
-    d = Dataset(uid=str(uuid4()), info="whatever")
-    d.save()
-    print(d)
-
+__all__ = ['Dataset', 'Model', 'Fit']
 
 if __name__ == '__main__':
-    main()
+    print(Dataset.objects.all())

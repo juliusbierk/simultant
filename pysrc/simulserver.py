@@ -14,7 +14,8 @@ import pickle
 # Local imports:
 from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
 from torchfit import torch_fit
-import db
+if __name__ == '__main__':
+    import db  # we do not need a database connection for spawned processes
 
 logging.basicConfig(level=logging.WARN)
 logging.root.setLevel(logging.WARN)
@@ -40,6 +41,7 @@ def print(*args):
 async def index(request):
     return web.json_response({'running': True})
 
+
 async def check_code(request):
     data = await request.json()
     d = check_code_get_args(data['code'], data['name_underscore'], data['expr_mode'], data['ode_dim'], data['ode_dim_select'])
@@ -58,6 +60,7 @@ async def add_model(request):
     db.create_model(data['name'], data)
 
     return web.json_response({'success': True})
+
 
 async def delete_model(request):
     data = await request.json()
@@ -289,6 +292,7 @@ class PickleableF:
         m = self.m
         f = get_f_expr_or_ode(m['code'], m['expr_mode'], m['name_underscore'], m.get('ode_dim_select'))
         return list(f(*args, **kwargs).numpy())
+
 
 async def plot_fit(request):
     data = await request.json()
