@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent
 SECRET_KEY = '_'
 DEBUG = False
 INSTALLED_APPS = ['db.DbConfig' if
-		  os.environ.get('manage') == 'true' else 'db.db.DbConfig']
+                  os.environ.get('manage') == 'true' else 'db.db.DbConfig']
 
 DATABASES = {
     'default': {
@@ -14,4 +14,3 @@ DATABASES = {
         'NAME': BASE_DIR / '../db.sqlite',
     }
 }
-

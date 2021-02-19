@@ -10,7 +10,7 @@ npm install
 ### Create database
 First time you run the code you need to populate the database:
 ```
-python pysrc/makedb.py
+python pysrc/db/manage.py migrate
 ```
 
 ### Run (development) as app

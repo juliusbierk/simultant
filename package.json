@@ -9,6 +9,7 @@
     "build": "vue-cli-service electron:build && pyinstaller --noconfirm simulserver.spec",
     "serve": "vue-cli-service electron:serve",
     "build-np": "vue-cli-service electron:build",
+    "build-py": "pyinstaller --noconfirm simulserver.spec",
     "build-dev": "vue-cli-service electron:build --mode development",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
