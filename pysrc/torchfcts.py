@@ -38,8 +38,11 @@ torchfcts = {"sin": sin, "cos": cos, "exp": exp, "tensor": tensor, "sqrt": sqrt,
 
 
 class RangeType:
-    def __init__(self):
-        pass
+    start = None
+    stop = None
+
+    def __init__(self, const=False):
+        self.const = const
 
     def __call__(self, i):
         return typing.NewType(f'{i}', typing.Any)
@@ -50,10 +53,12 @@ class RangeType:
         t = typing.NewType(f'{start}-{stop}', typing.Any)
         t.start = start
         t.stop = stop
+        t.const = self.const
         return t
 
 
 R = RangeType()
+C = RangeType(const=True)
 
 def check_function_run(f, kwargs, expr=True, ode_dim=None, ode_dim_select=None):
     tensor_kwargs = {}
@@ -141,9 +146,8 @@ def get_bounds(func):
     return bounds
 
 
-
 def function_from_code(code, f_name):
-    d = {'R': R}
+    d = {'R': R, 'C': C}
     exec(code, torchfcts, d)
     f: typing.Callable = d[f_name]
     f._transform = d.get('_transform')
@@ -155,6 +159,7 @@ def function_from_code(code, f_name):
 
 class TimeoutError(Exception):
     pass
+
 
 def ode_from_code(code, f_name, ode_dim_select, timeout=30):
     atol = 5e-7

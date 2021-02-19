@@ -60,8 +60,8 @@ async def add_model(request):
     f = function_from_code(data['code'], data['name_underscore'])
     kwargs = get_default_args(f, data['expr_mode'], data.get('ode_dim'))
     data['args'] = [{'name': k, 'value': v} for k, v in kwargs.items()]
-    await db.create_model(data['name'], data)
 
+    await db.create_model(data['name'], data)
     return web.json_response({'success': True})
 
 

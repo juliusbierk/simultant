@@ -383,7 +383,15 @@
                     </div>
 
                     <div v-if="content.show_code" class="card-footer p-2">
-                      <ShowCode :code="models[content.name].code"></ShowCode>
+                      <ShowCode
+                        :code="
+                          (models[content.name].expr_mode
+                            ? ''
+                            : '# Output dimension = ' +
+                              models[content.name].ode_dim_select.toString() +
+                              '\n') + models[content.name].code
+                        "
+                      ></ShowCode>
                     </div>
                   </div>
                 </div>

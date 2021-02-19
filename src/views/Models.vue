@@ -109,7 +109,15 @@
                     ></BasicPlot>
                   </div>
                   <div v-if="content.show_code" class="card-footer p-2">
-                    <ShowCode :code="content.code"></ShowCode>
+                    <ShowCode
+                      :code="
+                        (content.expr_mode
+                          ? ''
+                          : '# Output dimension = ' +
+                            content.ode_dim_select.toString() +
+                            '\n') + content.code
+                      "
+                    ></ShowCode>
                   </div>
                 </div>
               </div>
@@ -833,7 +841,6 @@ export default {
           return;
         }
         this.last_code_check = this.ode_code;
-
       }
       this.running_code = true;
       throttled_check_model();

@@ -37,7 +37,3 @@ On *nix you need to separately run
 ./dist/linux-unpacked/simultant
 ./dist/simulserver/simulserver
 ```
-
-
-
-

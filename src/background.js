@@ -5,9 +5,9 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 import { exec, spawn } from "child_process";
-import os from "os"
+import os from "os";
 
-const is_windows = (os.type() === 'Windows_NT');
+const is_windows = os.type() === "Windows_NT";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -18,7 +18,10 @@ var server = null;
 
 function start_python_server() {
   if (isDevelopment) {
-    server = spawn("python", [__dirname + "/../pysrc/simulserver.py", "--start"]);
+    server = spawn("python", [
+      __dirname + "/../pysrc/simulserver.py",
+      "--start"
+    ]);
     server.stdout.on("data", function(data) {
       console.log(data.toString());
     });
@@ -29,7 +32,9 @@ function start_python_server() {
     // Need to start detached otherwise there are problems with multiprocessing
     if (is_windows) {
       console.log("GET ABSOLUTE PATH!");
-      server = spawn(__dirname + "/../../../simulserver/simulserver.exe", {detached: true});
+      server = spawn(__dirname + "/../../../simulserver/simulserver.exe", {
+        detached: true
+      });
       console.log("started server");
     }
   }
