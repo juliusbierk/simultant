@@ -26,13 +26,13 @@ logger.setLevel(logging.DEBUG)
 HOST = '127.0.0.1'
 PORT = 7555
 
-sys_print = print
-
 DEFAULT_PLOTLY_COLORS = ['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
                        'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
                        'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
                        'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
                        'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
+
+sys_print = print
 
 def print(*args):
     sys_print(*args, flush=True)
