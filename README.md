@@ -7,6 +7,19 @@ npm install
 (sudo) pip install -r requirements.txt
 ```
 
+## Make virtual enviroment
+
+Make environment
+```
+python -m venv venv
+```
+activiate it using activation scripts in venv/Scripts/ and then install requirements:
+
+```
+pip install -r requirements.txt
+```
+Optionally, deleted unused libraries in `venv\Lib\site-packages\torch\lib`.
+
 ### Create database
 First time you run the code you need to populate the database:
 ```

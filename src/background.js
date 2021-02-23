@@ -31,10 +31,14 @@ function start_python_server() {
   } else {
     // Need to start detached otherwise there are problems with multiprocessing
     if (is_windows) {
-      console.log("GET ABSOLUTE PATH!");
-      server = spawn(__dirname + "/../../../simulserver/simulserver.exe", {
-        detached: true
-      });
+      console.log("dirname", __dirname);
+      server = spawn(
+        __dirname.replace("app.asar", "") +
+          "simulserver\\simulserver.exe",
+        {
+          detached: true
+        }
+      );
       console.log("started server");
     }
   }
@@ -79,7 +83,7 @@ async function createWindow() {
     createProtocol("app");
     // Load the index.html when not in development
     win.loadURL("app://./index.html");
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
   }
 
   win.once("ready-to-show", () => {

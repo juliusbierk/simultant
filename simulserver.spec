@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['pysrc/simulserver.py'],
-             pathex=['.'],
+             pathex=['venv', '.'],
              binaries=[],
              datas=[('pysrc/db.sqlite', '.'), ('pysrc/db/settings.py', './db/')],
              hiddenimports=[],

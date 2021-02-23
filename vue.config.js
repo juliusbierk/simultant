@@ -3,7 +3,24 @@ const StringReplacePlugin = require("string-replace-webpack-plugin");
 module.exports = {
   pluginOptions: {
     electronBuilder: {
-      outputDir: "dist"
+      outputDir: "dist",
+      builderOptions: {
+        productName: "Simulatant",
+        compression: "store",
+        portable: {
+            splashImage: "logo\\splash.bmp"
+          },
+        extraResources: [
+          {
+            from: "dist/simulserver",
+            to: "simulserver",
+            filter: "**/*"
+          }
+        ],
+        win: {
+          target: "portable"
+        }
+      }
     }
   },
   chainWebpack: config => {

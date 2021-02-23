@@ -6,10 +6,10 @@
     "webserve": "vue-cli-service serve",
     "webbuild": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "build": "vue-cli-service electron:build && pyinstaller --noconfirm simulserver.spec",
+    "build": "npm run build-py && npm run build-np",
     "serve": "vue-cli-service electron:serve",
     "build-np": "vue-cli-service electron:build",
-    "build-py": "pyinstaller --noconfirm simulserver.spec",
+    "build-py": "cd venv/Scripts && activate.bat && cd ../.. && pyinstaller --noconfirm simulserver.spec",
     "build-dev": "vue-cli-service electron:build --mode development",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
