@@ -6,7 +6,7 @@ module.exports = {
       outputDir: "dist",
       builderOptions: {
         productName: "Simulatant",
-        compression: "store",
+        compression: "normal",  // "store": fast build, "normal": smaller executeable
         portable: {
             splashImage: "logo\\splash.bmp"
           },
