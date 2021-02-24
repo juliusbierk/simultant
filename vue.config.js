@@ -6,10 +6,10 @@ module.exports = {
       outputDir: "dist",
       builderOptions: {
         productName: "Simulatant",
-        compression: "normal",  // "store": fast build, "normal": smaller executeable
+        compression: "normal", // "store": fast build, "normal": smaller executeable
         portable: {
-            splashImage: "logo\\splash.bmp"
-          },
+          splashImage: "logo\\splash.bmp"
+        },
         extraResources: [
           {
             from: "dist/simulserver",
@@ -18,7 +18,7 @@ module.exports = {
           }
         ],
         win: {
-          target: "nsis"  // "portable" or "nsis"
+          target: "nsis" // "portable" or "nsis"
         }
       }
     }

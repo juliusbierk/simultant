@@ -283,7 +283,8 @@ export default createStore({
             state.fit.data[data_id].parameters[parameter_name]
           ].value,
         fit: null,
-        const: state.fit.parameters[
+        const:
+          state.fit.parameters[
             state.fit.data[data_id].parameters[parameter_name]
           ].const,
         type: "data"

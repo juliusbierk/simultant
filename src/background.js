@@ -33,8 +33,7 @@ function start_python_server() {
     if (is_windows) {
       console.log("dirname", __dirname);
       server = spawn(
-        __dirname.replace("app.asar", "") +
-          "simulserver\\simulserver.exe",
+        __dirname.replace("app.asar", "") + "simulserver\\simulserver.exe",
         {
           detached: true
         }

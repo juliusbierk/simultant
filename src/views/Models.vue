@@ -331,6 +331,26 @@
                 </div>
               </div>
 
+              <div v-if="show_const_info" class="row">
+                <div class="offset-1 cell-10">
+                  <div
+                    class="remark warning"
+                    style="margin-top:0; margin-bottom:0"
+                  >
+                    <b>Constants:</b> Parameters default to being
+                    fit parameters. To make them default to constants
+                    write e.g. <kbd>a: C</kbd> in the function definition
+                    to make parameter <kbd>a</kbd> default to a constant.
+                    <button
+                      class="button light small"
+                      @click="show_const_info = false"
+                    >
+                      Hide constants information
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div v-if="parameters" class="row">
                 <div class="offset-1 cell-10">
                   <div
@@ -382,6 +402,18 @@
                     @click="show_bound_info = !show_bound_info"
                   >
                     {{ show_bound_info ? "Hide bounds information" : "Bounds" }}
+                  </button>
+
+                  <button
+                    class="defaultcursor button"
+                    style="margin-right:10px"
+                    @click="show_const_info = !show_const_info"
+                  >
+                    {{
+                      show_const_info
+                        ? "Hide constants information"
+                        : "Constants"
+                    }}
                   </button>
                 </div>
 
@@ -496,7 +528,8 @@ export default {
       models: {},
       show_advanced_options: false,
       is_editing_model: false,
-      show_bound_info: false
+      show_bound_info: false,
+      show_const_info: false
     };
   },
   computed: {
