@@ -90,17 +90,23 @@ class Callback:
 
 
 def torch_fit(parameter_names, values, const_index, models, data,
-              status_queue=None, interrupt_queue=None, method='nelder-mead'):
+              status_queue=None, interrupt_queue=None, method=None):
     t1 = time.time()
     for d in data:
         d['x'] = torch.tensor(d['x'], dtype=torch.double)
         d['y'] = torch.tensor(d['y'], dtype=torch.double)
         d['weight'] = 1 # for now.
 
+    any_ode = False
     for m, d in models.items():
+        if not d['expr_mode']:
+            any_ode = True
         d['f'] = get_f_expr_or_ode(d['code'], d['expr_mode'], d['name_underscore'], d['ode_dim_select'])
         d['f'].expr_mode = d['expr_mode']
         d['f'].ode_dim = d['ode_dim']
+
+    if method is None:
+        method = 'nelder-mead' if any_ode else 'anagrad'
 
     # Bounds:
     parameter_lower_bounds = [0] * const_index

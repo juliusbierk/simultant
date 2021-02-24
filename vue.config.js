@@ -18,7 +18,7 @@ module.exports = {
           }
         ],
         win: {
-          target: "portable"
+          target: "nsis"  // "portable" or "nsis"
         }
       }
     }

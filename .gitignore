@@ -27,7 +27,7 @@ pysrc/db.sqlite
 
 # cache
 cache.pkl
-*/__pycache__/*
+__pycache__/
 
 #Electron-builder output
 /dist_electron
