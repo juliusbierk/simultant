@@ -123,6 +123,7 @@ export default createStore({
       const model_parameters = {};
       let mp;
       const kwargs = state.models[payload.model_selected].kwargs;
+      const consts = state.models[payload.model_selected].consts;
       for (const p in kwargs) {
         mp = misc.parameter_uuid();
 
@@ -130,7 +131,7 @@ export default createStore({
           name: p,
           value: kwargs[p],
           fit: null,
-          const: false,
+          const: consts[p],
           type: "model"
         };
 
@@ -151,6 +152,7 @@ export default createStore({
       const model_id = payload.model_id;
       const model_name = state.fit.models[model_id].name;
       const kwargs = state.models[model_name].kwargs;
+      const consts = state.models[model_name].consts;
 
       let first_use = true;
       let model_parameters = {};
@@ -167,7 +169,7 @@ export default createStore({
                 name: p,
                 value: kwargs[p],
                 fit: null,
-                const: false,
+                const: consts[p],
                 type: "data"
               };
 
@@ -189,7 +191,7 @@ export default createStore({
             name: p,
             value: kwargs[p],
             fit: null,
-            const: false,
+            const: consts[p],
             type: "model"
           };
 
@@ -208,7 +210,6 @@ export default createStore({
           if (p === p_in) {
             newp = misc.parameter_uuid();
             pobj = _.cloneDeep(state.fit.parameters[p_in]);
-            pobj.const = false;
             pobj.type = "data";
 
             state.fit.parameters[newp] = pobj;
@@ -229,7 +230,7 @@ export default createStore({
       state.fit.parameters[newp] = {
         name: parameter_name,
         value: state.models[model_name].kwargs[parameter_name],
-        const: false,
+        const: state.models[model_name].consts[parameter_name],
         fit: null,
         type: "model"
       };
@@ -282,7 +283,9 @@ export default createStore({
             state.fit.data[data_id].parameters[parameter_name]
           ].value,
         fit: null,
-        const: true,
+        const: state.fit.parameters[
+            state.fit.data[data_id].parameters[parameter_name]
+          ].const,
         type: "data"
       };
 

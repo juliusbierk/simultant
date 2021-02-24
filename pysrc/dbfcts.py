@@ -57,6 +57,15 @@ def args_to_kwargs(d):
     return kwargs
 
 
+def args_to_consts(d):
+    consts = {x['name']: x['const'] for x in d['args']}
+    if not d['expr_mode']:
+        y0 = consts['y0']
+        del consts['y0']
+        for i in range(len(y0)):
+            consts[f'y0[{i}]'] = y0
+    return consts
+
 @sync_to_async
 def get_models_content(name):
     try:
@@ -74,6 +83,7 @@ def get_all_models():
     data = {x.name: json.loads(x.content) for x in Model.objects.all()}
     for m in data:
         data[m]['kwargs'] = args_to_kwargs(data[m])
+        data[m]['consts'] = args_to_consts(data[m])
     return data
 
 

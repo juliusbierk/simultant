@@ -12,7 +12,7 @@ import multiprocessing
 import queue
 import pickle
 # Local imports:
-from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode
+from torchfcts import function_from_code, get_default_args, check_code_get_args, get_f_expr_or_ode, get_const_bools
 from torchfit import torch_fit
 
 if __name__ == '__main__':
@@ -59,7 +59,8 @@ async def add_model(request):
 
     f = function_from_code(data['code'], data['name_underscore'])
     kwargs = get_default_args(f, data['expr_mode'], data.get('ode_dim'))
-    data['args'] = [{'name': k, 'value': v} for k, v in kwargs.items()]
+    consts = get_const_bools(f)
+    data['args'] = [{'name': k, 'value': v, 'const': consts[k]} for k, v in kwargs.items()]
 
     await db.create_model(data['name'], data)
     return web.json_response({'success': True})
