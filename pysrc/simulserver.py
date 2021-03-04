@@ -381,6 +381,9 @@ async def plot_fit(request):
                     else:
                         kwargs[p] = parameter['fit']
 
+                for p in kwargs:
+                    kwargs[p] = torch.tensor(kwargs[p], dtype=torch.double)
+
                 if not f.expr_mode:
                     kwargs = transform_y0_kwargs_for_ode(kwargs, f.ode_dim)
 
