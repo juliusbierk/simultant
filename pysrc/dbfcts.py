@@ -34,7 +34,9 @@ def delete_data(parent):
 
 @sync_to_async
 def create_model(name, content):
-    Model.objects.get_or_create(name=name, content=json.dumps(content))
+    m, _ = Model.objects.get_or_create(name=name)
+    m.content = json.dumps(content)
+    m.save()
 
 
 @sync_to_async
