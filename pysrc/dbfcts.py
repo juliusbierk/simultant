@@ -64,9 +64,10 @@ def args_to_consts(d):
     if not d['expr_mode']:
         y0 = consts['y0']
         del consts['y0']
-        for i in range(len(y0)):
+        for i in range(100):
             consts[f'y0[{i}]'] = y0
     return consts
+
 
 @sync_to_async
 def get_models_content(name):
