@@ -11,13 +11,9 @@ npm install
 
 Make environment
 ```
-python -m venv venv
+npm run make-venv
 ```
-activiate it using activation scripts in venv/Scripts/ and then install requirements:
 
-```
-pip install -r requirements.txt
-```
 Optionally, deleted unused libraries in `venv\Lib\site-packages\torch\lib`.
 
 ### Create database
