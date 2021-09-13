@@ -320,10 +320,14 @@ class PickleableF:
 
 async def plot_fit(request):
     data = await request.json()
+    plot_data, is_fitted = await make_plot(data)
+    res = {'plots': plot_data, 'is_fitted': is_fitted}
+    return web.json_response(res)
 
+
+async def make_plot(data):
     plot_data = []
     max_n = data.get('max_n', 250)
-
     # Generate functions
     models = {}
     for model_id, d in data['models'].items():
@@ -332,7 +336,6 @@ async def plot_fit(request):
         models[model_id] = PickleableF(m)
         models[model_id].expr_mode = m['expr_mode']
         models[model_id].ode_dim = m.get('ode_dim')
-
     # Plot data
     xmin = float('infinity')
     xmax = float('-infinity')
@@ -355,12 +358,11 @@ async def plot_fit(request):
 
             plot_data.append({'x': x, 'y': y, 'name': dataset['name'], 'mode': 'markers',
                               'type': 'scattergl', 'legendgroup': d_id})
-
     # Plot fits
     x = np.linspace(xmin, xmax, 250)
     x_list = list(x)
     x_torch = torch.from_numpy(x)
-
+    is_fitted = False
     with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
         for i, d_id in enumerate(data['data']):
             d = data['data'][d_id]
@@ -399,7 +401,12 @@ async def plot_fit(request):
             if 'future' in d:
                 d['y'] = await d['future']
                 del d['future']
+    return plot_data, is_fitted
 
+
+async def download_fit(request):
+    data = await request.json()
+    plot_data, is_fitted = await make_plot(data)
     return web.json_response(plot_data)
 
 
@@ -496,6 +503,7 @@ if __name__ == '__main__':
               ('/interrupt_fit', interrupt_fit),
               ('/plot_fit', plot_fit),
               ('/fit_result', fit_result),
+              ('/download_fit', download_fit),
               ('/exit', shuwdown),
               ]
 

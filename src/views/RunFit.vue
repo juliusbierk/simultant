@@ -327,10 +327,40 @@
               </div>
             </div>
           </div>
+
+
+          <div
+            class="cell-12"
+            v-show="
+              this.is_fitted
+            "
+          >
+            <div
+              class="window"
+            >
+              <div class="window-caption">
+                <span class="title">Download fit</span>
+              </div>
+
+              <div class="window-content p-2">
+                <div class="cell-5 offset-5">
+                  <button
+                    class="button defaultcursor"
+                    @click="download_fit"
+                  >
+                    Download
+                </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+
+
 </template>
 
 <script>
@@ -356,7 +386,8 @@ export default {
       interrupting_fit: false,
       iteration: 0,
       loss: null,
-      is_mounted: true
+      is_mounted: true,
+      is_fitted: false,
     };
   },
   components: {
@@ -459,6 +490,24 @@ export default {
         }
       });
     },
+    download_fit() {
+      fetch(this.py + "/plot_fit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(this.fit)
+      }).then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "fit.txt";
+            document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+            a.click();
+            a.remove();  //afterwards we remove the element again
+        });
+    },
     update_plot() {
       if (!this.plot_created) {
         // fixing caching issue
@@ -474,7 +523,9 @@ export default {
         },
         body: JSON.stringify(this.fit)
       }).then(async result => {
-        var res = await result.json();
+        let res = await result.json();
+        this.is_fitted = res['is_fitted'];
+        res = res['plots'];
         let layout = _.cloneDeep(plotlysettings.layout);
 
         if (this.plot_created) {

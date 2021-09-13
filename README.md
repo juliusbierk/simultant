@@ -7,12 +7,14 @@ npm install
 (sudo) pip install -r requirements.txt
 ```
 
-## Make virtual enviroment
+### Make virtual enviroment
 
 Make environment
 ```
 npm run make-venv
 ```
+
+To use this environment, use the activation script in `venv\bin`
 
 Optionally, deleted unused libraries in `venv\Lib\site-packages\torch\lib`.
 
