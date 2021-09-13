@@ -60,6 +60,16 @@
                       : undefined
                   }"
                 ></div>
+
+                <div v-show="!(fit_running || plot_running)">
+                Method:
+                  <select v-model="method">
+                    <option value="anagrad">Analytical Gradient Descent (L-BFGS-B)</option>
+                    <option value="nelder-mead">Gradient-free Nelder-Mead</option>
+                    >
+                  </select>
+                  {{ method }}
+                </div>
               </div>
 
               <div class="cell-1">
@@ -373,7 +383,8 @@ export default {
       iteration: 0,
       loss: null,
       is_mounted: true,
-      is_fitted: false
+      is_fitted: false,
+      method: 'anagrad',
     };
   },
   components: {
@@ -411,12 +422,15 @@ export default {
       this.loss = null;
       this.interrupting_fit = false;
 
+      let method_fit = _.cloneDeep(this.fit);
+      method_fit.method = this.method;
+
       fetch(this.py + "/run_fit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(this.fit)
+        body: JSON.stringify(method_fit)
       }).then(async result => {
         const r = await result.json();
         if (r["status"] === "started") {

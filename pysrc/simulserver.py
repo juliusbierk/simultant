@@ -540,8 +540,9 @@ def fitter(input_queue, output_queue, status_queue, interrupt_queue):
 
         # with open('cache.pkl', 'wb') as f:
         #     pickle.dump((parameter_names, values, const_index, models, data), f)
-
-        fit = torch_fit(parameter_names, values, const_index, models, data, status_queue, interrupt_queue)
+        method = fit_info.get('method')
+        fit = torch_fit(parameter_names, values, const_index, models, data, status_queue, interrupt_queue,
+                        method=method)
 
         output_queue.put(fit)
 
