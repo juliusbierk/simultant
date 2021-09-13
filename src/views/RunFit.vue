@@ -491,7 +491,7 @@ export default {
       });
     },
     download_fit() {
-      fetch(this.py + "/plot_fit", {
+      fetch(this.py + "/download_fit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -502,7 +502,7 @@ export default {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "fit.txt";
+            a.download = "fit.json";
             document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
             a.click();
             a.remove();  //afterwards we remove the element again

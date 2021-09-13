@@ -1,5 +1,6 @@
 import asyncio
 import concurrent
+import functools
 import json
 import numpy as np
 import torch
@@ -404,10 +405,95 @@ async def make_plot(data):
     return plot_data, is_fitted
 
 
+async def make_download(data):
+    download_data = []
+
+    # Generate functions
+    models = {}
+    for model_id, d in data['models'].items():
+        m = await db.get_models_content(d['name'])
+
+        models[model_id] = PickleableF(m)
+        models[model_id].expr_mode = m['expr_mode']
+        models[model_id].ode_dim = m.get('ode_dim')
+
+    # Get data and range
+    datasets = {}
+    xmin = float('infinity')
+    xmax = float('-infinity')
+    for d_id in data['data']:
+        d = data['data'][d_id]
+        if d['in_use']:
+            dataset = await db.get_data_content(d['id'])
+            datasets[d_id] = dataset
+            x = dataset['x']
+
+            if min(x) < xmin:
+                xmin = min(x)
+            if max(x) > xmax:
+                xmax = max(x)
+
+    # Generate fits and store data
+    x = np.linspace(xmin, xmax, 250)
+    x_list = list(x)
+    x_torch = torch.from_numpy(x)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
+        for i, d_id in enumerate(data['data']):
+            d = data['data'][d_id]
+            if d['in_use']:
+                dataset = datasets[d_id]
+
+                store = {
+                    'name': dataset['name'],
+                    'x_data': dataset['x'],
+                    'y_data': dataset['y']
+                }
+
+                f = models[d['model']]
+                kwargs = {}
+                list_of_parameters = []
+                for p in d['parameters']:
+                    p_id = d['parameters'][p]
+
+                    parameter = data['parameters'][p_id]
+
+                    if parameter['const']:
+                        kwargs[p] = parameter['value']
+                    elif parameter.get('fit') is None:
+                        kwargs[p] = parameter['value']
+                    else:
+                        kwargs[p] = parameter['fit']
+
+                    list_of_parameters.append([parameter['name'], kwargs[p]])
+
+                store['parameters'] = list_of_parameters
+
+                for p in kwargs:
+                    kwargs[p] = torch.tensor(kwargs[p], dtype=torch.double)
+
+                if not f.expr_mode:
+                    kwargs = transform_y0_kwargs_for_ode(kwargs, f.ode_dim)
+
+                # Run function evaluation in parallel, without blocking the server loop:
+                future = asyncio.wrap_future(executor.submit(f, x_torch, **kwargs))
+
+                store['x_fit'] = x_list
+                store['future'] = future
+
+                download_data.append(store)
+
+        for d in download_data:
+            if 'future' in d:
+                d['y_fit'] = await d['future']
+                del d['future']
+
+    return download_data
+
+
 async def download_fit(request):
     data = await request.json()
-    plot_data, is_fitted = await make_plot(data)
-    return web.json_response(plot_data)
+    download_data = await make_download(data)
+    return web.json_response(download_data, dumps=functools.partial(json.dumps, indent=4))
 
 
 def transform_y0_kwargs_for_ode(kwargs, dim):
