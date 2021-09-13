@@ -328,28 +328,17 @@
             </div>
           </div>
 
-
-          <div
-            class="cell-12"
-            v-show="
-              this.is_fitted
-            "
-          >
-            <div
-              class="window"
-            >
+          <div class="cell-12" v-show="this.is_fitted">
+            <div class="window">
               <div class="window-caption">
                 <span class="title">Download fit</span>
               </div>
 
               <div class="window-content p-2">
                 <div class="cell-5 offset-5">
-                  <button
-                    class="button defaultcursor"
-                    @click="download_fit"
-                  >
+                  <button class="button defaultcursor" @click="download_fit">
                     Download
-                </button>
+                  </button>
                 </div>
               </div>
             </div>
@@ -358,9 +347,6 @@
       </div>
     </div>
   </div>
-
-
-
 </template>
 
 <script>
@@ -387,7 +373,7 @@ export default {
       iteration: 0,
       loss: null,
       is_mounted: true,
-      is_fitted: false,
+      is_fitted: false
     };
   },
   components: {
@@ -497,15 +483,16 @@ export default {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(this.fit)
-      }).then(response => response.blob())
+      })
+        .then(response => response.blob())
         .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "fit.json";
-            document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
-            a.click();
-            a.remove();  //afterwards we remove the element again
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "fit.json";
+          document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+          a.click();
+          a.remove(); //afterwards we remove the element again
         });
     },
     update_plot() {
@@ -523,8 +510,8 @@ export default {
         body: JSON.stringify(this.fit)
       }).then(async result => {
         let res = await result.json();
-        this.is_fitted = res['is_fitted'];
-        res = res['plots'];
+        this.is_fitted = res["is_fitted"];
+        res = res["plots"];
         let layout = _.cloneDeep(plotlysettings.layout);
 
         if (this.plot_created) {

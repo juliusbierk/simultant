@@ -337,10 +337,10 @@
                     class="remark warning"
                     style="margin-top:0; margin-bottom:0"
                   >
-                    <b>Constants:</b> Parameters default to being
-                    fit parameters. To make them default to constants
-                    write e.g. <kbd>a: C</kbd> in the function definition
-                    to make parameter <kbd>a</kbd> default to a constant.
+                    <b>Constants:</b> Parameters default to being fit
+                    parameters. To make them default to constants write e.g.
+                    <kbd>a: C</kbd> in the function definition to make parameter
+                    <kbd>a</kbd> default to a constant.
                     <button
                       class="button light small"
                       @click="show_const_info = false"
