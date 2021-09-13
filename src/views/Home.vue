@@ -33,8 +33,7 @@
         <div class="remark secondary">
           <h3>Data</h3>
           Import data as comma-separated or tab-separated data. Data will be
-          grouped by your file uploads, or can be grouped by specifying dataset
-          names.
+          grouped by your file uploads.
         </div>
       </div>
     </div>

@@ -422,7 +422,8 @@ export default {
       "fit_set_initial_value",
       "fit_set_fit_value",
       "fit_toggle_parameter_value_type",
-      "set_fit_running"
+      "set_fit_running",
+      "toggle_fit_in_use"
     ]),
     initial_value_change(pid, string_value) {
       const value = parseFloat(string_value);
@@ -432,7 +433,7 @@ export default {
       this.fit_toggle_parameter_value_type(pid);
     },
     toggle_in_use(pid) {
-      alert(pid);
+      this.toggle_fit_in_use(pid);
     },
     run_fit() {
       this.iteration = 0;

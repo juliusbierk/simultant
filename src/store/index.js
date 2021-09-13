@@ -75,6 +75,9 @@ export default createStore({
       }
       stop_running_fit(state);
     },
+    toggle_fit_in_use(state, pid) {
+      state.fit.data[pid].in_use = !state.fit.data[pid].in_use;
+    },
     set_fit_models(state, payload) {
       if (payload.id in state.fit.models) {
         state.fit.models[payload.id] = {
