@@ -107,6 +107,11 @@ export default createStore({
       stop_running_fit(state);
     },
     delete_fit_models(state, id) {
+      for (const d in state.fit.data) {
+        if (state.fit.data[d].model === id) {
+          state.fit.data[d].model = null;
+        }
+      }
       delete state.fit.models[id];
       stop_running_fit(state);
     },
