@@ -12,7 +12,7 @@
       <div :class="{ 'cell-12': choose_fit_open, 'cell-2': !choose_fit_open }">
         <div class="window" v-bind:class="{ minimized: !choose_fit_open }">
           <div class="window-caption">
-            <span class="title">Fits</span>
+            <span class="title">Fit</span>
 
             <div class="buttons">
               <span
@@ -192,6 +192,7 @@
                       <div class="row">
                         <div class="cell-6">
                           <a
+                            @click="delete_data(id, content)"
                             style="font-size:20px"
                             class="btn-close defaultcursor"
                             >&#10005;</a
@@ -334,6 +335,7 @@
                       <div class="row">
                         <div class="cell-5">
                           <a
+                            @click="delete_model(id, content)"
                             style="font-size:20px"
                             class="btn-close defaultcursor"
                             >&#10005;</a
@@ -625,6 +627,18 @@ export default {
     },
     change_model(data_id, model_id) {
       this.fit_apply_model({ data_id, model_id });
+    },
+    delete_data(data_id, content) {
+      if (!confirm(`Delete data ${content.parent} : ${content.name}?`)) {
+        return;
+      }
+      this.delete_fit_data(data_id);
+    },
+    delete_model(model_id, content) {
+      if (!confirm(`Delete model ${content.print_name}?`)) {
+        return;
+      }
+      this.delete_fit_models(model_id);
     }
   },
   mounted: function() {

@@ -62,10 +62,14 @@
                 ></div>
 
                 <div v-show="!(fit_running || plot_running)">
-                Method:
+                  Method:
                   <select v-model="method">
-                    <option value="anagrad">Analytical Gradient Descent (L-BFGS-B)</option>
-                    <option value="nelder-mead">Gradient-free Nelder-Mead</option>
+                    <option value="anagrad"
+                      >Analytical Gradient Descent (L-BFGS-B)</option
+                    >
+                    <option value="nelder-mead"
+                      >Gradient-free Nelder-Mead</option
+                    >
                     >
                   </select>
                   {{ method }}
@@ -384,7 +388,7 @@ export default {
       loss: null,
       is_mounted: true,
       is_fitted: false,
-      method: 'anagrad',
+      method: "anagrad"
     };
   },
   components: {

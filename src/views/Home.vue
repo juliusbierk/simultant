@@ -97,6 +97,7 @@ export default {
     }
   },
   mounted() {
+    this.$store.commit("set_backend_not_running");
     this.check_backend_loop();
   }
 };
