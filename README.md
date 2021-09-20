@@ -9,6 +9,9 @@ npm install
 
 ### Make virtual enviroment
 
+This is needed to build an executeable, but not needed
+to just run the code.
+
 Make environment
 ```
 npm run make-venv
