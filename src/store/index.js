@@ -17,6 +17,7 @@ export default createStore({
   state: {
     models: {},
     fit: {
+      r2: null,
       data: {},
       models: {},
       parameters: {}
@@ -309,6 +310,9 @@ export default createStore({
     },
     fit_set_fit_value(state, payload) {
       state.fit.parameters[payload.pid].fit = payload.value;
+    },
+    fit_set_r2_value(state, payload) {
+      state.fit.r2 = payload;
     },
     fit_toggle_parameter_value_type(state, pid) {
       state.fit.parameters[pid].const = !state.fit.parameters[pid].const;

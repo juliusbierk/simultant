@@ -42,7 +42,7 @@
       <div class="cell-4 offset-1" @click="rpush('/specifyfit')">
         <div class="remark secondary">
           <h3>Fit Topology</h3>
-          Specify a fit by applying models models datasets. Parameters can be
+          Specify a fit by applying models to datasets. Parameters can be
           shared between all datasets, be specific to each datasets, or shared
           in any manner across datasets and/or models.
         </div>
@@ -57,14 +57,14 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="cell-9 offset-1">
-        <div class="remark warning">
-          Please cite <em>xxx</em> if using results produced by this application
-          in a publication.
-        </div>
-      </div>
-    </div>
+<!--    <div class="row">-->
+<!--      <div class="cell-9 offset-1">-->
+<!--        <div class="remark warning">-->
+<!--          Please cite <em>xxx</em> if using results produced by this application-->
+<!--          in a publication.-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
   </div>
 </template>
 

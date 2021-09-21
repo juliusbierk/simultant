@@ -286,7 +286,7 @@ async def interrupt_fit(request):
 
 async def fit_result(request):
     try:
-        fit = result_queue.get_nowait()
+        fit, r2 = result_queue.get_nowait()
 
         # Empty iteration queue:
         await asyncio.sleep(0.01)
@@ -306,7 +306,7 @@ async def fit_result(request):
             pass
         return web.json_response({'status': 'no-fit', 'info': d})
 
-    return web.json_response({'status': 'success', 'fit': fit})
+    return web.json_response({'status': 'success', 'fit': fit, 'r2': r2})
 
 
 class PickleableF:
@@ -541,10 +541,10 @@ def fitter(input_queue, output_queue, status_queue, interrupt_queue):
         # with open('cache.pkl', 'wb') as f:
         #     pickle.dump((parameter_names, values, const_index, models, data), f)
         method = fit_info.get('method')
-        fit = torch_fit(parameter_names, values, const_index, models, data, status_queue, interrupt_queue,
+        fit, r2 = torch_fit(parameter_names, values, const_index, models, data, status_queue, interrupt_queue,
                         method=method)
 
-        output_queue.put(fit)
+        output_queue.put((fit, r2))
 
 
 if __name__ == '__main__':

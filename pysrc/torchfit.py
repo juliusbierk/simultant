@@ -136,8 +136,10 @@ def torch_fit(parameter_names, values, const_index, models, data,
     p_np_0 = np.array(values[:const_index], dtype=np.double)
     p_const = torch.tensor(values[const_index:], dtype=torch.double)
 
-    def eval_f(p):
+    def eval_f(p, return_r2=False):
         r = torch.tensor(0.0, dtype=torch.float)
+        ss_tot = torch.tensor(0.0, dtype=torch.float)
+
         p = torch.cat((p, p_const))
         for d in data:
             f = models[d['model']]['f']
@@ -147,10 +149,16 @@ def torch_fit(parameter_names, values, const_index, models, data,
                 k = {k: p[i] for k, i in d['parameter_indeces'].items() if '[' not in k}
                 k['y0'] = torch.stack([p[d['parameter_indeces'][f'y0[{i}]']] for i in range(f.ode_dim)])
 
-            r += d['weight'] * torch.mean((f(d['x'], **k) - d['y']) ** 2)
+            r += d['weight'] * torch.mean((f(d['x'], **k) - d['y'])**2)
+            if return_r2:
+                ss_tot += d['weight'] * torch.mean((d['y'].mean() - d['y'])**2)
+
         logger.debug(f'Loss = {r}')
 
-        return r
+        if return_r2:
+            return r, 1 - r / ss_tot
+        else:
+            return r
 
     iteration_counter = IterationCounter()
     callback = Callback(interrupt_queue)
@@ -233,7 +241,9 @@ def torch_fit(parameter_names, values, const_index, models, data,
 
     p_res = {parameter_names[i]: float(p_opt[i]) for i in range(len(parameter_names)) if i < const_index}
     logger.debug(f'Finished fit in {time.time() - t1} seconds')
-    return p_res
+
+    _, r2_coeff = eval_f(torch.tensor(p_opt, dtype=torch.float), return_r2=True)
+    return p_res, float(r2_coeff)
 
 
 def fix_initial_values(const_index, parameter_lower_bounds, parameter_upper_bounds, values):
