@@ -222,7 +222,6 @@
                     <div class="card-content">
                       <div class="row">
                         <div class="cell-7 offset-1">
-
                           <div
                             style="margin-bottom:3px; margin-top:3px"
                             v-for="(pid, pname) in content.parameters"
@@ -441,11 +440,17 @@
                   v-for="(name, id) in detached_parameters"
                   :key="id"
                 >
-                  <div v-if="parameter_n_used[id] > 0" class="cell-1 offset-1">
-
-                  </div>
+                  <div
+                    v-if="parameter_n_used[id] > 0"
+                    class="cell-1 offset-1"
+                  ></div>
                   <div v-else class="cell-1 offset-1">
-                    X
+                    <a
+                      @click="delete_detached_parameter(id, name)"
+                      style="font-size:20px"
+                      class="btn-close defaultcursor"
+                      >&#10005;</a
+                    >
                   </div>
 
                   <div class="cell-2">
@@ -460,14 +465,16 @@
                     </button>
                   </div>
 
-                  <div v-if="parameter_n_used[id] > 0" class="cell-2 offset-1">
-                    <span style="text-align: right;"  class="tally">Used in {{  parameter_n_used[id] }} data sets</span>
+                  <div v-if="parameter_n_used[id] > 0" class="cell-2">
+                    <span style="text-align: right;" class="tally"
+                      >Used in {{ parameter_n_used[id] }} data sets</span
+                    >
                   </div>
                   <div v-else class="cell-2">
-                    <span style="text-align: right;"  class="tally">Not in use</span>
+                    <span style="text-align: right;" class="tally"
+                      >Not in use</span
+                    >
                   </div>
-
-
                 </div>
               </div>
             </div>
@@ -531,7 +538,7 @@ export default {
         }
       }
       return n_used;
-    },
+    }
   },
   methods: {
     ...mapMutations([
@@ -551,7 +558,8 @@ export default {
       "fit_attach",
       "fit_detach_to_data",
       "clear_fit",
-      "fit_apply_model"
+      "fit_apply_model",
+      "delete_fit_detached_parameter"
     ]),
     update_datasets() {
       fetch(this.py + "/data_list", {}).then(async result => {
@@ -664,6 +672,12 @@ export default {
         return;
       }
       this.delete_fit_data(data_id);
+    },
+    delete_detached_parameter(p_id, name) {
+      if (!confirm(`Delete detached parameter ${name}?`)) {
+        return;
+      }
+      this.delete_fit_detached_parameter(p_id);
     },
     delete_model(model_id, content) {
       if (!confirm(`Delete model ${content.print_name}?`)) {

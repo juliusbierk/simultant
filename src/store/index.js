@@ -110,6 +110,10 @@ export default createStore({
       delete state.fit.data[id];
       stop_running_fit(state);
     },
+    delete_fit_detached_parameter(state, id) {
+      delete state.fit.parameters[id];
+      stop_running_fit(state);
+    },
     delete_fit_models(state, id) {
       for (const d in state.fit.data) {
         if (state.fit.data[d].model === id) {

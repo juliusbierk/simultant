@@ -361,21 +361,20 @@
                 </div>
 
                 <div class="window-content p-2">
-
                   <div class="row">
-
-                  <div class="cell-3 offset-1" v-if="fit.r2">
-                    R2 Coefficient = {{ fit.r2.toPrecision(5) }}
-                  </div>
-
-                  <div class="cell-5 offset-2">
-                    <button class="button defaultcursor" @click="download_fit">
-                      Download
-                    </button>
-                  </div>
-
+                    <div class="cell-3 offset-1" v-if="fit.r2">
+                      R2 Coefficient = {{ fit.r2.toPrecision(5) }}
                     </div>
 
+                    <div class="cell-5 offset-2">
+                      <button
+                        class="button defaultcursor"
+                        @click="download_fit"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -505,7 +504,7 @@ export default {
             this.fit_set_fit_value({ pid, value: r["fit"][pid] });
           }
 
-          this.fit_set_r2_value(r['r2'])
+          this.fit_set_r2_value(r["r2"]);
 
           this.update_plot();
         } else {
