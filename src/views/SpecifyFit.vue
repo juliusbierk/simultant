@@ -221,7 +221,8 @@
 
                     <div class="card-content">
                       <div class="row">
-                        <div class="cell-11 offset-1">
+                        <div class="cell-7 offset-1">
+
                           <div
                             style="margin-bottom:3px; margin-top:3px"
                             v-for="(pid, pname) in content.parameters"
@@ -440,7 +441,14 @@
                   v-for="(name, id) in detached_parameters"
                   :key="id"
                 >
-                  <div class="cell-8 offset-1">
+                  <div v-if="parameter_n_used[id] > 0" class="cell-1 offset-1">
+
+                  </div>
+                  <div v-else class="cell-1 offset-1">
+                    X
+                  </div>
+
+                  <div class="cell-2">
                     <button
                       data-role="hint"
                       data-hint-text="This is a detached parameter, which can be shared between models and/or datasets."
@@ -451,6 +459,15 @@
                       {{ name }}
                     </button>
                   </div>
+
+                  <div v-if="parameter_n_used[id] > 0" class="cell-2 offset-1">
+                    <span style="text-align: right;"  class="tally">Used in {{  parameter_n_used[id] }} data sets</span>
+                  </div>
+                  <div v-else class="cell-2">
+                    <span style="text-align: right;"  class="tally">Not in use</span>
+                  </div>
+
+
                 </div>
               </div>
             </div>
@@ -500,7 +517,21 @@ export default {
       data_selection_open: state => state.ui_specify.data_selection_open,
       model_selection_open: state => state.ui_specify.model_selection_open
     }),
-    ...mapGetters(["detached_parameters", "model_parameters"])
+    ...mapGetters(["detached_parameters", "model_parameters"]),
+    parameter_n_used() {
+      const n_used = {};
+      for (const d in this.fit.data) {
+        for (const pname in this.fit.data[d].parameters) {
+          const p = this.fit.data[d].parameters[pname];
+          if (p in n_used) {
+            n_used[p] += 1;
+          } else {
+            n_used[p] = 1;
+          }
+        }
+      }
+      return n_used;
+    },
   },
   methods: {
     ...mapMutations([
