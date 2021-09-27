@@ -193,7 +193,10 @@ def ode_from_code(code, f_name, ode_dim_select, timeout=30):
                 logger.warning('ODE Solving timed out')
                 raise TimeoutError
 
-            return torch.hstack(f(x, y, **kwargs))
+            r = f(x, y, **kwargs)
+            if isinstance(r, torch.Tensor):
+                r = (r, )
+            return torch.hstack(r)
 
         if f._event is None:
             sol = sillyode(curied, kwargs['y0'], x, atol=atol, rtol=rtol)
