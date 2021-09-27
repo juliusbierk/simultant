@@ -454,7 +454,6 @@ async def make_download(data):
                 list_of_parameters = []
                 for p in d['parameters']:
                     p_id = d['parameters'][p]
-
                     parameter = data['parameters'][p_id]
 
                     if parameter['const']:
@@ -464,7 +463,13 @@ async def make_download(data):
                     else:
                         kwargs[p] = parameter['fit']
 
-                    list_of_parameters.append([parameter['name'], kwargs[p]])
+                    info = {'name': p,
+                            'type': parameter['type'],
+                            'value:': kwargs[p],
+                            'is_const': parameter['const']}
+                    if parameter['type'] == 'detached':
+                        info['detached_name'] = parameter['name']
+                    list_of_parameters.append(info)
 
                 store['parameters'] = list_of_parameters
 

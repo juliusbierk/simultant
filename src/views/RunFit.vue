@@ -77,7 +77,7 @@
                     Method:
                     <select v-model="method">
                       <option value="anagrad"
-                        >Analytical Gradient Descent (L-BFGS-B)</option
+                        >Analytical Gradient Descent (L-BFGS)</option
                       >
                       <option value="nelder-mead"
                         >Gradient-free Nelder-Mead</option

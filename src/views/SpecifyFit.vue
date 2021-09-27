@@ -465,12 +465,12 @@
                     </button>
                   </div>
 
-                  <div v-if="parameter_n_used[id] > 0" class="cell-2">
+                  <div v-if="parameter_n_used[id] > 0" class="cell-6">
                     <span style="text-align: right;" class="tally"
                       >Used in {{ parameter_n_used[id] }} data sets</span
                     >
                   </div>
-                  <div v-else class="cell-2">
+                  <div v-else class="cell-6">
                     <span style="text-align: right;" class="tally"
                       >Not in use</span
                     >
