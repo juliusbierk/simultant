@@ -57,14 +57,19 @@
       </div>
     </div>
 
-    <!--    <div class="row">-->
-    <!--      <div class="cell-9 offset-1">-->
-    <!--        <div class="remark warning">-->
-    <!--          Please cite <em>xxx</em> if using results produced by this application-->
-    <!--          in a publication.-->
-    <!--        </div>-->
-    <!--      </div>-->
-    <!--    </div>-->
+    <div class="row">
+      <div class="cell-9 offset-1">
+        <div class="remark warning">
+          Please cite
+          <em
+            >Julius B. Kirkegaard. Simulatant: Simultaneous Curve Fitting of
+            Functions and Differential Equations using Analytical Gradient
+            Calculations, 2021</em
+          >
+          if using results produced by this application in a publication.
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
