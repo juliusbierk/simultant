@@ -1,6 +1,6 @@
 import inspect
 import time
-
+import traceback
 import torch
 from silly import sillyode
 from torch import sin, cos, exp, tensor, sqrt, asin, acos, ones, zeros, linspace, logspace, arange, \
@@ -104,6 +104,8 @@ def check_code_get_args(code, f_name, expr_mode, ode_dim, ode_dim_select):
     except Exception as e:
         logger.debug('Could not form function', exc_info=e)
         error = str(e).replace('<string>, ', '')
+
+        error += '\n\n' + "\n".join(traceback.format_exc(limit=0).split('\n')[1:-2])
         return {'error': error}
 
     try:

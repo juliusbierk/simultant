@@ -285,7 +285,7 @@
                     class="remark alert"
                     style="margin-top:0; margin-bottom:0"
                   >
-                    <b>Code error:</b> {{ code_error }}
+                    <b>Code error:</b> <samp class="multiline">{{code_error}}</samp>
                   </div>
                 </div>
               </div>
@@ -886,4 +886,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.multiline {
+  white-space: pre-wrap;
+}
+</style>

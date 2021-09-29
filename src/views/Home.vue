@@ -64,7 +64,7 @@
           <em
             >Julius B. Kirkegaard. Simulatant: Simultaneous Curve Fitting of
             Functions and Differential Equations using Analytical Gradient
-            Calculations, 2021</em
+            Calculations (2021)</em
           >
           if using results produced by this application in a publication.
         </div>
