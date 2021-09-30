@@ -1,12 +1,11 @@
 # Simulatant
 
-## Run distribution
+## Distribution
 
-
-
+Download the latest prebuilt version here:
+https://github.com/juliusbierk/simultant/releases/
 
 ## Develop / Build
-
 
 ### Install requirements
 Make sure you have node.js and Python (>= 3.8) installed
