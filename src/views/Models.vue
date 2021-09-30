@@ -285,7 +285,8 @@
                     class="remark alert"
                     style="margin-top:0; margin-bottom:0"
                   >
-                    <b>Code error:</b> <samp class="multiline">{{code_error}}</samp>
+                    <b>Code error:</b>
+                    <samp class="multiline">{{ code_error }}</samp>
                   </div>
                 </div>
               </div>

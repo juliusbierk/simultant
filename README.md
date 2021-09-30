@@ -1,7 +1,17 @@
 # Simulatant
 
-## Install requirements
-Make sure you have node.js and Python (>= 3.8) installed. Then run:
+## Run distribution
+
+
+
+
+## Develop / Build
+
+
+### Install requirements
+Make sure you have node.js and Python (>= 3.8) installed
+(and make sure that both are added to the system PATH).
+Then run:
 ```
 npm install
 (sudo) pip install -r requirements.txt
@@ -9,7 +19,7 @@ npm install
 
 ### Make virtual enviroment
 
-This is needed to build an executeable, but not needed
+This is needed to build an executable, but not needed
 to just run the code.
 
 Make environment
